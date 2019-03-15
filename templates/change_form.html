@@ -1,0 +1,75 @@
+{% extends 'layout/layout.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load model_name_templatetag %}
+
+{% block extracss %}
+    <link rel="stylesheet" href="{% static 'libs/jquery/bootstrap-datetimepicker/eonasdan-bootstrap-datetimepicker/bootstrap-datetimepicker.min.css' %}" type="text/css" />
+{% endblock %}
+
+{% block content %}
+
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md">
+          <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+
+    {% block periodo %}
+        {{ block.super }}
+    {% endblock %}
+
+    <div class="wrapper-md">
+
+        <div class="row">
+            <div class="col-md-offset-1 col-md-10">
+                <div class="col-lg-12">
+                    <div class="panel panel-default border">
+                        <div class="panel-heading wrapper">
+                            <h4 class="font-thin m-t-none m-b-none">
+                                {% if form.instance.id %}{{ titulo_form_editar }}: {{ titulo_form_editar_nombre }}
+                                {% else %} {{ titulo_form_crear }}
+                                {% endif %}
+                            </h4>
+                        </div>
+                        <div class="panel-body wrapper">
+                            {% crispy form %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}
+
+{% block extrajs %}
+    <script type="text/javascript" src="{% static 'libs/jquery/bootstrap-datetimepicker/moment/min/moment.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'libs/jquery/bootstrap-datetimepicker/moment/min/moment-with-locales.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'libs/jquery/bootstrap-datetimepicker/eonasdan-bootstrap-datetimepicker/bootstrap-datetimepicker.min.js' %}"></script>
+    {{ form.media }}
+    <script type="text/javascript">
+    // Datetime picker
+    $('input.date-time-picker').datetimepicker({
+        format: 'DD/MM/YYYY',
+        locale: 'es',
+        icons: {
+            time: "fa fa-clock-o",
+            date: "fa fa-calendar",
+            up: "fa fa-arrow-up",
+            down: "fa fa-arrow-down",
+            next: "fa fa-arrow-right",
+            previous: "fa fa-arrow-left"
+        }
+    });
+    </script>
+    <script type="text/javascript" src="{% static 'js/ajax.js' %}"></script>
+
+
+
+{% endblock %}

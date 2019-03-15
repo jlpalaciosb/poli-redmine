@@ -1,0 +1,54 @@
+<!-- aside -->
+  <aside id="aside" class="app-aside hidden-xs bg-dark">
+      <div class="aside-wrap">
+        <div class="navi-wrap">
+
+            {% block nav %}
+              <!-- nav -->
+              <nav ui-nav class="navi clearfix">
+                <ul class="nav">
+                    {% block aside-menu %}
+                        <li class="hidden-folded padder m-t m-b-sm text-muted text-xs">
+                            <span>Apps</span>
+                        </li>
+                        
+                        {% if perms.proyecto.add_proyecto %}
+                            <li>
+                                <a href="#">
+                                  <i class="glyphicon glyphicon-user icon text-info-lter"></i>
+                                  <span class="font-bold">Proyectos</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if perms.Auth.add_user %}
+                            <li>
+                                <a href="#">
+                                  <i class="glyphicon glyphicon-th-list icon text-info-lter"></i>
+                                  <span class="font-bold">Usuarios</span>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                  {% endblock %}
+
+                </ul>
+              </nav>
+              <!-- nav -->
+            {% endblock %}
+
+
+        {% block aside-footer %}
+            <!-- aside footer -->
+              <div class="wrapper m-t">
+                <div class="text-center-folded">
+                  <span class="pull-right pull-none-folded"></span>
+                  <span class="hidden-folded"></span>
+                </div>
+              </div>
+            <!-- / aside footer -->
+        {% endblock %}
+
+        </div>
+      </div>
+  </aside>
+<!-- / aside -->

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+{% load static %}
+{% load crispy_forms_tags %}
+<html lang="es" class="">
+{% block head %}
+    <head>
+        <meta charset="utf-8" />
+        <title>{% block  title%}PoliRedmine{% endblock %}</title>
+
+        <meta name="description" content="Is2" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+        {% block css %}
+            {% include 'layout/layout_css.html' %}
+        {% endblock %}
+
+        {% block extracss %}{% endblock %}
+
+    </head>
+{% endblock %}
+
+{% block body %}
+    <body>
+    <div class="app app-header-fixed ">
+
+        {% block header %}
+            {% include 'layout/layout_header.html' %}
+        {% endblock %}
+
+        {% block aside %}
+            {% include 'layout/layout_aside.html' %}
+        {% endblock %}
+
+        <!-- content -->
+        <div id="content" class="app-content" role="main">
+            <div class="app-content-body ">
+                {% block content %}
+
+                    {% block titulo %}
+
+                    {% endblock %}
+
+                    {% block breadcrumbs %}
+                        <ol class="breadcrumb" style="background-color: #f6f8f8">
+                            {% for node in  breadcrumb %}
+                                <li><a href="{{ node.url }}">{{ node.nombre }}</a></li>
+                            {% endfor %}
+                        </ol>
+
+                    {% endblock %}
+
+                    {% block periodo %}
+                        <div class="col-xs-6 col-md-6 col-lg-11" style="position: absolute;">
+                            <div class="pull-right">
+                                {% crispy form_periodo %}
+                            </div>
+                        </div>
+                    {% endblock %}
+
+                {% endblock %}
+            </div>
+        </div>
+        <!-- /content -->
+
+        {% block footer %}
+            {% include 'layout/layout_footer.html' %}
+        {% endblock %}
+
+    </div>
+
+    {% block js %}
+        {% include 'layout/layout_js.html' %}
+    {% endblock %}
+
+    {% block extrajs %}{% endblock %}
+
+    </body>
+{% endblock %}
+</html>

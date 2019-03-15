@@ -1,0 +1,13 @@
+Django==1.11.10
+django-autocomplete-light==3.2.10
+django-crispy-forms==1.7.2
+django-crontab==0.7.1
+django-datatables-view==1.16.0
+et-xmlfile==1.0.1
+jdcal==1.4
+openpyxl==2.5.5
+pdfkit==0.6.1
+psycopg2==2.7.5
+psycopg2-binary==2.7.5
+pytz==2018.5
+six==1.11.0

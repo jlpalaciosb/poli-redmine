@@ -1,0 +1,41 @@
+{% load static %}
+<script src="{% static 'libs/jquery/jquery/dist/jquery.js' %}"></script>
+<script src="{% static 'libs/jquery/bootstrap/dist/js/bootstrap.js' %}"></script>
+<script src="{% static 'libs/toastr/js/toastr.min.js' %}"></script>
+<script src="{% static 'js/ui-nav.js' %}"></script>
+<script src="{% static 'js/ui-toggle.js' %}"></script>
+<script src="{% static 'js/ui-client.js' %}"></script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        {% for message in messages %}
+              toastr.{{ message.tags }}('{{ message }}');
+        {% endfor %}
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var periodo_select_element = $('#id_periodo');
+        $(periodo_select_element).val({{ periodo_seleccionado }});
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var periodo_select_element = $('#id_periodo');
+
+        $(periodo_select_element).change(function() {
+            // Al cambiar el periodo
+            if(window.location.search === ""){
+                window.location.href = window.location.href + '?periodo=' + periodo_select_element.val();
+            }
+            else {
+                var parsed_url = jQuery.query.load(window.location.href);
+                window.location.href = parsed_url.set('periodo', periodo_select_element.val()).toString();
+            }
+
+        });
+        $(periodo_select_element).val({{ periodo_seleccionado }});
+    });
+</script>
