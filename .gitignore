@@ -1,0 +1,9 @@
+.idea
+*.pyc
+media/*
+__pycache__
+static_root
+*.jasper
+*.project
+.settings
+*.sqlite3
