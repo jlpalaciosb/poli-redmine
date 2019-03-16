@@ -1,7 +1,7 @@
-.idea
+.idea/
 *.pyc
 media/*
-__pycache__
+__pycache__/
 static_root
 *.jasper
 *.project
