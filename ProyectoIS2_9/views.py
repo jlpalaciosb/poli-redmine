@@ -5,6 +5,10 @@ from django.views.generic import TemplateView
 
 
 class IndexView(LoginRequiredMixin, TemplateView):
+    """
+    Esta vista procesa lo que es la página inicial de la
+    aplicación
+    """
     template_name = 'index.html'
 
     def get_context_data(self, **kwargs):

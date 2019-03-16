@@ -30,6 +30,8 @@ urlpatterns = [
         name='login'),
     url(r'^logout/$', LogoutView.as_view(next_page=reverse_lazy('login')), name='logout'),
 
+    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+
     url(r'^admin/', admin.site.urls),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

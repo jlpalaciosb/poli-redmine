@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'guardian',
     'proyecto',
+    'django.contrib.admindocs',
 ]
 
 MIDDLEWARE = [
