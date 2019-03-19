@@ -1,0 +1,12 @@
+{% extends 'change_form.html' %}
+{% load static %}
+{% block content %}
+    {{ block.super }}
+    {% block periodo %}
+
+    {% endblock %}
+{% endblock %}
+{% block extrajs %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static 'js/contribuyente.js' %}"></script>
+{% endblock %}
