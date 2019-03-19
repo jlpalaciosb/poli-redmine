@@ -13,6 +13,8 @@ from django.views.generic.edit import FormView
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from datetime import datetime
 
+from proyecto.forms import ProyectoForm
+from proyecto.models import Proyecto
 
 
 class CustomFilterBaseDatatableView(BaseDatatableView):
@@ -63,11 +65,11 @@ class CustomFilterBaseDatatableView(BaseDatatableView):
                 order.append('{0}{1}'.format(sdir, sortcol.replace('.', '__')))
 
         if order:
-            if order == ['periodo']:
+            if order == ['proyecto']:
                 # Si se ordena por el periodo la lista de resultados
-                return qs.order_by(*['periodo__anho'])
-            elif order == ['-periodo']:
-                return qs.order_by(*['-periodo__anho'])
+                return qs.order_by(*['proyecto__nombre'])
+            elif order == ['-proyecto']:
+                return qs.order_by(*['-proyecto__nombre'])
             return qs.order_by(*order)
         return qs
 
@@ -85,7 +87,7 @@ class CustomFilterBaseDatatableView(BaseDatatableView):
                 if search and col['searchable']:
                     # Se agrega el filtro para los nombres de operacion y de categoria
                     if self.columns[col_no] != 'operacion' and self.columns[col_no] != 'categoria':
-                        if self.columns[col_no] != 'periodo':
+                        if self.columns[col_no] != 'proyecto':
                             q |= Q(**{'{0}__icontains'.format(self.columns[col_no].replace('.', '__')): search})
                         else:
                             q |= Q(**{'{0}__anho__icontains'.format(self.columns[col_no].replace('.', '__')): search})
@@ -100,6 +102,221 @@ class CustomFilterBaseDatatableView(BaseDatatableView):
         return qs
 
 
+class ProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+    template_name = 'proyecto/proyecto/change_list.html'
+    permission_required = 'proyecto.view_proyecto'
+    permission_denied_message = 'No tiene permiso para ver este proyecto.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        context = super(ProyectoListView, self).get_context_data(**kwargs)
+        context['titulo'] = 'Lista de Proyectos'
+        context['crear_buttom'] = True
+        context['crear_url'] = reverse('crear_proyecto')
+        context['crear_text_buttom'] = 'Nuevo Proyecto'
+
+        # datatables
+        context['nombres_columnas'] = ['id', 'Nombre', 'Fecha de inicio', 'Fecha de Finalizacion',
+                                       'Estado']
+        context['order'] = [1, "asc"]
+        context['datatable_row_link'] = reverse('perfil_proyecto', args=(1,))  # pasamos inicialmente el id 1
+        context['list_json'] = reverse('proyecto_list_json')
+
+        #Breadcrumbs
+        context['breadcrumb'] = [{'nombre':'Inicio', 'url':'/'},
+                   {'nombre':'Proyectos', 'url': '#'},
+                   ]
 
 
 
+        return context
+
+
+class ProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilterBaseDatatableView):
+    model = Proyecto
+    columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada', 'estado']
+    order_columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada', 'estado']
+    max_display_length = 100
+    permission_required = 'proyecto.view_proyecto'
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+
+class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
+    model = Proyecto
+    template_name = "proyecto/proyecto/change_form.html"
+    form_class = ProyectoForm
+    permission_required = 'proyecto.add_proyecto'
+    permission_denied_message = 'No tiene permiso para Crear nuevos proyectos.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_success_message(self, cleaned_data):
+        return "Proyecto '{}' creado exitosamente.".format(cleaned_data['nombre'])
+
+    def get_success_url(self):
+        return reverse('proyectos')
+
+    def get_form_kwargs(self):
+        kwargs = super(ProyectoCreateView, self).get_form_kwargs()
+        kwargs.update({
+            'success_url': reverse('proyectos'),
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(ProyectoCreateView, self).get_context_data(**kwargs)
+        context['titulo'] = 'Proyectos'
+        context['titulo_form_crear'] = 'Insertar Datos del Nuevo Proyecto'
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': 'Crear', 'url': '#'}
+                                 ]
+
+        return context
+
+    def form_valid(self, form):
+        proyecto = form.save(commit=False)
+        if not form.instance.pk:
+            proyecto.usuario_creador_id = self.request.user.id
+            proyecto.usuario_modificador_id = self.request.user.id
+        else:
+            proyecto.usuario_modificador_id = self.request.user.id
+
+        return super().form_valid(form)
+
+
+
+
+class ProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = Proyecto
+    form_class = ProyectoForm
+    context_object_name = 'proyecto'
+    template_name = 'proyecto/proyecto/change_form.html'
+    pk_url_kwarg = 'proyecto_id'
+    permission_required = 'proyecto.change_proyecto'
+    permission_denied_message = 'No tiene permiso para Editar Proyectos.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_success_message(self, cleaned_data):
+        return "Proyecto '{}' editado exitosamente.".format(cleaned_data['nombre'])
+
+    def get_success_url(self):
+        return reverse('perfil_proyecto', kwargs=self.kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super(ProyectoUpdateView, self).get_form_kwargs()
+        kwargs.update({
+            'success_url': self.get_success_url(),
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(ProyectoUpdateView, self).get_context_data(**kwargs)
+        context['titulo'] = 'Proyecto'
+        context['titulo_form_editar'] = 'Datos del Proyecto'
+        context['titulo_form_editar_nombre'] = context[ProyectoUpdateView.context_object_name].nombre
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': context['proyecto'].nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
+                                 {'nombre': 'Editar', 'url': '#'},
+                                 ]
+
+        return context
+
+    def form_valid(self, form):
+        proyecto = form.save(commit=False)
+        if not form.instance.pk:
+            proyecto.usuario_creador_id = self.request.user.id
+            proyecto.usuario_modificador_id = self.request.user.id
+        else:
+            proyecto.usuario_modificador_id = self.request.user.id
+
+        return super().form_valid(form)
+
+
+class ProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+    model = Proyecto
+    context_object_name = 'proyecto'
+    template_name = 'proyecto/proyecto/change_list_perfil.html'
+    pk_url_kwarg = 'proyecto_id'
+    permission_required = 'proyecto.view_proyecto'
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        context = super(ProyectoPerfilView, self).get_context_data(**kwargs)
+        context['titulo'] = 'Perfil de Ṕroyecto'
+
+        # context['crear_buttom'] = True
+        # context['crear_ingreso_url'] = reverse('crear_ingreso', args=(context['contribuyente'].id, ))
+        # context['crear_egreso_url'] = reverse('crear_egreso', args=(context['contribuyente'].id,))
+        #
+        # context['crear_ingreso_text_buttom'] = 'Nuevo Ingreso'
+        # context['crear_egreso_text_buttom'] = 'Nuevo Egreso'
+        #
+        # # prestamos
+        # context['lista_prestamos_buttom'] = 'Préstamos'
+        # context['lista_prestamos_url'] = reverse('prestamos', args=(context['contribuyente'].id,))
+        #
+        # # resultados
+        # context['lista_resultados_buttom'] = 'Resultados'
+        # context['lista_resultados_url'] = reverse('resultados', args=(context['contribuyente'].id,))
+        #
+        # context['ingresos_text_tab'] = 'Ingresos'
+        # context['egregsos_text_tab'] = 'Egresos'
+        #
+        # # importar url
+        # context['importar_ingresos_url'] = reverse('importar_ingresos', args=(context['contribuyente'].id,))
+        # context['importar_egresos_url'] = reverse('importar_egresos', args=(context['contribuyente'].id,))
+        # context['pdf_generate_formulario104v3_url'] = reverse('pdf_generate_formulario104v3', args=(context['contribuyente'].id,))
+        #
+        # # Error importacion
+        # error_importacion = self.request.session['error_importacion'] if 'error_importacion' in self.request.session else None
+        #
+        # if error_importacion:
+        #     del self.request.session['error_importacion']
+        #     context['error_importacion_exists'] = error_importacion
+        #
+        # # datatables
+        # tipo = self.request.GET.get('tipo', None)  # tipo ingreso o egreso
+        # if tipo:
+        #     if tipo == 'ingreso':
+        #         context['nombres_columnas'] = ['id', 'Fecha', 'Tipo de Documento', 'Operación',
+        #                                        'Ingreso Gravado', 'Ingreso No Gravado']
+        #         context['order'] = [1, "asc"]
+        #         context['datatable_row_link'] = reverse('editar_ingreso', args=(
+        #             context['contribuyente'].id, 1))  # pasamos inicialmente el id 1
+        #         context['list_json'] = reverse('ingreso_list_json', args=(context['contribuyente'].id,))
+        #
+        #     elif tipo == 'egreso':
+        #         context['nombres_columnas'] = ['id', 'Fecha', 'Tipo de Documento', 'Operación', 'Egreso Total']
+        #         context['order'] = [1, "asc"]
+        #         context['datatable_row_link'] = reverse('editar_egreso', args=(
+        #             context['contribuyente'].id, 1))  # pasamos inicialmente el id 1
+        #         context['list_json'] = reverse('egreso_list_json', args=(context['contribuyente'].id,))
+        # else:
+        #     context['nombres_columnas'] = ['id', 'Fecha', 'Tipo de Documento', 'Operación',
+        #                                    'Ingreso Gravado', 'Ingreso No Gravado']
+        #     context['order'] = [1, "asc"]
+        #     context['datatable_row_link'] = reverse('editar_ingreso', args=(
+        #         context['contribuyente'].id, 1))  # pasamos inicialmente el id 1
+        #     context['list_json'] = reverse('ingreso_list_json', args=(context['contribuyente'].id, ))
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': context['proyecto'].nombre,'url': '#'}
+                                 ]
+
+        return context
