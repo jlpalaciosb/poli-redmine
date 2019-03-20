@@ -120,4 +120,4 @@ class Actividad(models.Model):
     horasTrabajadas = models.IntegerField(verbose_name='Horas Trabajadas')
     fase = models.ForeignKey(Fase)  # sin relacion directa con el flujo?
     estado = models.IntegerField(verbose_name='Estado')
-    us_sprint = models.Model(UserStorySprint)
+    us_sprint = models.ForeignKey(UserStorySprint)
