@@ -37,6 +37,7 @@ class Cliente(models.Model):
     telefono = models.CharField(verbose_name='Telefono', max_length=30)
 
 
+"""
 class PermisoProyecto(models.Model):
     descripcion = models.CharField(verbose_name='Descripcion', max_length=100, unique=True)
 
@@ -50,6 +51,7 @@ class RolDeProyecto(models.Model):
 class MiembroProyecto(models.Model):
     usuario = models.ForeignKey(User)
     rol = models.ManyToManyField('RolDeProyecto')
+"""
 
 
 class Sprint(models.Model):
@@ -105,25 +107,17 @@ class ValorCampoPersonalizado(models.Model):
     valor = models.CharField(verbose_name='Valor del Campo Personalizado', max_length=100)
 
 
+class UserStorySprint(models.Model):
+    us = models.ForeignKey(UserStory)
+    sprint = models.ForeignKey(Sprint)
+    miembro = models.ForeignKey(User)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+class Actividad(models.Model):
+    nombre = models.CharField(verbose_name='Nombre', max_length=20)
+    descripcion = models.CharField(verbose_name='Descripcion', max_length=100)
+    # archivos adjuntos. como?
+    horasTrabajadas = models.IntegerField(verbose_name='Horas Trabajadas')
+    fase = models.ForeignKey(Fase)  # sin relacion directa con el flujo?
+    estado = models.IntegerField(verbose_name='Estado')
+    us_sprint = models.Model(UserStorySprint)
