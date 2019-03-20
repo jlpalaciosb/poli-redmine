@@ -1,12 +1,12 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-ESTADOS_PROYECTO=(('PENDIENTE', 'Pendiente'),
-                   ('EN EJECUCION', 'En Ejecucion'),
-                   ('TERMINADO', 'Terminado'),
-                   ('CANCELADO', 'Cancelado'),
-                   ('SUSPENDIDO', 'Suspendido'),
-                   )
+ESTADOS_PROYECTO = (('PENDIENTE', 'Pendiente'),
+                    ('EN EJECUCION', 'En Ejecucion'),
+                    ('TERMINADO', 'Terminado'),
+                    ('CANCELADO', 'Cancelado'),
+                    ('SUSPENDIDO', 'Suspendido'),
+                    )
 
 
 class Proyecto(models.Model):
@@ -21,14 +21,14 @@ class Proyecto(models.Model):
     # cliente= models.ForeignKey(Cliente,related_name='proyecto_cliente')
     fechaInicioEstimada = models.DateField(verbose_name='Fecha de Inicio Estimada', null=True, blank=True)
     fechaFinEstimada = models.DateField(verbose_name='Fecha de Finalizacion Estimada', null=True, blank=True)
-    duracionSprint = models.IntegerField(verbose_name='Duracion del Sprint',default=5)
-    diasHabiles = models.IntegerField(verbose_name='Cantidad de dias Habiles en la Semana',default=5)
-    estado = models.CharField(verbose_name='Estado', choices=ESTADOS_PROYECTO,max_length=30,default='PENDIENTE')
+    duracionSprint = models.IntegerField(verbose_name='Duracion del Sprint', default=5)
+    diasHabiles = models.IntegerField(verbose_name='Cantidad de dias Habiles en la Semana', default=5)
+    estado = models.CharField(verbose_name='Estado', choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
     usuario_creador = models.ForeignKey(User, related_name='usuario_contribuyente_creador')
     usuario_modificador = models.ForeignKey(User, related_name='usuario_contribuyente_modificador')
 
 
-class Cliente(models.Models):
+class Cliente(models.Model):
     ruc = models.IntegerField(verbose_name='RUC')
     nombre = models.CharField(verbose_name='Nombre y Apellido', max_length=50)
     direccion = models.CharField(verbose_name='Direccion', max_length=100)
@@ -52,43 +52,57 @@ class MiembroProyecto(models.Model):
     rol = models.ManyToManyField('RolDeProyecto')
 
 
-class Fase(models.Model):
+class Sprint(models.Model):
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
-    orden = models.IntegerField(verbose_name='Orden')
+    duracion = models.IntegerField(verbose_name='Duracion')
+    fechaInicio = models.DateField(verbose_name='Fecha de Inicio')
+    estado = models.IntegerField(verbose_name='Estado')
+    capacidad = models.IntegerField(verbose_name='Capacidad')
+    miembros = models.ManyToManyField(User)
 
 
 class Flujo(models.Model):
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
-    fase = models.ForeignKey(Fase)  # oneToMany???
 
 
+class Fase(models.Model):
+    flujo = models.ForeignKey(Flujo)
+    nombre = models.CharField(verbose_name='Nombre', max_length=20)
+    orden = models.IntegerField(verbose_name='Orden')
 
 
+class TipoUS(models.Model):
+    nombre = models.CharField(verbose_name='Nombre', max_length=20)
 
 
+class CampoPersonalizado(models.Model):
+    tipoUS = models.ForeignKey(TipoUS)
+    campo = models.CharField(verbose_name='Campo Personalizado', max_length=20)
+    tipoDeDato = models.CharField(verbose_name='Tipo de Dato', max_length=7)
 
 
+class UserStory(models.Model):
+    descripcionCorta = models.CharField(verbose_name='Descripcion Corta', max_length=50)
+    descripcion = models.CharField(verbose_name='Descripcion', max_length=100)
+    criterioAceptacion = models.CharField(verbose_name='Criterio de Aceptacion', max_length=100)
+    valorNegocio = models.IntegerField(verbose_name='Valor de Negocio')
+    valorTecnico = models.IntegerField(verbose_name='Valor Tecnico')
+    prioridad = models.IntegerField(verbose_name='Prioridad')
+    tiempoPlanificado = models.IntegerField(verbose_name='Tiempo Planificado')
+    tiempoEjecutado = models.IntegerField(verbose_name='Tiempo Ejecutado')
+    estadoSistema = models.IntegerField(verbose_name="Estado en el Sistema")
+    tipo = models.ForeignKey(TipoUS)
+    flujo = models.ForeignKey(Flujo)
+    faseActual = models.IntegerField(verbose_name='Fase actual en el flujo')
+    estadoFaseActual = models.IntegerField(verbose_name='Estado actual en la fase actual del flujo')
+    proyecto = models.ForeignKey(Proyecto)
+    sprint = models.ForeignKey(Sprint)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+class ValorCampoPersonalizado(models.Model):
+    us = models.ForeignKey(UserStory)
+    tipoUs = models.ForeignKey(TipoUS)
+    valor = models.CharField(verbose_name='Valor del Campo Personalizado', max_length=100)
 
 
 
