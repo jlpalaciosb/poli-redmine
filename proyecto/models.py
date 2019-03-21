@@ -67,7 +67,7 @@ class Sprint(models.Model):
     estado = models.IntegerField(verbose_name='Estado')
     capacidad = models.IntegerField(verbose_name='Capacidad')
     miembros = models.ManyToManyField(User)
-    proyecto = models.ForeignKey(Proyecto, null=True)
+    proyecto = models.ForeignKey(Proyecto)
 
 
 class Flujo(models.Model):
@@ -75,7 +75,7 @@ class Flujo(models.Model):
     La clase Flujo representa a un flujo de algun proyecto especifico
     """
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
-    proyecto = models.ForeignKey(Proyecto, null=True)
+    proyecto = models.ForeignKey(Proyecto)
 
 
 class Fase(models.Model):
@@ -92,7 +92,7 @@ class TipoUS(models.Model):
     La clase TipoUS representa a un Tipo de User Story de un proyecto especifico
     """
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
-    proyecto = models.ForeignKey(Proyecto, null=True)
+    proyecto = models.ForeignKey(Proyecto)
 
 
 class CampoPersonalizado(models.Model):
@@ -100,7 +100,7 @@ class CampoPersonalizado(models.Model):
     La clase CampoPersonalizado representa a un campo personalizado de un
     Tipo de User Story especifico
     """
-    tipoUS = models.ForeignKey(TipoUS, null=True)
+    tipoUS = models.ForeignKey(TipoUS)
     campo = models.CharField(verbose_name='Campo Personalizado', max_length=20)
     tipoDeDato = models.CharField(verbose_name='Tipo de Dato', max_length=7)
 
@@ -132,7 +132,7 @@ class ValorCampoPersonalizado(models.Model):
     en un User Story especifico
     """
     us = models.ForeignKey(UserStory)
-    campoPersonalizado = models.ForeignKey(CampoPersonalizado, null=True)
+    campoPersonalizado = models.ForeignKey(CampoPersonalizado)
     valor = models.CharField(verbose_name='Valor del Campo Personalizado', max_length=100)
 
 
@@ -153,7 +153,7 @@ class Actividad(models.Model):
     """
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
     descripcion = models.CharField(verbose_name='Descripcion', max_length=100)
-    responsable = models.ForeignKey(User, null=True)
+    responsable = models.ForeignKey(User)
     # archivos adjuntos. como?
     horasTrabajadas = models.IntegerField(verbose_name='Horas Trabajadas')
     fase = models.ForeignKey(Fase)
