@@ -1,0 +1,58 @@
+{% extends 'change_list.html' %}
+{% load static %}
+{% block content %}
+    {{ block.super }}
+
+{% endblock %}
+
+{% block detail %}
+    <div class="well m-t bg-light lt">
+      <div class="row">
+        <div class="col-xs-4">
+          <h4>{{ proyecto.nombre }}</h4>
+          <p>
+              <strong>Nombre del Proyecto: </strong>   {{ proyecto.nombre|default_if_none:"" }}<br><br>
+              <strong>Descripcion:</strong>   {{ proyecto.descripcion|default_if_none:"" }}<br>
+          </p>
+        </div>
+
+        <div class="col-xs-4">
+          <h4>&nbsp;</h4>
+          <p>
+            <strong>Fecha de Inicio Estimada:</strong>   {{ proyecto.fechaInicioEstimada|default_if_none:"" }}<br><br>
+            <strong>Fecha de Finalizacion Estimada:</strong>   {{ proyecto.fechaFinEstimada|default_if_none:"" }}<br>
+          </p>
+        </div>
+          <div class="col-xs-4">
+              <h4>&nbsp;</h4>
+              <p>
+                <strong>Duracion del Sprint:</strong>   {{ proyecto.duracionSprint|default_if_none:"" }}<br><br>
+                <strong>Cantidad de Dias Habiles:</strong>   {{ proyecto.diasHabiles|default_if_none:"" }}<br><br>
+                <strong>Estado:</strong>   {{ proyecto.estado|default_if_none:"" }}<br><br>
+              </p>
+          </div>
+      </div>
+      <div class="row">
+        <input type="hidden" id="error_importacion_id" value="{{ error_importacion_exists }}"/>
+
+        <div class="col-xs-12">
+            {% if perms.proyecto.change_proyecto %}
+                <a href="{% url 'editar_proyecto' proyecto.id %}">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Editar
+                  </button>
+                </a>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+{% endblock %}
+
+{% block extrajs %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static 'js/jquery.query-object.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/tabs.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/importar_error.js' %}"></script>
+
+{% endblock %}
