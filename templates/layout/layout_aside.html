@@ -28,6 +28,14 @@
                                 </a>
                             </li>
                         {% endif %}
+                        {% if perms.cliente.add_cliente %}
+                            <li>
+                                <a href="{% url 'clientes' %}">
+                                    <i class="glyphicon glyphicon-king icon text-info-lter"></i>
+                                    <span class="font-bold">Clientes</span>
+                                </a>
+                            </li>
+                        {% endif %}
 
                   {% endblock %}
 
