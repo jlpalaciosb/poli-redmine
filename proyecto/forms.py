@@ -5,7 +5,7 @@ from dal import autocomplete
 from django import forms
 from django.forms import ModelForm, DateInput, Form
 
-from proyecto.models import Proyecto
+from proyecto.models import Proyecto, Cliente
 
 
 class ProyectoForm(ModelForm):
@@ -46,9 +46,9 @@ class ProyectoForm(ModelForm):
 
 class ClienteForm(ModelForm):
     class Meta:
-        model = Proyecto
-        fields = ['nombre', 'descripcion', 'duracionSprint',
-                  'diasHabiles', 'fechaInicioEstimada', 'fechaFinEstimada', 'estado']
+        model = Cliente
+        fields = ['ruc', 'nombre', 'direccion',
+                  'pais', 'correo', 'telefono']
         widgets = {
             'fechaInicioEstimada': DateInput(attrs={'class': 'date-time-picker'}),
             'fechaFinEstimada': DateInput(attrs={'class': 'date-time-picker'}),
@@ -63,15 +63,12 @@ class ClienteForm(ModelForm):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-8'
         layout = [
+            'ruc',
             'nombre',
-            'descripcion',
-            'duracionSprint',
-            'diasHabiles',
-            AppendedText('fechaInicioEstimada',
-                         '<span class="glyphicon glyphicon-calendar"></span>'),
-            AppendedText('fechaFinEstimada',
-                         '<span class="glyphicon glyphicon-calendar"></span>'),
-            'estado',
+            'direccion',
+            'pais',
+            'correo',
+            'telefono',
             FormActions(
                 Submit('guardar', 'Guardar'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),

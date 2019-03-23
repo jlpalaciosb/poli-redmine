@@ -1,0 +1,51 @@
+{% extends 'layout/layout.html' %}
+
+{% block content %}
+    <div id="popup" class="modal fade" role="dialog"></div>
+
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3 col-lg-6">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+
+    <div class="wrapper-md">
+        {% block detail %}
+            <div class="well m-t bg-light lt">
+                <div class="row">
+                    <div class="col-xs-6">
+                        <h4>{{ cliente.nombre }}</h4>
+                        <p>
+                            <strong>RUC: </strong>{{ cliente.ruc }}<br><br>
+                            <strong>Dirección: </strong>{{  cliente.direccion }}<br>
+                        </p>
+                    </div>
+                    <div class="col-xs-6">
+                        <h4>&nbsp;</h4>
+                        <p>
+                            <strong>Correo: </strong>{{ cliente.correo }}<br><br>
+                            <strong>Teléfono: </strong>{{ cliente.telefono }}<br><br>
+                            <strong>País: </strong>{{ cliente.pais }}<br><br>
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        {% if perms.proyecto.change_cliente %}
+                            <a href="{% url 'editar_cliente' cliente.id %}">
+                                <button class="btn m-b-xs btn-default btn-addon ">
+                                    <i class="fa fa-pencil"></i>
+                                    Editar
+                                </button>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endblock %}
+    </div>
+{% endblock %}

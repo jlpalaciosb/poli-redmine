@@ -44,7 +44,7 @@
                     <div class="panel-body table-responsive">
                         {% block results %}
                             <div class="row">
-                                <table class="table table-hover table-responsive datatable">
+                                <table class="table table-hover table-responsive datatable" style="width: 100%">
                                     <thead>
                                     {% for columna in nombres_columnas %}
                                         <th>{{ columna }}</th>
@@ -75,30 +75,12 @@
                     {"visible": false, "targets": 0},
                     {"width": "10%", "targets": 1}
                 ],
-                {% if not contribuyente %}
-                   'createdRow': function( row, data, dataIndex) {
+                "createdRow": function( row, data, dataIndex) {
                        var url = '{{ datatable_row_link }}';
                        url = url.replace(1, data[0]);
                        $(row).attr('data-href', url);
                        $(row).attr('class', "tr-href");
                    },
-                {% endif %}
-
-                {% if contribuyente %}
-                   'createdRow': function( row, data, dataIndex) {
-                       var url = '{{ datatable_row_link }}';
-
-                       var ingresos_string_url = url.split('/contribuyentes/')[1];
-                       var vector = ingresos_string_url.split('/');
-                       vector[2] = data[0];
-                       var url_string_vector = vector.join('/');
-
-                       url = '/contribuyentes/' + url_string_vector;
-                       $(row).attr('data-href', url);
-                       $(row).attr('class', "tr-href");
-                   },
-                {% endif %}
-
                 "processing": true,
                 "serverSide": true,
                 "ajax": '{{ list_json }}',
