@@ -2,7 +2,6 @@
 {% load static %}
 {% block content %}
     {{ block.super }}
-
 {% endblock %}
 
 {% block detail %}
@@ -33,8 +32,6 @@
           </div>
       </div>
       <div class="row">
-        <input type="hidden" id="error_importacion_id" value="{{ error_importacion_exists }}"/>
-
         <div class="col-xs-12">
             {% if perms.proyecto.change_proyecto %}
                 <a href="{% url 'editar_proyecto' proyecto.id %}">
@@ -48,7 +45,80 @@
       </div>
     </div>
 {% endblock %}
-
+{% block results %}
+    <div class="row">
+        <div class="col-xs-12">
+            {% if perms.proyecto.change_proyecto %}
+                <a href="#">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    User History
+                  </button>
+                </a>
+            {% endif %}
+        </div>
+      </div>
+    <div class="row">
+        <div class="col-xs-12">
+            {% if perms.proyecto.change_proyecto %}
+                <a href="#">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Roles
+                  </button>
+                </a>
+            {% endif %}
+        </div>
+      </div>
+    <div class="row">
+        <div class="col-xs-12">
+            {% if perms.proyecto.change_proyecto %}
+                <a href="#">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Miembros
+                  </button>
+                </a>
+            {% endif %}
+        </div>
+      </div>
+    <div class="row">
+        <div class="col-xs-12">
+            {% if perms.proyecto.change_proyecto %}
+                <a href="#">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Flujos
+                  </button>
+                </a>
+            {% endif %}
+        </div>
+      </div>
+    <div class="row">
+        <div class="col-xs-12">
+            {% if perms.proyecto.change_proyecto %}
+                <a href="#">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Sprint
+                  </button>
+                </a>
+            {% endif %}
+        </div>
+      </div>
+    <div class="row">
+        <div class="col-xs-12">
+            {% if perms.proyecto.change_proyecto %}
+                <a href="#">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Tipo de US
+                  </button>
+                </a>
+            {% endif %}
+        </div>
+      </div>
+{% endblock %}
 {% block extrajs %}
     {{ block.super }}
     <script type="text/javascript" src="{% static 'js/jquery.query-object.js' %}"></script>
