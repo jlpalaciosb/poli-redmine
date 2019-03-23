@@ -67,7 +67,7 @@ class Sprint(models.Model):
     estado = models.IntegerField(verbose_name='Estado')
     capacidad = models.IntegerField(verbose_name='Capacidad')
     miembros = models.ManyToManyField(User)
-    proyecto = models.ForeignKey(Proyecto)
+    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
 
 
 class Flujo(models.Model):
@@ -75,14 +75,14 @@ class Flujo(models.Model):
     La clase Flujo representa a un flujo de algun proyecto especifico
     """
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
-    proyecto = models.ForeignKey(Proyecto)
+    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
 
 
 class Fase(models.Model):
     """
     La clase Fase representa a una fase de algun flujo específico
     """
-    flujo = models.ForeignKey(Flujo)
+    flujo = models.ForeignKey(Flujo, on_delete=models.CASCADE)
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
     orden = models.IntegerField(verbose_name='Orden')
 
@@ -92,7 +92,7 @@ class TipoUS(models.Model):
     La clase TipoUS representa a un Tipo de User Story de un proyecto especifico
     """
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
-    proyecto = models.ForeignKey(Proyecto)
+    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
 
 
 class CampoPersonalizado(models.Model):
@@ -100,7 +100,7 @@ class CampoPersonalizado(models.Model):
     La clase CampoPersonalizado representa a un campo personalizado de un
     Tipo de User Story especifico
     """
-    tipoUS = models.ForeignKey(TipoUS)
+    tipoUS = models.ForeignKey(TipoUS, on_delete=models.CASCADE)
     campo = models.CharField(verbose_name='Campo Personalizado', max_length=20)
     tipoDeDato = models.CharField(verbose_name='Tipo de Dato', max_length=7)
 
@@ -118,11 +118,11 @@ class UserStory(models.Model):
     tiempoPlanificado = models.IntegerField(verbose_name='Tiempo Planificado')
     tiempoEjecutado = models.IntegerField(verbose_name='Tiempo Ejecutado')
     estadoSistema = models.IntegerField(verbose_name="Estado en el Sistema")
-    tipo = models.ForeignKey(TipoUS)
-    flujo = models.ForeignKey(Flujo)
-    faseActual = models.IntegerField(verbose_name='Fase actual en el flujo')
+    tipo = models.ForeignKey(TipoUS, on_delete=models.SET_NULL, null=True)
+    flujo = models.ForeignKey(Flujo, on_delete=models.SET_NULL, null=True)
+    faseActual = models.ForeignKey(Fase, on_delete=models.SET_NULL, null=True)
     estadoFaseActual = models.IntegerField(verbose_name='Estado actual en la fase actual del flujo')
-    proyecto = models.ForeignKey(Proyecto)
+    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
 
 
 class ValorCampoPersonalizado(models.Model):
@@ -131,8 +131,8 @@ class ValorCampoPersonalizado(models.Model):
     a un campo personalizado de un Tipo de User Story especifico
     en un User Story especifico
     """
-    us = models.ForeignKey(UserStory)
-    campoPersonalizado = models.ForeignKey(CampoPersonalizado)
+    us = models.ForeignKey(UserStory, on_delete=models.CASCADE)
+    campoPersonalizado = models.ForeignKey(CampoPersonalizado, on_delete=models.CASCADE)
     valor = models.CharField(verbose_name='Valor del Campo Personalizado', max_length=100)
 
 
@@ -141,9 +141,9 @@ class UserStorySprint(models.Model):
     La clase UserStorySprint es la representacion de un elemento dentro del
     Sprint Backlog de un Sprint especifico
     """
-    us = models.ForeignKey(UserStory)
-    sprint = models.ForeignKey(Sprint)
-    miembro = models.ForeignKey(User)
+    us = models.ForeignKey(UserStory, on_delete=models.CASCADE)
+    sprint = models.ForeignKey(Sprint, on_delete=models.CASCADE)
+    miembro = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
 class Actividad(models.Model):
@@ -153,9 +153,9 @@ class Actividad(models.Model):
     """
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
     descripcion = models.CharField(verbose_name='Descripcion', max_length=100)
-    responsable = models.ForeignKey(User)
+    responsable = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     # archivos adjuntos. como?
     horasTrabajadas = models.IntegerField(verbose_name='Horas Trabajadas')
-    fase = models.ForeignKey(Fase)
+    fase = models.ForeignKey(Fase, on_delete=models.SET_NULL, null=True)
     estado = models.IntegerField(verbose_name='Estado')
     us_sprint = models.ForeignKey(UserStorySprint)
