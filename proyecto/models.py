@@ -158,4 +158,4 @@ class Actividad(models.Model):
     horasTrabajadas = models.IntegerField(verbose_name='Horas Trabajadas')
     fase = models.ForeignKey(Fase, on_delete=models.SET_NULL, null=True)
     estado = models.IntegerField(verbose_name='Estado')
-    us_sprint = models.ForeignKey(UserStorySprint)
+    us_sprint = models.ForeignKey(UserStorySprint, on_delete=models.SET_NULL, null=True)
