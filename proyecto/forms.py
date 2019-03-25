@@ -49,10 +49,6 @@ class ClienteForm(ModelForm):
         model = Cliente
         fields = ['ruc', 'nombre', 'direccion',
                   'pais', 'correo', 'telefono']
-        widgets = {
-            'fechaInicioEstimada': DateInput(attrs={'class': 'date-time-picker'}),
-            'fechaFinEstimada': DateInput(attrs={'class': 'date-time-picker'}),
-        }
 
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')

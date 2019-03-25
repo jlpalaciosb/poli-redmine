@@ -21,6 +21,7 @@ class ClienteListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
         context = super(ClienteListView, self).get_context_data(**kwargs)
         context['titulo'] = 'Lista de Clientes'
         context['crear_url'] = reverse('crear_cliente')
+        context['crear_button'] = True
         context['crear_button_text'] = 'Nuevo Cliente'
 
         # datatable
@@ -57,7 +58,7 @@ class ClientePerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView)
 
     def get_context_data(self, **kwargs):
         context = super(ClientePerfilView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Perfil de Cliente'
+        context['titulo'] = 'Perfil del Cliente'
 
         # breadcrumb
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
@@ -106,20 +107,20 @@ class ClienteCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
 class ClienteUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Cliente
     form_class = ClienteForm
-    context_object_name = 'proyecto'
+    context_object_name = 'cliente'
     template_name = 'proyecto/cliente/cliente_form.html'
-    pk_url_kwarg = 'proyecto_id'
-    permission_required = 'proyecto.change_proyecto'
-    permission_denied_message = 'No tiene permiso para Editar Proyectos.'
+    pk_url_kwarg = 'cliente_id'
+    permission_required = 'proyecto.change_cliente'
+    permission_denied_message = 'No tiene permiso para editar clientes.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
-        return "Proyecto '{}' editado exitosamente.".format(cleaned_data['nombre'])
+        return "Cliente '{}' editado exitosamente.".format(cleaned_data['nombre'])
 
     def get_success_url(self):
-        return reverse('perfil_proyecto', kwargs=self.kwargs)
+        return reverse('perfil_cliente', kwargs=self.kwargs)
 
     def get_form_kwargs(self):
         kwargs = super(ClienteUpdateView, self).get_form_kwargs()
@@ -130,25 +131,15 @@ class ClienteUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
 
     def get_context_data(self, **kwargs):
         context = super(ClienteUpdateView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Proyecto'
-        context['titulo_form_editar'] = 'Datos del Proyecto'
-        context['titulo_form_editar_nombre'] = context[ClienteUpdateView.context_object_name].nombre
+        context['titulo'] = 'Editar Cliente'
+        context['titulo_form_editar'] = 'Datos del Cliente'
+        context['titulo_form_editar_nombre'] = context['cliente'].nombre
 
-        # Breadcrumbs
+        # breadcrumb
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
-                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
-                                 {'nombre': context['proyecto'].nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
+                                 {'nombre': 'Clientes', 'url': reverse('clientes')},
+                                 {'nombre': context['cliente'].nombre, 'url': self.get_success_url()},
                                  {'nombre': 'Editar', 'url': '#'},
-                                 ]
+                                ]
 
         return context
-
-    def form_valid(self, form):
-        proyecto = form.save(commit=False)
-        if not form.instance.pk:
-            proyecto.usuario_creador_id = self.request.user.id
-            proyecto.usuario_modificador_id = self.request.user.id
-        else:
-            proyecto.usuario_modificador_id = self.request.user.id
-
-        return super().form_valid(form)
