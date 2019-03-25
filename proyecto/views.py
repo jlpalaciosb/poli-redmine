@@ -113,9 +113,9 @@ class ProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView
     def get_context_data(self, **kwargs):
         context = super(ProyectoListView, self).get_context_data(**kwargs)
         context['titulo'] = 'Lista de Proyectos'
-        context['crear_buttom'] = True
+        context['crear_button'] = True
         context['crear_url'] = reverse('crear_proyecto')
-        context['crear_text_buttom'] = 'Nuevo Proyecto'
+        context['crear_button_text'] = 'Nuevo Proyecto'
 
         # datatables
         context['nombres_columnas'] = ['id', 'Nombre', 'Fecha de inicio', 'Fecha de Finalizacion',
