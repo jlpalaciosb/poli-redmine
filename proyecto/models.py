@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User,Group
 from django.db import models
 
 ESTADOS_PROYECTO = (('PENDIENTE', 'Pendiente'),
@@ -39,22 +39,6 @@ class Proyecto(models.Model):
     usuario_creador = models.ForeignKey(User, related_name='usuario_contribuyente_creador')
     usuario_modificador = models.ForeignKey(User, related_name='usuario_contribuyente_modificador')
 
-
-"""
-class PermisoProyecto(models.Model):
-    descripcion = models.CharField(verbose_name='Descripcion', max_length=100, unique=True)
-
-
-class RolDeProyecto(models.Model):
-    nombre = models.CharField(verbose_name='Nombre', max_length=50, unique=True)
-    permisos = models.ManyToManyField('PermisoProyecto')
-    proyecto = models.ForeignKey(Proyecto)  # on_delete no se especifica?
-
-
-class MiembroProyecto(models.Model):
-    usuario = models.ForeignKey(User)
-    rol = models.ManyToManyField('RolDeProyecto')
-"""
 
 
 class Sprint(models.Model):
@@ -159,3 +143,52 @@ class Actividad(models.Model):
     fase = models.ForeignKey(Fase)
     estado = models.IntegerField(verbose_name='Estado')
     us_sprint = models.ForeignKey(UserStorySprint)
+
+class RolProyecto(Group):
+    """
+
+    """
+    ##group = models.OneToOneField(Group, related_name='rol_es_grupo')
+    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
+
+    ##class Meta:
+      ##  unique_together = ("group" , "proyecto")
+
+class RolAdministrativo(Group):
+    """
+        Se pretende agrupar todos los Groups que solo serviran de Rol Administrativo. Con esta clase se podra obtener ese comportamiento
+    """
+    ##group = models.OneToOneField(Group)
+
+
+class MiembroProyecto(models.Model):
+    """
+    La clase
+    """
+    user = models.OneToOneField(User)
+    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
+    roles = models.ManyToManyField(RolProyecto)
+    class Meta:
+        unique_together = ("user","proyecto")
+    def save(self, *args, **kwargs):
+        """
+        Se sobreescribe el metodo para que cada vez un rol de proyecto sea anadido a un miembro, el group asociado al rol sea asociado con el usuario
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        if(self.id is not None):
+            rolesAnteriores=MiembroProyecto.objects.get(pk=self.id).roles.all()
+            for aux in rolesAnteriores:
+                """
+                Se le quita todos los groups de todos los roles al usuario asociado  miembro
+                """
+                self.user.groups.remove(aux.group_ptr)
+
+            rolesActuales=self.roles.all()
+            for aux in rolesActuales:
+                self.user.groups.add(aux.group_ptr)
+
+            self.user.save()
+
+        super(MiembroProyecto, self).save(*args, **kwargs)

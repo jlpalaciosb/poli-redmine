@@ -1,3 +1,5 @@
 from django.contrib import admin
-
-# Register your models here.
+from .models import RolAdministrativo,RolProyecto, Proyecto
+admin.site.register(RolAdministrativo)
+admin.site.register(RolProyecto)
+admin.site.register(Proyecto)
