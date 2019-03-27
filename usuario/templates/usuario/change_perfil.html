@@ -1,0 +1,55 @@
+{% extends 'layout/layout.html' %}
+{% load static %}
+
+
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3 col-lg-6">{{ titulo }}</h1>
+            <br>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+
+    <div class="well m-t bg-light lt">
+      <div class="row">
+
+        <div class="col-xs-4">
+          <h4>{{ usuario.get_full_name }}</h4>
+          <p>
+              <strong>Nombre del Usuario: </strong>   {{ usuario.username|default_if_none:"" }}<br><br>
+          </p>
+        </div>
+
+        <div class="col-xs-6">
+          <h4>&nbsp;</h4>
+          <p>
+              <strong>Roles Administrativos: </strong>  <br>
+              <ul>
+                {% for roles in usuario.groups.all %}
+                    {% if roles.roladministrativo %}
+                    <li>{{  roles.roladministrativo.name }}</li>
+                    {% endif %}
+                {% endfor %}
+              </ul>
+              <br>
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+            {% if perms.proyecto.change_proyecto %}
+                <a href="{% url 'usuario:editar' usuario.id %}">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Editar
+                  </button>
+                </a>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+{% endblock %}

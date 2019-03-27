@@ -30,6 +30,8 @@ urlpatterns = [
 
     url(r'^roles/', include('roles_sistema.urls')),
 
+    url(r'^usuarios/', include('usuario.urls')),
+
     url(r'^login/$', LoginView.as_view(template_name='login/login.html', redirect_authenticated_user=True),
         name='login'),
     url(r'^logout/$', LogoutView.as_view(next_page=reverse_lazy('login')), name='logout'),
