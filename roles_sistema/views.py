@@ -34,7 +34,7 @@ class RolListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
         # datatables
         context['nombres_columnas'] = ['id', 'Nombre']
         context['order'] = [1, "asc"]
-        context['datatable_row_link'] = reverse('rol_sistema:editar', args=(1,))  # pasamos inicialmente el id 1
+        context['datatable_row_link'] = reverse('rol_sistema:ver', args=(1,))  # pasamos inicialmente el id 1
         context['list_json'] = reverse('rol_sistema:lista_json')
 
         #Breadcrumbs
@@ -106,7 +106,7 @@ class RolUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageM
         return "Rol Administrativo '{}' editado exitosamente.".format(cleaned_data['name'])
 
     def get_success_url(self):
-        return reverse('rol_sistema:lista')
+        return reverse('rol_sistema:ver', kwargs=self.kwargs)
 
     def get_form_kwargs(self):
         kwargs = super(RolUpdateView, self).get_form_kwargs()
@@ -125,13 +125,32 @@ class RolUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageM
         # Breadcrumbs
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
                                  {'nombre': 'Roles Administrativos', 'url': reverse('rol_sistema:lista')},
-                                 {'nombre': context['rol'].name, 'url': '#'},
+                                 {'nombre': context['rol'].name, 'url': reverse('rol_sistema:ver',kwargs=self.kwargs)},
                                  {'nombre': 'Editar', 'url': '#'},
                                  ]
 
         return context
 
+class RolPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+    model = RolAdministrativo
+    context_object_name = 'rol'
+    template_name = 'roles_sistema/change_perfil.html'
+    pk_url_kwarg = 'rol_id'
+    permission_required = 'proyecto.view_proyecto'
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        context = super(RolPerfilView, self).get_context_data(**kwargs)
+        context['titulo'] = 'Perfil del Rol'
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Roles Administrativos', 'url': reverse('rol_sistema:lista')},
+                                 {'nombre': context['rol'].name, 'url': '#'}
+                                 ]
+
+        return context
 
 
 
