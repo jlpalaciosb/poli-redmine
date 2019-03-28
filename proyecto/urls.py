@@ -1,7 +1,7 @@
 from django.conf.urls import url
 
 from proyecto.views import ProyectoListView, ProyectoCreateView, ProyectoUpdateView, ProyectoPerfilView, \
-    ProyectoListJson, RolListView, RolListJson
+    ProyectoListJson, RolListView, RolListJson, RolProyectoCreateView, RolProyectoUpdateView
 
 urlpatterns = [
     url(r'^$', ProyectoListView.as_view(), name='proyectos'),
@@ -11,4 +11,6 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/perfil/$', ProyectoPerfilView.as_view(), name='perfil_proyecto'),
     url(r'^(?P<proyecto_id>\d+)/roles/$', RolListView.as_view(), name='proyecto_rol_list'),
     url(r'^(?P<proyecto_id>\d+)/roles/list$', RolListJson.as_view(), name='proyecto_rol_list_json'),
+    url(r'^(?P<proyecto_id>\d+)/roles/crear$', RolProyectoCreateView.as_view(), name='proyecto_rol_crear'),
+    url(r'^(?P<proyecto_id>\d+)/roles/(?P<rol_id>\d+)/editar$', RolProyectoUpdateView.as_view(), name='proyecto_rol_editar'),
 ]

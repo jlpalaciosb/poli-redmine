@@ -13,7 +13,7 @@ from django.views.generic.edit import FormView
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from datetime import datetime
 
-from proyecto.forms import ProyectoForm
+from proyecto.forms import ProyectoForm,RolProyectoForm
 from proyecto.models import Proyecto,RolProyecto
 
 
@@ -334,15 +334,15 @@ class RolListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
         context['titulo'] = 'Lista de Roles del Proyecto '+ proyecto.nombre
         context['crear_button'] = True
-        context['crear_url'] = '#'
+        context['crear_url'] = reverse('proyecto_rol_crear',kwargs=self.kwargs)
         context['crear_button_text'] = 'Nuevo Rol del Proyecto'
 
         # datatables
         context['nombres_columnas'] = ['id', 'Nombre']
         context['order'] = [1, "asc"]
-        context['datatable_row_link'] = reverse('perfil_proyecto', args=(1,))  # pasamos inicialmente el id 1
+        context['datatable_row_link'] = reverse('proyecto_rol_editar', args=(self.kwargs['proyecto_id'],99999))  # pasamos inicialmente el id 1
         context['list_json'] = reverse('proyecto_rol_list_json', kwargs=self.kwargs)
-
+        context['roles']=True
         #Breadcrumbs
         context['breadcrumb'] = [{'nombre':'Inicio', 'url':'/'},
                    {'nombre':'Proyectos', 'url': reverse('proyectos')},
@@ -371,3 +371,102 @@ class RolListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilterBaseD
         proyecto=Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         return proyecto.rolproyecto_set.all()
 
+class RolProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
+    model = RolProyecto
+    template_name = "change_form.html"
+    form_class = RolProyectoForm
+    permission_required = 'proyecto.add_proyecto'
+    permission_denied_message = 'No tiene permiso para Crear nuevos proyectos.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_success_message(self, cleaned_data):
+        return "Rol de Proyecto '{}' creado exitosamente.".format(cleaned_data['nombre'])
+
+    def get_success_url(self):
+        return reverse('proyecto_rol_list',kwargs=self.kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super(RolProyectoCreateView, self).get_form_kwargs()
+        kwargs.update({
+            'success_url': reverse('proyecto_rol_list',kwargs=self.kwargs),
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(RolProyectoCreateView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        context['titulo'] = 'Roles de Proyectos'
+        context['titulo_form_crear'] = 'Insertar Datos del Rol del Proyecto'
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
+                                 {'nombre': 'Roles', 'url': reverse('proyecto_rol_list',kwargs=self.kwargs)},
+                                 {'nombre': 'Crear', 'url': '#'}
+                                 ]
+
+        return context
+
+    def form_valid(self, form):
+        rol = form.save(commit=False)
+        if not form.instance.pk:
+            rol.proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        rol.name = rol.nombre+rol.proyecto.id.__str__()
+        print(rol.name)
+        print(rol.nombre)
+
+        return super().form_valid(form)
+
+class RolProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = RolProyecto
+    form_class = RolProyectoForm
+    context_object_name = 'rol'
+    template_name = 'change_form.html'
+    pk_url_kwarg = 'rol_id'
+    permission_required = 'proyecto.change_proyecto'
+    permission_denied_message = 'No tiene permiso para Editar Proyectos.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_success_message(self, cleaned_data):
+        return "Rol de Proyecto '{}' editado exitosamente.".format(cleaned_data['nombre'])
+
+    def get_success_url(self):
+        return reverse('proyecto_rol_list', args=(self.kwargs['proyecto_id'],))
+
+    def get_form_kwargs(self):
+        kwargs = super(RolProyectoUpdateView, self).get_form_kwargs()
+        kwargs.update({
+            'success_url': self.get_success_url(),
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(RolProyectoUpdateView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        context['titulo'] = 'Roles de Proyectos'
+        context['titulo_form_crear'] = 'Insertar Datos del Rol del Proyecto'
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Roles', 'url': reverse('proyecto_rol_list', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Editar', 'url': '#'}
+                                 ]
+
+        return context
+
+    def form_valid(self, form):
+        rol = form.save(commit=False)
+        if not form.instance.pk:
+            rol.proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        rol.name = rol.nombre + rol.proyecto.id.__str__()
+        print(rol.name)
+        print(rol.nombre)
+
+        return super().form_valid(form)

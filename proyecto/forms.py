@@ -5,7 +5,7 @@ from dal import autocomplete
 from django import forms
 from django.forms import ModelForm, DateInput, Form
 
-from proyecto.models import Proyecto
+from proyecto.models import Proyecto, RolProyecto
 
 
 class ProyectoForm(ModelForm):
@@ -36,6 +36,29 @@ class ProyectoForm(ModelForm):
             AppendedText('fechaFinEstimada',
                          '<span class="glyphicon glyphicon-calendar"></span>'),
             'estado',
+            FormActions(
+                Submit('guardar', 'Guardar'),
+                HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
+            ),
+        ]
+        self.helper.layout = Layout(*layout)
+
+class RolProyectoForm(ModelForm):
+    class Meta:
+        model = RolProyecto
+        fields = ['nombre']
+
+
+    def __init__(self, *args, **kwargs):
+        self.success_url = kwargs.pop('success_url')
+        super(RolProyectoForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
+        layout = [
+            'nombre',
             FormActions(
                 Submit('guardar', 'Guardar'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
