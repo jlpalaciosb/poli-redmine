@@ -9,6 +9,19 @@ def quitar_group_miembro_eliminado(sender, instance, using, **kwargs):
 
 @receiver(post_save, sender=Proyecto, dispatch_uid='roles_precargado')
 def precargar_roles_proyecto(sender, instance,created,raw, using,update_fields, **kwargs):
+    """
+    Para cada proyecto que se crea, se agregan dos roles predeteminados: Scrum Master y Developer Team
+    Como cada Rol es un Grupo. El campo name del Grupo no permite duplicados(unique) entonces el Rol si tiene un nombre que permite duplicado
+    Entonces cada Rol creado tendra el nombre correspondiente pero el Grupo tendra el mismo nombre concatenado con el id del proyecto para evitar duplicados
+    :param sender:
+    :param instance:
+    :param created:
+    :param raw:
+    :param using:
+    :param update_fields:
+    :param kwargs:
+    :return:
+    """
     print("HOla")
     if created:
         scrum_master = RolProyecto()

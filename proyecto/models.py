@@ -152,8 +152,8 @@ class RolProyecto(Group):
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
 
-    ##class Meta:
-      ##  unique_together = ("group" , "proyecto")
+    class Meta:
+        unique_together = ("nombre" , "proyecto")
 
 class RolAdministrativo(Group):
     """
@@ -166,7 +166,7 @@ class MiembroProyecto(models.Model):
     """
     La clase
     """
-    user = models.OneToOneField(User)
+    user = models.ForeignKey(User, verbose_name='Usuario')
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
     roles = models.ManyToManyField(RolProyecto)
     class Meta:

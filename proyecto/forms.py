@@ -5,9 +5,9 @@ from dal import autocomplete
 from django import forms
 from django.forms import ModelForm, DateInput, Form
 from django.forms import ModelMultipleChoiceField
-
+from django.core.exceptions import NON_FIELD_ERRORS
 from proyecto.models import Proyecto, RolProyecto, MiembroProyecto
-
+from django.core.exceptions import ValidationError
 
 class ProyectoForm(ModelForm):
     class Meta:
@@ -50,8 +50,26 @@ class RolProyectoForm(ModelForm):
         fields = ['nombre']
 
 
+    def validate_unique(self):
+        """
+        La validacion del unique_together no muestra debido a que el campo proyecto no se muestra. Se excluye
+        :return:
+        """
+        exclude = self._get_validation_exclusions()
+        exclude.remove('proyecto')
+
+        try:
+            self.instance.validate_unique(exclude=exclude)
+        except ValidationError as e:
+            self._update_errors(e.error_dict)
+        finally:
+            exclude.append('proyecto')
+
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
+        proy = Proyecto.objects.get(pk=kwargs.pop('proyecto_id'))
+        rol = RolProyecto(proyecto=proy)
+        kwargs['instance'] = rol
         super(RolProyectoForm, self).__init__(*args, **kwargs)
 
         self.helper = FormHelper()
@@ -103,3 +121,18 @@ class MiembroProyectoForm(ModelForm):
             ),
         ]
         self.helper.layout = Layout(*layout)
+
+    def validate_unique(self):
+        """
+        La validacion del unique_together no muestra debido a que el campo proyecto no se muestra. Se excluye
+        :return:
+        """
+        exclude = self._get_validation_exclusions()
+        exclude.remove('proyecto')
+
+        try:
+            self.instance.validate_unique(exclude=exclude)
+        except ValidationError as e:
+            self._update_errors(e.error_dict)
+        finally:
+            exclude.append('proyecto')

@@ -391,6 +391,7 @@ class RolProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, Success
         kwargs = super(RolProyectoCreateView, self).get_form_kwargs()
         kwargs.update({
             'success_url': reverse('proyecto_rol_list',kwargs=self.kwargs),
+            'proyecto_id': self.kwargs['proyecto_id'],
         })
         return kwargs
 
@@ -412,8 +413,6 @@ class RolProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, Success
 
     def form_valid(self, form):
         rol = form.save(commit=False)
-        if not form.instance.pk:
-            rol.proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         rol.name = rol.nombre+rol.proyecto.id.__str__()
         print(rol.name)
         print(rol.nombre)
@@ -442,6 +441,7 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Success
         kwargs = super(RolProyectoUpdateView, self).get_form_kwargs()
         kwargs.update({
             'success_url': self.get_success_url(),
+            'proyecto_id': self.kwargs['proyecto_id'],
         })
         return kwargs
 
@@ -463,8 +463,6 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Success
 
     def form_valid(self, form):
         rol = form.save(commit=False)
-        if not form.instance.pk:
-            rol.proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         rol.name = rol.nombre + rol.proyecto.id.__str__()
         print(rol.name)
         print(rol.nombre)
