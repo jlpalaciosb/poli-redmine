@@ -28,7 +28,7 @@ urlpatterns = [
 
     url(r'^proyectos/', include('proyecto.urls')),
 
-    url(r'^clientes/', include('proyecto.cliente_urls')),
+    url(r'^clientes/', include('cliente.urls')),
 
     url(r'^login/$', LoginView.as_view(template_name='login/login.html', redirect_authenticated_user=True),
         name='login'),

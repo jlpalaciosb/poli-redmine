@@ -20,6 +20,9 @@ class Cliente(models.Model):
     correo = models.EmailField(verbose_name='Correo')
     telefono = models.CharField(verbose_name='Telefono', max_length=30)
 
+    def __str__(self):
+        return f'({self.id}) ({self.ruc}) {self.nombre}'
+
 
 class Proyecto(models.Model):
     """
