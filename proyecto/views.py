@@ -449,7 +449,8 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Success
         context = super(RolProyectoUpdateView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Roles de Proyectos'
-        context['titulo_form_crear'] = 'Insertar Datos del Rol del Proyecto'
+        context['titulo_form_editar'] = 'Datos del Rol'
+        context['titulo_form_editar_nombre'] = context[RolProyectoUpdateView.context_object_name].nombre
 
         # Breadcrumbs
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},

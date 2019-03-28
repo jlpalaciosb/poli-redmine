@@ -68,8 +68,9 @@ class RolProyectoForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
         proy = Proyecto.objects.get(pk=kwargs.pop('proyecto_id'))
-        rol = RolProyecto(proyecto=proy)
-        kwargs['instance'] = rol
+        if kwargs['instance'] is None:
+            rol = RolProyecto(proyecto=proy)
+            kwargs['instance'] = rol
         super(RolProyectoForm, self).__init__(*args, **kwargs)
 
         self.helper = FormHelper()
@@ -99,8 +100,9 @@ class MiembroProyectoForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
         proy=Proyecto.objects.get(pk=kwargs.pop('proyecto_id'))
-        miembro = MiembroProyecto(proyecto=proy)
-        kwargs['instance']=miembro
+        if kwargs['instance'] is None:
+            miembro = MiembroProyecto(proyecto=proy)
+            kwargs['instance']=miembro
         super(MiembroProyectoForm, self).__init__(*args, **kwargs)
         self.fields['roles']= RolesModelMultipleChoiceField(
                                     queryset=proy.rolproyecto_set.all(),
