@@ -149,6 +149,7 @@ class RolProyecto(Group):
 
     """
     ##group = models.OneToOneField(Group, related_name='rol_es_grupo')
+    nombre = models.CharField(verbose_name='Nombre', max_length=20)
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
 
     ##class Meta:
