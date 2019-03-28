@@ -73,7 +73,7 @@
     <div class="row">
         <div class="col-xs-12">
             {% if perms.proyecto.change_proyecto %}
-                <a href="#">
+                <a href="{% url 'proyecto_miembro_list' proyecto.id %}">
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-pencil"></i>
                     Miembros

@@ -13,7 +13,7 @@ from django.views.generic.edit import FormView
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from datetime import datetime
 
-from proyecto.forms import ProyectoForm,RolProyectoForm
+from proyecto.forms import ProyectoForm,RolProyectoForm, MiembroProyectoForm
 from proyecto.models import Proyecto,RolProyecto
 
 
@@ -470,3 +470,93 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Success
         print(rol.nombre)
 
         return super().form_valid(form)
+
+class MiembroProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
+    model = RolProyecto
+    template_name = "change_form.html"
+    form_class = MiembroProyectoForm
+    permission_required = 'proyecto.add_proyecto'
+    permission_denied_message = 'No tiene permiso para Crear nuevos proyectos.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_success_message(self, cleaned_data):
+        return "Miembro de Proyecto '{}' creado exitosamente.".format(cleaned_data['user'])
+
+    def get_success_url(self):
+        return reverse('proyecto_miembro_list',kwargs=self.kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super(MiembroProyectoCreateView, self).get_form_kwargs()
+        kwargs.update({
+            'success_url': reverse('proyecto_miembro_list',kwargs=self.kwargs),
+            'proyecto_id': self.kwargs['proyecto_id']
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(MiembroProyectoCreateView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        context['titulo'] = 'Miembro de Proyectos'
+        context['titulo_form_crear'] = 'Insertar Datos del Miembro del Proyecto'
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
+                                 {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list',kwargs=self.kwargs)},
+                                 {'nombre': 'Crear', 'url': '#'}
+                                 ]
+
+        return context
+
+class MiembroProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+    template_name = 'change_list.html'
+    permission_required = 'proyecto.view_proyecto'
+    permission_denied_message = 'No tiene permiso para ver este proyecto.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        context = super(MiembroProyectoListView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
+        context['titulo'] = 'Lista de Miembros del Proyecto '+ proyecto.nombre
+        context['crear_button'] = True
+        context['crear_url'] = reverse('proyecto_miembro_crear',kwargs=self.kwargs)
+        context['crear_button_text'] = 'Nuevo Miembro del Proyecto'
+
+        # datatables
+        context['nombres_columnas'] = ['id', 'Nombre del Miembro']
+        context['order'] = [1, "asc"]
+        context['datatable_row_link'] = '#'#reverse('proyecto_rol_editar', args=(self.kwargs['proyecto_id'],99999))  # pasamos inicialmente el id 1
+        context['list_json'] = reverse('proyecto_miembro_list_json', kwargs=self.kwargs)
+        context['roles']=True
+        #Breadcrumbs
+        context['breadcrumb'] = [{'nombre':'Inicio', 'url':'/'},
+                   {'nombre':'Proyectos', 'url': reverse('proyectos')},
+                    {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
+                    {'nombre': 'Miembros', 'url': '#'}
+                   ]
+
+
+
+        return context
+
+
+class MiembroProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilterBaseDatatableView):
+    model = RolProyecto
+    columns = ['id', 'user']
+    order_columns = ['id', 'user']
+    max_display_length = 100
+    permission_required = 'proyecto.view_proyecto'
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+    def get_initial_queryset(self):
+        """
+        Se sobreescribe el metodo para que la lista sean todos los roles de un proyecto en particular
+        :return:
+        """
+        proyecto=Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        return proyecto.miembroproyecto_set.all()

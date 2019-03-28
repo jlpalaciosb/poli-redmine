@@ -171,25 +171,4 @@ class MiembroProyecto(models.Model):
     roles = models.ManyToManyField(RolProyecto)
     class Meta:
         unique_together = ("user","proyecto")
-    def save(self, *args, **kwargs):
-        """
-        Se sobreescribe el metodo para que cada vez un rol de proyecto sea anadido a un miembro, el group asociado al rol sea asociado con el usuario
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        if(self.id is not None):
-            rolesAnteriores=MiembroProyecto.objects.get(pk=self.id).roles.all()
-            for aux in rolesAnteriores:
-                """
-                Se le quita todos los groups de todos los roles al usuario asociado  miembro
-                """
-                self.user.groups.remove(aux.group_ptr)
 
-            rolesActuales=self.roles.all()
-            for aux in rolesActuales:
-                self.user.groups.add(aux.group_ptr)
-
-            self.user.save()
-
-        super(MiembroProyecto, self).save(*args, **kwargs)
