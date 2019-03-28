@@ -18,9 +18,15 @@ def precargar_roles_proyecto(sender, instance,created,raw, using,update_fields, 
         scrum_master.proyecto = instance
         scrum_master.save()
         developer_team = RolProyecto()
-        developer_team.name = "Developer Team"+instance.id__str__()
+        scrum_master.nombre = "Developer Team"
+        developer_team.name = "Developer Team"+instance.id.__str__()
         developer_team.proyecto = instance
         developer_team.save()
+        miembro = MiembroProyecto(user=instance.usuario_creador,proyecto=instance)
+        miembro.save()
+        miembro.roles.add(scrum_master)
+        miembro.save()
+
 
 
 @receiver(m2m_changed,sender=MiembroProyecto.roles.through,dispatch_uid='salvador')

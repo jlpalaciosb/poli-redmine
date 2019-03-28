@@ -170,5 +170,5 @@ class MiembroProyecto(models.Model):
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
     roles = models.ManyToManyField(RolProyecto)
     class Meta:
-        unique_together = ("user","proyecto")
+        unique_together = (("user","proyecto"),)
 
