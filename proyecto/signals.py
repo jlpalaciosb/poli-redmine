@@ -31,7 +31,7 @@ def precargar_roles_proyecto(sender, instance,created,raw, using,update_fields, 
         scrum_master.proyecto = instance
         scrum_master.save()
         developer_team = RolProyecto()
-        scrum_master.nombre = "Developer Team"
+        developer_team.nombre = "Developer Team"
         developer_team.name = "Developer Team"+instance.id.__str__()
         developer_team.proyecto = instance
         developer_team.save()
