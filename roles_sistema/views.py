@@ -8,11 +8,11 @@ from django.views.generic import TemplateView, DetailView, UpdateView, CreateVie
 from django.views.generic.base import ContextMixin, View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse
+from django.urls import reverse,reverse_lazy
 from django.views.generic.edit import FormView
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from datetime import datetime
-
+from django.http import HttpResponseRedirect
 from roles_sistema.forms import RolSistemaForm
 from proyecto.models import RolAdministrativo
 
@@ -195,14 +195,33 @@ class RolEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMessage
     template_name = 'roles_sistema/eliminar_rol.html'
     pk_url_kwarg = 'rol_id'
     permission_required = 'proyecto.delete_roladministrativo'
-    permission_denied_message = 'No tiene permiso para ver Proyectos.'
-
+    permission_denied_message = 'No tiene permiso para eliminar el rol.'
+    success_url = reverse_lazy('rol_sistema:lista')
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
         return "Rol Administrativo  eliminado exitosamente."
 
-    def get_success_url(self):
-        return reverse('rol_sistema:lista')
+    def get_context_data(self, **kwargs):
+        context = super(RolEliminarView, self).get_context_data(**kwargs)
+        context['titulo'] = 'Eliminar Rol'
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Roles Administrativos', 'url': reverse('rol_sistema:lista')},
+                                 {'nombre': context['rol'].name,
+                                  'url': reverse('rol_sistema:ver', kwargs=self.kwargs)},
+                                 {'nombre': 'Eliminar', 'url': '#'}, ]
+        context['eliminable'] = self.eliminable()
+        return context
+
+    def eliminable(self):
+        return not self.get_object().user_set.all()
+
+    def post(self, request, *args, **kwargs):
+        if self.eliminable():
+            return super(RolEliminarView, self).post(request, *args, **kwargs)
+        else:
+            return HttpResponseRedirect(self.success_url)
+
+
 

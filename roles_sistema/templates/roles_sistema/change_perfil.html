@@ -50,30 +50,14 @@
         </div>
         <div class="col-xs-1" click="eliminar()">
             {% if perms.proyecto.delete_roladministrativo %}
-                <p id="eliminar">
+                <a href="{% url 'rol_sistema:eliminar' rol.id %}">
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-trash-o"></i>
                     Eliminar
                   </button>
-                </p>
+                </a>
             {% endif %}
         </div>
       </div>
     </div>
-{% endblock %}
-{% block extrajs %}
-    <script type="text/javascript">
-    $(document).ready(function() {
-        document.getElementById("eliminar").addEventListener("click", function () {
-            if (confirm("Desea eliminar el rol?")) {
-                $.ajax({
-                    url : '{% url 'rol_sistema:eliminar' rol.id %}',
-                    type: 'GET'
-                })
-            }
-
-        });
-    })
-
-    </script>
 {% endblock %}
