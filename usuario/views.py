@@ -255,7 +255,7 @@ class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMes
         context = super(UsuarioEliminarView, self).get_context_data(**kwargs)
         context['titulo'] = 'Eliminar Rol'
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
-                                 {'nombre': 'Roles Administrativos', 'url': reverse('rol_sistema:lista')},
+                                 {'nombre': 'Usuarios', 'url': reverse('usuario:lista')},
                                  {'nombre': context['usuario'].username,
                                   'url': reverse('usuario:ver', kwargs=self.kwargs)},
                                  {'nombre': 'Eliminar', 'url': '#'}, ]
