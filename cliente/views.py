@@ -21,15 +21,15 @@ class ClienteListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
     def get_context_data(self, **kwargs):
         context = super(ClienteListView, self).get_context_data(**kwargs)
         context['titulo'] = 'Lista de Clientes'
-        context['crear_url'] = reverse('crear_cliente')
+        context['crear_url'] = reverse('cliente:crear')
         context['crear_button'] = True
         context['crear_button_text'] = 'Nuevo Cliente'
 
         # datatable
         context['nombres_columnas'] = ['id', 'RUC', 'Nombre', 'Dirección', 'Teléfono']
         context['order'] = [1, 'asc']
-        context['datatable_row_link'] = reverse('perfil_cliente', args=(1,))  # pasamos inicialmente el id 1
-        context['list_json'] = reverse('cliente_list_json')
+        context['datatable_row_link'] = reverse('cliente:ver', args=(1,))  # pasamos inicialmente el id 1
+        context['list_json'] = reverse('cliente:lista_json')
 
         context['breadcrumb'] = [{'nombre':'Inicio', 'url':'/'},
                                  {'nombre':'Clientes', 'url': '#'},]
@@ -62,7 +62,7 @@ class ClientePerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView)
         context['titulo'] = 'Perfil del Cliente'
 
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
-                                 {'nombre': 'Clientes', 'url': reverse('clientes')},
+                                 {'nombre': 'Clientes', 'url': reverse('cliente:lista')},
                                  {'nombre': context['cliente'].nombre,'url': '#'}]
 
         return context
@@ -82,11 +82,11 @@ class ClienteCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
         return "Cliente '{}' registrado exitosamente.".format(cleaned_data['nombre'])
 
     def get_success_url(self):
-        return reverse('clientes')
+        return reverse('cliente:lista')
 
     def get_form_kwargs(self):
         kwargs = super(ClienteCreateView, self).get_form_kwargs()
-        kwargs.update({'success_url': reverse('clientes'),})
+        kwargs.update({'success_url': reverse('cliente:lista'),})
         return kwargs
 
     def get_context_data(self, **kwargs):
@@ -95,7 +95,7 @@ class ClienteCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
         context['titulo_form_crear'] = 'Insertar Datos del Nuevo Cliente'
 
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
-                                 {'nombre': 'Clientes', 'url': reverse('clientes')},
+                                 {'nombre': 'Clientes', 'url': reverse('cliente:lista')},
                                  {'nombre': 'Nuevo Cliente', 'url': '#'}]
 
         return context
@@ -117,7 +117,7 @@ class ClienteUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
         return "Cliente '{}' editado exitosamente.".format(cleaned_data['nombre'])
 
     def get_success_url(self):
-        return reverse('perfil_cliente', kwargs=self.kwargs)
+        return reverse('cliente:ver', kwargs=self.kwargs)
 
     def get_form_kwargs(self):
         kwargs = super(ClienteUpdateView, self).get_form_kwargs()
@@ -133,7 +133,7 @@ class ClienteUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
         context['titulo_form_editar_nombre'] = context['cliente'].nombre
 
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
-                                 {'nombre': 'Clientes', 'url': reverse('clientes')},
+                                 {'nombre': 'Clientes', 'url': reverse('cliente:lista')},
                                  {'nombre': context['cliente'].nombre, 'url': self.get_success_url()},
                                  {'nombre': 'Editar', 'url': '#'},]
 
@@ -147,7 +147,7 @@ class ClienteDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
     permission_required = 'proyecto.delete_cliente'
     permission_denied_message = 'No tiene permiso para eliminar clientes'
     template_name = 'cliente/cliente_confirm_delete.html'
-    success_url = reverse_lazy('clientes')
+    success_url = reverse_lazy('cliente:lista')
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -156,8 +156,8 @@ class ClienteDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
         context = super(ClienteDeleteView, self).get_context_data(**kwargs)
         context['titulo'] = 'Eliminar Cliente'
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
-                                 {'nombre': 'Clientes', 'url': reverse('clientes')},
-                                 {'nombre': context['cliente'].nombre, 'url': reverse('perfil_cliente', kwargs=self.kwargs)},
+                                 {'nombre': 'Clientes', 'url': reverse('cliente:lista')},
+                                 {'nombre': context['cliente'].nombre, 'url': reverse('cliente:ver', kwargs=self.kwargs)},
                                  {'nombre': 'Eliminar', 'url': '#'},]
         context['eliminable'] = self.eliminable()
         return context
