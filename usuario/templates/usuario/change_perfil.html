@@ -41,7 +41,7 @@
       </div>
       <div class="row">
         <div class="col-xs-12">
-            {% if perms.proyecto.change_proyecto %}
+            {% if perms.auth.change_user %}
                 <a href="{% url 'usuario:editar' usuario.id %}">
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-pencil"></i>

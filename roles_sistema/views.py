@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.query_utils import Q
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 
-from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
+from django.views.generic import TemplateView, DetailView, UpdateView, CreateView, DeleteView
 from django.views.generic.base import ContextMixin, View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
@@ -18,16 +18,28 @@ from proyecto.models import RolAdministrativo
 
 class RolListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
-    permission_required = 'proyecto.view_proyecto'
-    permission_denied_message = 'No tiene permiso para ver este proyecto.'
+    permission_required = ('proyecto.add_roladministrativo','proyecto.change_roladministrativo','proyecto.delete_roladministrativo')
+    permission_denied_message = 'No tiene permiso para ver los roles.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
+    def has_permission(self):
+        """
+        Se sobreescribe para que si tiene al menos uno de los permisos listados en permission_required, tiene permisos
+        :return:
+        """
+        user = self.request.user
+        perms = self.get_permission_required()
+        for perm in perms:
+            if(user.has_perm(perm)):
+                return True
+        return False
+
     def get_context_data(self, **kwargs):
         context = super(RolListView, self).get_context_data(**kwargs)
         context['titulo'] = 'Lista de Roles Administrativos'
-        context['crear_button'] = True
+        context['crear_button'] = self.request.user.has_perm('proyecto.add_roladministrativo')
         context['crear_url'] = reverse('rol_sistema:crear')
         context['crear_button_text'] = 'Nuevo Rol'
 
@@ -51,14 +63,26 @@ class RolListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatableView
     columns = ['id', 'name']
     order_columns = ['id', 'name']
     max_display_length = 100
-    permission_required = 'proyecto.view_proyecto'
-    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+    permission_required = (
+    'proyecto.add_roladministrativo', 'proyecto.change_roladministrativo', 'proyecto.delete_roladministrativo')
+    permission_denied_message = 'No tiene permiso para ver los roles.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def has_permission(self):
+        user = self.request.user
+        perms = self.get_permission_required()
+        for perm in perms:
+            if (user.has_perm(perm)):
+                return True
+        return False
 
 class RolCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = RolAdministrativo
     template_name = "change_form.html"
     form_class = RolSistemaForm
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.add_roladministrativo'
     permission_denied_message = 'No tiene permiso para Crear nuevos proyectos.'
 
     def handle_no_permission(self):
@@ -96,8 +120,8 @@ class RolUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageM
     context_object_name = 'rol'
     template_name = 'change_form.html'
     pk_url_kwarg = 'rol_id'
-    permission_required = 'proyecto.change_proyecto'
-    permission_denied_message = 'No tiene permiso para Editar Proyectos.'
+    permission_required = 'proyecto.change_roladministrativo'
+    permission_denied_message = 'No tiene permiso para Editar Roles.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -136,11 +160,23 @@ class RolPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     context_object_name = 'rol'
     template_name = 'roles_sistema/change_perfil.html'
     pk_url_kwarg = 'rol_id'
-    permission_required = 'proyecto.view_proyecto'
+    permission_required = ('proyecto.add_roladministrativo','proyecto.change_roladministrativo','proyecto.delete_roladministrativo')
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
+
+    def has_permission(self):
+        """
+        Se sobreescribe para que si tiene al menos uno de los permisos listados en permission_required, tiene permisos
+        :return:
+        """
+        user = self.request.user
+        perms = self.get_permission_required()
+        for perm in perms:
+            if(user.has_perm(perm)):
+                return True
+        return False
 
     def get_context_data(self, **kwargs):
         context = super(RolPerfilView, self).get_context_data(**kwargs)
@@ -153,4 +189,20 @@ class RolPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
         return context
 
 
+class RolEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMessageMixin, DeleteView):
+    model = RolAdministrativo
+    context_object_name = 'rol'
+    template_name = 'roles_sistema/eliminar_rol.html'
+    pk_url_kwarg = 'rol_id'
+    permission_required = 'proyecto.delete_roladministrativo'
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_success_message(self, cleaned_data):
+        return "Rol Administrativo  eliminado exitosamente."
+
+    def get_success_url(self):
+        return reverse('rol_sistema:lista')
 

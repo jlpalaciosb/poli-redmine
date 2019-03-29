@@ -38,8 +38,8 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-xs-12">
-            {% if perms.proyecto.change_proyecto %}
+        <div class="col-xs-1">
+            {% if perms.proyecto.change_roladministrativo %}
                 <a href="{% url 'rol_sistema:editar' rol.id %}">
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-pencil"></i>
@@ -48,6 +48,32 @@
                 </a>
             {% endif %}
         </div>
+        <div class="col-xs-1" click="eliminar()">
+            {% if perms.proyecto.delete_roladministrativo %}
+                <p id="eliminar">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-trash-o"></i>
+                    Eliminar
+                  </button>
+                </p>
+            {% endif %}
+        </div>
       </div>
     </div>
+{% endblock %}
+{% block extrajs %}
+    <script type="text/javascript">
+    $(document).ready(function() {
+        document.getElementById("eliminar").addEventListener("click", function () {
+            if (confirm("Desea eliminar el rol?")) {
+                $.ajax({
+                    url : '{% url 'rol_sistema:eliminar' rol.id %}',
+                    type: 'GET'
+                })
+            }
+
+        });
+    })
+
+    </script>
 {% endblock %}

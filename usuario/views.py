@@ -18,16 +18,28 @@ from django.contrib.auth.models import User
 
 class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
-    permission_required = 'proyecto.view_proyecto'
-    permission_denied_message = 'No tiene permiso para ver este proyecto.'
+    permission_required = ('auth.add_user','auth.change_user','auth.delete_user')
+    permission_denied_message = 'No tiene permiso para ver los usuarios.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
+    def has_permission(self):
+        """
+        Se sobreescribe para que si tiene al menos uno de los permisos listados en permission_required, tiene permisos
+        :return:
+        """
+        user = self.request.user
+        perms = self.get_permission_required()
+        for perm in perms:
+            if(user.has_perm(perm)):
+                return True
+        return False
+
     def get_context_data(self, **kwargs):
         context = super(UsuarioListView, self).get_context_data(**kwargs)
         context['titulo'] = 'Lista de Usuarios'
-        context['crear_button'] = True
+        context['crear_button'] = self.request.user.has_perm('auth.add_user')
         context['crear_url'] = reverse('usuario:crear')
         context['crear_button_text'] = 'Nuevo Usuario'
 
@@ -51,31 +63,27 @@ class UsuarioListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatable
     columns = ['id', 'username','email']
     order_columns = ['id', 'username','email']
     max_display_length = 100
-    permission_required = 'proyecto.view_proyecto'
-    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+    permission_required = (
+        'auth.add_user', 'auth.change_user', 'auth.delete_user')
+    permission_denied_message = 'No tiene permiso para ver los usuarios.'
 
-    def render_column(self, row, column):
-        # We want to render user as a custom column
-        if column == 'username':
-            # escape HTML for security reasons
-            return escape('{0} {1}'.format(row.first_name, row.last_name))
-        else:
-            return super(UsuarioListJson, self).render_column(row, column)
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
 
-
-    def get_initial_queryset(self):
-        """
-        Se sobreescribe el metodo para que la lista sean todos los usuarios que no sean Anonymous User
-        :return:
-        """
-        return self.model.objects.exclude(username='AnonymousUser')
+    def has_permission(self):
+        user = self.request.user
+        perms = self.get_permission_required()
+        for perm in perms:
+            if (user.has_perm(perm)):
+                return True
+        return False
 
 class UsuarioCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = User
     template_name = "change_form.html"
     form_class = UsuarioForm
-    permission_required = 'proyecto.add_proyecto'
-    permission_denied_message = 'No tiene permiso para Crear nuevos proyectos.'
+    permission_required = 'auth.add_user'
+    permission_denied_message = 'No tiene permiso para Crear nuevos usuarios.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -126,14 +134,14 @@ class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
     context_object_name = 'usuario'
     template_name = 'change_form.html'
     pk_url_kwarg = 'user_id'
-    permission_required = 'proyecto.change_proyecto'
-    permission_denied_message = 'No tiene permiso para Editar Proyectos.'
+    permission_required = 'auth.change_user'
+    permission_denied_message = 'No tiene permiso para Editar Usuarios.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
-        return "Rol Administrativo '{}' editado exitosamente.".format(cleaned_data['username'])
+        return "Usuario '{}' editado exitosamente.".format(cleaned_data['username'])
 
     def get_success_url(self):
         return reverse('usuario:ver', kwargs=self.kwargs)
@@ -182,8 +190,8 @@ class UsuarioPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView)
     context_object_name = 'usuario'
     template_name = 'usuario/change_perfil.html'
     pk_url_kwarg = 'user_id'
-    permission_required = 'proyecto.view_proyecto'
-    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+    permission_required = ('auth.add_user','auth.change_user','auth.delete_user')
+    permission_denied_message = 'No tiene permiso para ver Usuarios.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -197,6 +205,18 @@ class UsuarioPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView)
                                  ]
 
         return context
+
+    def has_permission(self):
+        """
+        Se sobreescribe para que si tiene al menos uno de los permisos listados en permission_required, tiene permisos
+        :return:
+        """
+        user = self.request.user
+        perms = self.get_permission_required()
+        for perm in perms:
+            if(user.has_perm(perm)):
+                return True
+        return False
 
 
 

@@ -104,7 +104,7 @@ class CustomFilterBaseDatatableView(BaseDatatableView):
 
 class ProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'proyecto/proyecto/change_list.html'
-    permission_required = 'proyecto.view_proyecto'
+    permission_required = 'proyecto.add_proyecto'
     permission_denied_message = 'No tiene permiso para ver este proyecto.'
 
     def handle_no_permission(self):
@@ -139,7 +139,7 @@ class ProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilter
     columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada', 'estado']
     order_columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada', 'estado']
     max_display_length = 100
-    permission_required = 'proyecto.view_proyecto'
+    permission_required = 'proyecto.add_proyecto'
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
 
@@ -198,7 +198,7 @@ class ProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
     context_object_name = 'proyecto'
     template_name = 'proyecto/proyecto/change_form.html'
     pk_url_kwarg = 'proyecto_id'
-    permission_required = 'proyecto.change_proyecto'
+    permission_required = 'proyecto.add_proyecto'
     permission_denied_message = 'No tiene permiso para Editar Proyectos.'
 
     def handle_no_permission(self):
@@ -248,7 +248,7 @@ class ProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView
     context_object_name = 'proyecto'
     template_name = 'proyecto/proyecto/change_list_perfil.html'
     pk_url_kwarg = 'proyecto_id'
-    permission_required = 'proyecto.view_proyecto'
+    permission_required = 'proyecto.add_proyecto'
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
     def handle_no_permission(self):
@@ -323,8 +323,8 @@ class ProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView
 
 class RolListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
-    permission_required = 'proyecto.view_proyecto'
-    permission_denied_message = 'No tiene permiso para ver este proyecto.'
+    #permission_required = 'proyecto.view_proyecto'
+    #permission_denied_message = 'No tiene permiso para ver este proyecto.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -360,8 +360,8 @@ class RolListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilterBaseD
     columns = ['id', 'nombre']
     order_columns = ['id', 'nombre']
     max_display_length = 100
-    permission_required = 'proyecto.view_proyecto'
-    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+    #permission_required = 'proyecto.view_proyecto'
+    #permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
     def get_initial_queryset(self):
         """
@@ -375,8 +375,8 @@ class RolProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, Success
     model = RolProyecto
     template_name = "change_form.html"
     form_class = RolProyectoForm
-    permission_required = 'proyecto.add_proyecto'
-    permission_denied_message = 'No tiene permiso para Crear nuevos proyectos.'
+    #permission_required = 'proyecto.add_proyecto'
+    #permission_denied_message = 'No tiene permiso para Crear nuevos proyectos.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -425,8 +425,8 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Success
     context_object_name = 'rol'
     template_name = 'change_form.html'
     pk_url_kwarg = 'rol_id'
-    permission_required = 'proyecto.change_proyecto'
-    permission_denied_message = 'No tiene permiso para Editar Proyectos.'
+    #permission_required = 'proyecto.change_proyecto'
+    #permission_denied_message = 'No tiene permiso para Editar Proyectos.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -474,8 +474,8 @@ class MiembroProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
     model = MiembroProyecto
     template_name = "change_form.html"
     form_class = MiembroProyectoForm
-    permission_required = 'proyecto.add_proyecto'
-    permission_denied_message = 'No tiene permiso para Crear nuevos proyectos.'
+    #permission_required = 'proyecto.add_proyecto'
+    #permission_denied_message = 'No tiene permiso para Crear nuevos proyectos.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -512,8 +512,8 @@ class MiembroProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
 
 class MiembroProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
-    permission_required = 'proyecto.view_proyecto'
-    permission_denied_message = 'No tiene permiso para ver este proyecto.'
+    #permission_required = 'proyecto.view_proyecto'
+    #permission_denied_message = 'No tiene permiso para ver este proyecto.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -549,8 +549,8 @@ class MiembroProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, Custo
     columns = ['id', 'user']
     order_columns = ['id', 'user']
     max_display_length = 100
-    permission_required = 'proyecto.view_proyecto'
-    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+    #permission_required = 'proyecto.view_proyecto'
+    #permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
     def get_initial_queryset(self):
         """
@@ -566,8 +566,8 @@ class MiembroProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
     context_object_name = 'miembro'
     template_name = 'change_form.html'
     pk_url_kwarg = 'miembro_id'
-    permission_required = 'proyecto.change_proyecto'
-    permission_denied_message = 'No tiene permiso para Editar Proyectos.'
+    #permission_required = 'proyecto.change_proyecto'
+    #permission_denied_message = 'No tiene permiso para Editar Proyectos.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
