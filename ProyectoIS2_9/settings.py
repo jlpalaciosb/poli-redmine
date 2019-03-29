@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'guardian',
     'proyecto',
     'django.contrib.admindocs',
+    'cliente',
 ]
 
 MIDDLEWARE = [
