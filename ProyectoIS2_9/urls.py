@@ -28,6 +28,10 @@ urlpatterns = [
 
     url(r'^proyectos/', include('proyecto.urls')),
 
+    url(r'^roles/', include('roles_sistema.urls')),
+
+    url(r'^usuarios/', include('usuario.urls')),
+
     url(r'^clientes/', include('cliente.urls')),
 
     url(r'^login/$', LoginView.as_view(template_name='login/login.html', redirect_authenticated_user=True),
