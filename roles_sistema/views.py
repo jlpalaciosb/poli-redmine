@@ -180,7 +180,7 @@ class RolPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(RolPerfilView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Perfil del Rol'
+        context['titulo'] = 'Perfil del Rol Administrativo'
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
                                  {'nombre': 'Roles Administrativos', 'url': reverse('rol_sistema:lista')},
                                  {'nombre': context['rol'].name, 'url': '#'}

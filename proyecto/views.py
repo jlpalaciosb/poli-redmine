@@ -256,7 +256,7 @@ class ProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView
 
     def get_context_data(self, **kwargs):
         context = super(ProyectoPerfilView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Perfil de Ṕroyecto'
+        context['titulo'] = 'Perfil del Proyecto'
 
         # context['crear_buttom'] = True
         # context['crear_ingreso_url'] = reverse('crear_ingreso', args=(context['contribuyente'].id, ))
