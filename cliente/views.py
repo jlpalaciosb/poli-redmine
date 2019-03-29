@@ -1,9 +1,10 @@
 from django.http import HttpResponseForbidden
-from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
+from django.views.generic import TemplateView, DetailView, UpdateView, CreateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.http import HttpResponseRedirect
 
 from cliente.forms import ClienteForm
 from proyecto.models import Cliente
@@ -30,8 +31,8 @@ class ClienteListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
         context['datatable_row_link'] = reverse('perfil_cliente', args=(1,))  # pasamos inicialmente el id 1
         context['list_json'] = reverse('cliente_list_json')
 
-        # breadcrumb
-        context['breadcrumb'] = [{'nombre':'Inicio', 'url':'/'}, {'nombre':'Clientes', 'url': '#'},]
+        context['breadcrumb'] = [{'nombre':'Inicio', 'url':'/'},
+                                 {'nombre':'Clientes', 'url': '#'},]
 
         return context
 
@@ -60,11 +61,9 @@ class ClientePerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView)
         context = super(ClientePerfilView, self).get_context_data(**kwargs)
         context['titulo'] = 'Perfil del Cliente'
 
-        # breadcrumb
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
                                  {'nombre': 'Clientes', 'url': reverse('clientes')},
-                                 {'nombre': context['cliente'].nombre,'url': '#'}
-                                ]
+                                 {'nombre': context['cliente'].nombre,'url': '#'}]
 
         return context
 
@@ -95,11 +94,9 @@ class ClienteCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
         context['titulo'] = 'Registrar Cliente'
         context['titulo_form_crear'] = 'Insertar Datos del Nuevo Cliente'
 
-        # Breadcrumbs
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
                                  {'nombre': 'Clientes', 'url': reverse('clientes')},
-                                 {'nombre': 'Nuevo Cliente', 'url': '#'}
-                                ]
+                                 {'nombre': 'Nuevo Cliente', 'url': '#'}]
 
         return context
 
@@ -135,11 +132,41 @@ class ClienteUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
         context['titulo_form_editar'] = 'Datos del Cliente'
         context['titulo_form_editar_nombre'] = context['cliente'].nombre
 
-        # breadcrumb
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
                                  {'nombre': 'Clientes', 'url': reverse('clientes')},
                                  {'nombre': context['cliente'].nombre, 'url': self.get_success_url()},
-                                 {'nombre': 'Editar', 'url': '#'},
-                                ]
+                                 {'nombre': 'Editar', 'url': '#'},]
 
         return context
+
+
+class ClienteDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = Cliente
+    pk_url_kwarg = 'cliente_id'
+    context_object_name = 'cliente'
+    permission_required = 'proyecto.delete_cliente'
+    permission_denied_message = 'No tiene permiso para eliminar clientes'
+    template_name = 'cliente/cliente_confirm_delete.html'
+    success_url = reverse_lazy('clientes')
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        context = super(ClienteDeleteView, self).get_context_data(**kwargs)
+        context['titulo'] = 'Eliminar Cliente'
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Clientes', 'url': reverse('clientes')},
+                                 {'nombre': context['cliente'].nombre, 'url': reverse('perfil_cliente', kwargs=self.kwargs)},
+                                 {'nombre': 'Eliminar', 'url': '#'},]
+        context['eliminable'] = self.eliminable()
+        return context
+
+    def eliminable(self):
+        return self.get_object().proyecto_set.all().count() == 0
+
+    def post(self, request, *args, **kwargs):
+        if self.eliminable():
+            return super(ClienteDeleteView, self).post(request, *args, **kwargs)
+        else:
+            return HttpResponseRedirect(self.success_url)

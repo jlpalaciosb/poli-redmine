@@ -33,7 +33,7 @@ class Proyecto(models.Model):
                               help_text='El nombre del proyecto (debe ser único en el sistema)',
                               unique=True, default='MyAwesomeProject')
     descripcion = models.TextField(verbose_name='Descripcion del Proyecto', null=True, blank=True)
-    cliente = models.ForeignKey(Cliente, related_name='proyecto_cliente', null=True)
+    cliente = models.ForeignKey(Cliente, null=True)
     fechaInicioEstimada = models.DateField(verbose_name='Fecha de Inicio Estimada', null=True, blank=True)
     fechaFinEstimada = models.DateField(verbose_name='Fecha de Finalizacion Estimada', null=True, blank=True)
     duracionSprint = models.IntegerField(verbose_name='Duracion del Sprint', default=5)
