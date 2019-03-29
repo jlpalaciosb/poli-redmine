@@ -19,7 +19,8 @@ class RolSistemaForm(ModelForm):
                                                 queryset=Permission.objects.filter(
                                                     Q(content_type=ContentType.objects.get(model='proyecto')) |
                                                     Q( content_type=ContentType.objects.get(model='user')) |
-                                                    Q( content_type=ContentType.objects.get(model='roladministrativo'))
+                                                    Q( content_type=ContentType.objects.get(model='roladministrativo')) |
+                                                    Q(content_type=ContentType.objects.get(model='cliente'))
                                                 ).exclude(codename='change_proyecto').exclude(codename='delete_proyecto'),
                                                 widget=forms.CheckboxSelectMultiple,
                                                 required=True,
