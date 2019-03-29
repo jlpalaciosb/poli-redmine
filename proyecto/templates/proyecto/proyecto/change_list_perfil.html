@@ -11,7 +11,8 @@
           <h4>{{ proyecto.nombre }}</h4>
           <p>
               <strong>Nombre del Proyecto: </strong>   {{ proyecto.nombre|default_if_none:"" }}<br><br>
-              <strong>Descripcion:</strong>   {{ proyecto.descripcion|default_if_none:"" }}<br>
+              <strong>Descripcion:</strong>   {{ proyecto.descripcion|default_if_none:"" }}<br><br>
+              <strong>Cliente:</strong>   {{ proyecto.cliente.nombre|default_if_none:"" }}<br>
           </p>
         </div>
 

@@ -46,7 +46,9 @@ INSTALLED_APPS = [
     'proyecto',
     'django.contrib.admindocs',
     'roles_sistema',
-    'usuario'
+    'usuario',
+    'cliente',
+
 ]
 
 MIDDLEWARE = [

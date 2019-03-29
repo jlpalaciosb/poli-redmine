@@ -28,6 +28,7 @@
                                 </a>
                             </li>
                         {% endif %}
+
                         {% if perms.proyecto.add_roladministrativo or perms.proyecto.change_roladministrativo or perms.proyecto.delete_roladministrativo %}
                             <li>
                                 <a href={% url 'rol_sistema:lista' %}>
@@ -36,6 +37,17 @@
                                 </a>
                             </li>
                         {% endif %}
+
+                        {% if perms.proyecto.view_cliente %}
+                            <li>
+                                <a href="{% url 'clientes' %}">
+                                    <i class="fa fa-users icon text-info-lter"></i>
+                                    <span class="font-bold">Clientes</span>
+                                </a>
+                            </li>
+                        {% endif %}
+
+
                   {% endblock %}
 
                 </ul>

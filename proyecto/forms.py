@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 class ProyectoForm(ModelForm):
     class Meta:
         model = Proyecto
-        fields = ['nombre', 'descripcion', 'duracionSprint',
+        fields = ['nombre', 'descripcion', 'cliente', 'duracionSprint',
                   'diasHabiles', 'fechaInicioEstimada', 'fechaFinEstimada', 'estado']
         widgets = {
             'fechaInicioEstimada': DateInput(attrs={'class': 'date-time-picker'}),
@@ -30,6 +30,7 @@ class ProyectoForm(ModelForm):
         layout = [
             'nombre',
             'descripcion',
+            'cliente',
             'duracionSprint',
             'diasHabiles',
             AppendedText('fechaInicioEstimada',
