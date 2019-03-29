@@ -72,7 +72,7 @@
       </div>
     <div class="row">
         <div class="col-xs-12">
-            {% if perms.proyecto.change_proyecto %}
+            {% if perms.proyecto.change_proyecto and proyecto.rolproyecto_set.all %}
                 <a href="{% url 'proyecto_miembro_list' proyecto.id %}">
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-pencil"></i>

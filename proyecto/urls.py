@@ -2,7 +2,7 @@ from django.conf.urls import url
 
 from proyecto.views import ProyectoListView, ProyectoCreateView, ProyectoUpdateView, ProyectoPerfilView, \
     ProyectoListJson, RolListView, RolListJson, RolProyectoCreateView, RolProyectoUpdateView,MiembroProyectoCreateView, \
-    MiembroProyectoListJson,MiembroProyectoListView
+    MiembroProyectoListJson,MiembroProyectoListView,MiembroProyectoUpdateView
 
 urlpatterns = [
     url(r'^$', ProyectoListView.as_view(), name='proyectos'),
@@ -17,4 +17,5 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/miembros/crear$', MiembroProyectoCreateView.as_view(), name='proyecto_miembro_crear'),
     url(r'^(?P<proyecto_id>\d+)/miembros/$', MiembroProyectoListView.as_view(), name='proyecto_miembro_list'),
     url(r'^(?P<proyecto_id>\d+)/miembros/list$', MiembroProyectoListJson.as_view(), name='proyecto_miembro_list_json'),
+    url(r'^(?P<proyecto_id>\d+)/miembros/(?P<miembro_id>\d+)/editar$', MiembroProyectoUpdateView.as_view(), name='proyecto_miembro_editar'),
 ]

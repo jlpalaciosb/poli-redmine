@@ -13,8 +13,8 @@ from django.views.generic.edit import FormView
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from datetime import datetime
 
-from proyecto.forms import ProyectoForm,RolProyectoForm, MiembroProyectoForm
-from proyecto.models import Proyecto,RolProyecto
+from proyecto.forms import ProyectoForm,RolProyectoForm, MiembroProyectoForm,EditarMiembroForm
+from proyecto.models import Proyecto,RolProyecto,MiembroProyecto
 
 
 class CustomFilterBaseDatatableView(BaseDatatableView):
@@ -471,7 +471,7 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Success
         return super().form_valid(form)
 
 class MiembroProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
-    model = RolProyecto
+    model = MiembroProyecto
     template_name = "change_form.html"
     form_class = MiembroProyectoForm
     permission_required = 'proyecto.add_proyecto'
@@ -529,7 +529,7 @@ class MiembroProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, Templ
         # datatables
         context['nombres_columnas'] = ['id', 'Nombre del Miembro']
         context['order'] = [1, "asc"]
-        context['datatable_row_link'] = '#'#reverse('proyecto_rol_editar', args=(self.kwargs['proyecto_id'],99999))  # pasamos inicialmente el id 1
+        context['datatable_row_link'] = reverse('proyecto_miembro_editar', args=(self.kwargs['proyecto_id'],99999))  # pasamos inicialmente el id 1
         context['list_json'] = reverse('proyecto_miembro_list_json', kwargs=self.kwargs)
         context['roles']=True
         #Breadcrumbs
@@ -559,3 +559,47 @@ class MiembroProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, Custo
         """
         proyecto=Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         return proyecto.miembroproyecto_set.all()
+
+class MiembroProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = MiembroProyecto
+    form_class = EditarMiembroForm
+    context_object_name = 'miembro'
+    template_name = 'change_form.html'
+    pk_url_kwarg = 'miembro_id'
+    permission_required = 'proyecto.change_proyecto'
+    permission_denied_message = 'No tiene permiso para Editar Proyectos.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_success_message(self, cleaned_data):
+        return "Miembro de Proyecto  editado exitosamente."
+
+    def get_success_url(self):
+        return reverse('proyecto_miembro_list',args=(self.kwargs['proyecto_id'],))
+
+    def get_form_kwargs(self):
+        kwargs = super(MiembroProyectoUpdateView, self).get_form_kwargs()
+        kwargs.update({
+            'success_url': self.get_success_url(),
+            'proyecto_id': self.kwargs['proyecto_id'],
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(MiembroProyectoUpdateView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        context['titulo'] = 'Miembro de Proyectos'
+        context['titulo_form_editar'] = 'Datos del Miembro'
+        context['titulo_form_editar_nombre'] = context[MiembroProyectoUpdateView.context_object_name].user
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto',args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list' ,args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Editar', 'url': '#'}
+                                 ]
+
+        return context
+

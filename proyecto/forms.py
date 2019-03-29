@@ -138,3 +138,9 @@ class MiembroProyectoForm(ModelForm):
             self._update_errors(e.error_dict)
         finally:
             exclude.append('proyecto')
+
+class EditarMiembroForm(MiembroProyectoForm):
+    class Meta:
+        model = MiembroProyecto
+        fields = ['roles']
+        exclude = ['user']
