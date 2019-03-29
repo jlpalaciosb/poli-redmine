@@ -219,7 +219,7 @@ class ProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
 
     def get_context_data(self, **kwargs):
         context = super(ProyectoUpdateView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Proyecto'
+        context['titulo'] = 'Editar Proyecto'
         context['titulo_form_editar'] = 'Datos del Proyecto'
         context['titulo_form_editar_nombre'] = context[ProyectoUpdateView.context_object_name].nombre
 
@@ -323,7 +323,7 @@ class ProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView
 
 class RolListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
-    permission_required = ''
+    permission_required = 'proyecto.add_proyecto'
     permission_denied_message = 'No tiene permiso para ver este proyecto.'
 
     def handle_no_permission(self):
@@ -360,7 +360,7 @@ class RolListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilterBaseD
     columns = ['id', 'nombre']
     order_columns = ['id', 'nombre']
     max_display_length = 100
-    permission_required = ''
+    permission_required = 'proyecto.add_proyecto'
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
     def get_initial_queryset(self):
@@ -425,7 +425,7 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Success
     context_object_name = 'rol'
     template_name = 'change_form.html'
     pk_url_kwarg = 'rol_id'
-    permission_required = 'proyecto.change_proyecto'
+    permission_required = 'proyecto.add_proyecto'
     permission_denied_message = 'No tiene permiso para Editar Proyectos.'
 
     def handle_no_permission(self):
@@ -448,7 +448,7 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Success
     def get_context_data(self, **kwargs):
         context = super(RolProyectoUpdateView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        context['titulo'] = 'Roles de Proyectos'
+        context['titulo'] = 'Editar Rol de Proyecto'
         context['titulo_form_editar'] = 'Datos del Rol'
         context['titulo_form_editar_nombre'] = context[RolProyectoUpdateView.context_object_name].nombre
 
@@ -512,7 +512,7 @@ class MiembroProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
 
 class MiembroProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
-    permission_required = ''
+    permission_required = 'proyecto.add_proyecto'
     permission_denied_message = 'No tiene permiso para ver este proyecto.'
 
     def handle_no_permission(self):
@@ -549,7 +549,7 @@ class MiembroProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, Custo
     columns = ['id', 'user']
     order_columns = ['id', 'user']
     max_display_length = 100
-    permission_required = ''
+    permission_required = 'proyecto.add_proyecto'
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
     def get_initial_queryset(self):
@@ -566,7 +566,7 @@ class MiembroProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
     context_object_name = 'miembro'
     template_name = 'change_form.html'
     pk_url_kwarg = 'miembro_id'
-    permission_required = ''
+    permission_required = 'proyecto.add_proyecto'
     permission_denied_message = 'No tiene permiso para Editar Proyectos.'
 
     def handle_no_permission(self):
@@ -589,7 +589,7 @@ class MiembroProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
     def get_context_data(self, **kwargs):
         context = super(MiembroProyectoUpdateView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        context['titulo'] = 'Miembro de Proyectos'
+        context['titulo'] = 'Editar Miembro de Proyecto'
         context['titulo_form_editar'] = 'Datos del Miembro'
         context['titulo_form_editar_nombre'] = context[MiembroProyectoUpdateView.context_object_name].user
 

@@ -142,7 +142,7 @@ class RolUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageM
 
     def get_context_data(self, **kwargs):
         context = super(RolUpdateView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Rol Administrativo'
+        context['titulo'] = 'Editar Rol Administrativo'
         context['titulo_form_editar'] = 'Datos del Rol'
         context['titulo_form_editar_nombre'] = context[RolUpdateView.context_object_name].name
 

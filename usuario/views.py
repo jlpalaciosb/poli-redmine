@@ -173,7 +173,7 @@ class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
 
     def get_context_data(self, **kwargs):
         context = super(UsuarioUpdateView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Usuario'
+        context['titulo'] = 'Editar Usuario'
         context['titulo_form_editar'] = 'Datos del Usuario'
         context['titulo_form_editar_nombre'] = context[UsuarioUpdateView.context_object_name].username
 
@@ -215,7 +215,7 @@ class UsuarioPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView)
 
     def get_context_data(self, **kwargs):
         context = super(UsuarioPerfilView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Perfil del Rol'
+        context['titulo'] = 'Perfil del Usuario'
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
                                  {'nombre': 'Usuarios', 'url': reverse('usuario:lista')},
                                  {'nombre': context['usuario'].get_full_name(), 'url': '#'}
