@@ -74,7 +74,11 @@
                 ],
                 "createdRow": function( row, data, dataIndex) {
                     var url = '{{ datatable_row_link }}';
-                    url = url.replace(1, data[0]);
+                    {% if roles %}
+                        url = url.replace(99999, data[0]);
+                    {% else %}
+                        url = url.replace(1, data[0]);
+                    {% endif %}
                     $(row).attr('data-href', url);
                     $(row).attr('class', "tr-href");
                 },

@@ -1,0 +1,63 @@
+{% extends 'layout/layout.html' %}
+{% load static %}
+
+
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3 col-lg-6">{{ titulo }}</h1>
+            <br>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+
+  <div class="wrapper-md">
+    <div class="well m-t bg-light lt">
+      <div class="row">
+
+        <div class="col-xs-4">
+          <h4>{{ rol.name }}</h4>
+          <p>
+              <strong>Nombre del Rol: </strong>   {{ rol.name|default_if_none:"" }}<br><br>
+          </p>
+        </div>
+
+        <div class="col-xs-6">
+          <h4>&nbsp;</h4>
+          <p>
+              <strong>Permisos: </strong>  <br>
+              <ul>
+                {% for permisos in rol.permissions.all %}
+                    <li>{{  permisos.name }}</li>
+                {% endfor %}
+              </ul>
+              <br>
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+            {% if perms.proyecto.change_roladministrativo %}
+                <a href="{% url 'rol_sistema:editar' rol.id %}">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Editar
+                  </button>
+                </a>
+            {% endif %}
+            {% if perms.proyecto.delete_roladministrativo %}
+                <a href="{% url 'rol_sistema:eliminar' rol.id %}">
+                  <button class="btn m-b-xs btn-danger btn-addon ">
+                    <i class="fa fa-trash-o"></i>
+                    Eliminar
+                  </button>
+                </a>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
