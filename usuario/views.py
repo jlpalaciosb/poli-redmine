@@ -4,11 +4,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.query_utils import Q
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.utils.html import escape
-from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
+from django.views.generic import TemplateView, DetailView, UpdateView, CreateView, DeleteView
 from django.views.generic.base import ContextMixin, View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse
+from django.urls import reverse,reverse_lazy
+from django.http import HttpResponseRedirect
 from django.views.generic.edit import FormView
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from datetime import datetime
@@ -77,6 +78,22 @@ class UsuarioListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatable
             if (user.has_perm(perm)):
                 return True
         return False
+
+    def render_column(self, row, column):
+        # We want to render user as a custom column
+        if column == 'username':
+            # escape HTML for security reasons
+            return escape('{0} {1}'.format(row.first_name, row.last_name))
+        else:
+            return super(UsuarioListJson, self).render_column(row, column)
+
+    def get_initial_queryset(self):
+        """
+        Se sobreescribe el metodo para que la lista sean todos los usuarios que no sean Anonymous User
+        :return:
+        """
+        return self.model.objects.exclude(username='AnonymousUser')
+
 
 class UsuarioCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = User
@@ -220,3 +237,41 @@ class UsuarioPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView)
 
 
 
+class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMessageMixin, DeleteView):
+    model = User
+    context_object_name = 'usuario'
+    template_name = 'usuario/eliminar_usuario.html'
+    pk_url_kwarg = 'user_id'
+    permission_required = 'auth.delete_user'
+    permission_denied_message = 'No tiene permiso para eliminar el usuario.'
+    success_url = reverse_lazy('usuario:lista')
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_success_message(self, cleaned_data):
+        return "Usuario eliminado exitosamente."
+
+    def get_context_data(self, **kwargs):
+        context = super(UsuarioEliminarView, self).get_context_data(**kwargs)
+        context['titulo'] = 'Eliminar Rol'
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Roles Administrativos', 'url': reverse('rol_sistema:lista')},
+                                 {'nombre': context['usuario'].username,
+                                  'url': reverse('usuario:ver', kwargs=self.kwargs)},
+                                 {'nombre': 'Eliminar', 'url': '#'}, ]
+        context['eliminable'] = self.eliminable()
+        return context
+
+    def eliminable(self):
+        """
+        Si un usuario es miembro de algun proyecto entonces no se puede eliminar.
+        Faltaria poner mas condiciones como si tiene algun US o algo asi
+        :return:
+        """
+        return not self.get_object().miembroproyecto_set.all()
+
+    def post(self, request, *args, **kwargs):
+        if self.eliminable():
+            return super(UsuarioEliminarView, self).post(request, *args, **kwargs)
+        else:
+            return HttpResponseRedirect(self.success_url)

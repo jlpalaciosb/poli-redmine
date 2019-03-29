@@ -50,6 +50,16 @@
                 </a>
             {% endif %}
         </div>
+        <div class="col-xs-12">
+            {% if perms.auth.delete_user %}
+                <a href="{% url 'usuario:eliminar' usuario.id %}">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-trash-o"></i>
+                    Eliminar
+                  </button>
+                </a>
+            {% endif %}
+        </div>
       </div>
     </div>
 {% endblock %}
