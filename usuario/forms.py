@@ -52,3 +52,6 @@ class UsuarioForm(ModelForm):
 
         ]
         self.helper.layout = Layout(*layout)
+
+class UsuarioEditarForm(UsuarioForm):
+    password = forms.CharField(required=False,widget=forms.PasswordInput)

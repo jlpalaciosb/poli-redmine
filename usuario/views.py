@@ -13,8 +13,8 @@ from django.http import HttpResponseRedirect
 from django.views.generic.edit import FormView
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from datetime import datetime
-
-from .forms import UsuarioForm
+from django.contrib.auth import authenticate, login
+from .forms import UsuarioForm,UsuarioEditarForm
 from django.contrib.auth.models import User
 
 class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
@@ -147,7 +147,7 @@ class UsuarioCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
 
 class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = User
-    form_class = UsuarioForm
+    form_class = UsuarioEditarForm
     context_object_name = 'usuario'
     template_name = 'change_form.html'
     pk_url_kwarg = 'user_id'
