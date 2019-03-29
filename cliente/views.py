@@ -11,6 +11,11 @@ from proyecto.models import Cliente
 
 
 class ClienteListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+    """
+    Esta vista se encarga de la página para muestra la lista de clientes.
+    Es necesario que el usuario este logueado y tenga el permiso
+    'view_cliente'.
+    """
     template_name = 'cliente/cliente_list.html'
     permission_required = 'proyecto.view_cliente'
     permission_denied_message = 'No tiene permiso para ver la lista de clientes.'
@@ -38,6 +43,11 @@ class ClienteListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
 
 
 class ClienteListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatableView):
+    """
+    Esta vista retorna la lista de clientes en formato json para el
+    datatable. Es necesario que el usuario este logueado y tenga el
+    permiso 'view_cliente'
+    """
     model = Cliente
     columns = ['id', 'ruc', 'nombre', 'direccion', 'telefono']
     order_columns = ['id', 'ruc', 'nombre', 'direccion', 'telefono']
@@ -47,6 +57,11 @@ class ClienteListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatable
 
 
 class ClientePerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+    """
+    Esta vista se encarga de la página que muestra los datos de
+    un cliente en específico. Es necesario que el usuario este logueado
+    y tenga el permiso 'view_cliente'.
+    """
     model = Cliente
     context_object_name = 'cliente'
     template_name = 'cliente/cliente_perfil.html'
@@ -69,6 +84,10 @@ class ClientePerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView)
 
 
 class ClienteCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
+    """
+    Esta vista permite que un usuario logueado y con el permiso
+    'add_cliente' registre un nuevo cliente.
+    """
     model = Cliente
     template_name = "cliente/cliente_form.html"
     form_class = ClienteForm
@@ -102,6 +121,11 @@ class ClienteCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
 
 
 class ClienteUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
+    """
+    Esta vista permite que un usuario logueado y con el permiso
+    'change_cliente' actualice los datos básicos de un cliente
+    (cuyo id se especifica en la url).
+    """
     model = Cliente
     form_class = ClienteForm
     context_object_name = 'cliente'
@@ -141,6 +165,13 @@ class ClienteUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
 
 
 class ClienteDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    """
+    Esta vista permite que un usuario logueado y con el permiso
+    'delete_cliente' elimine un cliente (cuyo id se especifica
+    en la url) de la base de datos. Cuando se invoca con el método
+    get retorna una página para confirmar la acción. Cuando se invoca
+    con el método post borra el cliente (si se puede).
+    """
     model = Cliente
     pk_url_kwarg = 'cliente_id'
     context_object_name = 'cliente'
