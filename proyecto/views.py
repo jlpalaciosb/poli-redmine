@@ -104,7 +104,7 @@ class CustomFilterBaseDatatableView(BaseDatatableView):
 
 class ProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'proyecto/proyecto/change_list.html'
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.view_proyecto'
     permission_denied_message = 'No tiene permiso para ver este proyecto.'
 
     def handle_no_permission(self):
@@ -139,7 +139,7 @@ class ProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilter
     columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada', 'estado']
     order_columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada', 'estado']
     max_display_length = 100
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.view_proyecto'
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
 
@@ -198,7 +198,7 @@ class ProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
     context_object_name = 'proyecto'
     template_name = 'proyecto/proyecto/change_form.html'
     pk_url_kwarg = 'proyecto_id'
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.change_proyecto'
     permission_denied_message = 'No tiene permiso para Editar Proyectos.'
 
     def handle_no_permission(self):

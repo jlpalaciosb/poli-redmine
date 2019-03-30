@@ -43,7 +43,11 @@ class Proyecto(models.Model):
     usuario_creador = models.ForeignKey(User, related_name='usuario_contribuyente_creador')
     usuario_modificador = models.ForeignKey(User, related_name='usuario_contribuyente_modificador')
 
+    class Meta:
 
+        permissions = (
+            ("view_proyecto", "Tiene permiso de lectura de Proyecto"),
+        )
 
 class Sprint(models.Model):
     """
