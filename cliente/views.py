@@ -55,6 +55,9 @@ class ClienteListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatable
     permission_required = 'proyecto.view_cliente'
     permission_denied_message = 'No tiene permiso para ver la lista de clientes.'
 
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
 
 class ClientePerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     """
