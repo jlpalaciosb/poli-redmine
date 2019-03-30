@@ -21,7 +21,7 @@ class RolSistemaForm(ModelForm):
                                                     Q(content_type__app_label=User._meta.app_label,content_type__model=User._meta.model_name) |
                                                     Q(content_type__app_label=RolAdministrativo._meta.app_label,content_type__model=RolAdministrativo._meta.model_name) |
                                                     Q(content_type__app_label=Cliente._meta.app_label,content_type__model=Cliente._meta.model_name)
-                                                ).exclude(codename='change_proyecto').exclude(codename='delete_proyecto'),
+                                                ).exclude(codename='delete_proyecto'),
                                                 widget=forms.CheckboxSelectMultiple,
                                                 required=True,
                                                 label="Permisos"
