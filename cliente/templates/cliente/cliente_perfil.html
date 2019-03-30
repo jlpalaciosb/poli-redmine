@@ -33,7 +33,7 @@
             <div class="row">
                 <div class="col-xs-12">
                     {% if perms.proyecto.change_cliente %}
-                        <a href="{% url 'editar_cliente' cliente.id %}">
+                        <a href="{% url 'cliente:editar' cliente.id %}">
                             <button class="btn m-b-xs btn-default btn-addon ">
                                 <i class="fa fa-pencil"></i>
                                 Editar
@@ -41,7 +41,7 @@
                         </a>
                     {% endif %}
                     {% if perms.proyecto.delete_cliente %}
-                        <a href="{% url 'eliminar_cliente' cliente.id %}">
+                        <a href="{% url 'cliente:eliminar' cliente.id %}">
                             <button class="btn m-b-xs btn-danger btn-addon ">
                                 <i class="fa fa-trash"></i>
                                 Eliminar
