@@ -66,7 +66,6 @@ class CustomFilterBaseDatatableView(BaseDatatableView):
 
         if order:
             if order == ['proyecto']:
-                # Si se ordena por el periodo la lista de resultados
                 return qs.order_by(*['proyecto__nombre'])
             elif order == ['-proyecto']:
                 return qs.order_by(*['-proyecto__nombre'])
@@ -103,8 +102,12 @@ class CustomFilterBaseDatatableView(BaseDatatableView):
 
 
 class ProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+    """
+    Vista Basada en Clases para listar los proyectos existentes
+    """
+
     template_name = 'proyecto/proyecto/change_list.html'
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.view_proyecto'
     permission_denied_message = 'No tiene permiso para ver este proyecto.'
 
     def handle_no_permission(self):
@@ -139,11 +142,14 @@ class ProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilter
     columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada', 'estado']
     order_columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada', 'estado']
     max_display_length = 100
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.view_proyecto'
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
 
 class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
+    """
+        Vista Basada en Clases para la creacion de los proyectos
+    """
     model = Proyecto
     template_name = "proyecto/proyecto/change_form.html"
     form_class = ProyectoForm
@@ -193,12 +199,15 @@ class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
 
 
 class ProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
+    """
+           Vista Basada en Clases para la actualizacion de los proyectos
+    """
     model = Proyecto
     form_class = ProyectoForm
     context_object_name = 'proyecto'
     template_name = 'proyecto/proyecto/change_form.html'
     pk_url_kwarg = 'proyecto_id'
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.change_proyecto'
     permission_denied_message = 'No tiene permiso para Editar Proyectos.'
 
     def handle_no_permission(self):
@@ -244,6 +253,9 @@ class ProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
 
 
 class ProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+    """
+           Vista Basada en Clases para la visualizacion del perfil de un proyecto
+    """
     model = Proyecto
     context_object_name = 'proyecto'
     template_name = 'proyecto/proyecto/change_list_perfil.html'
@@ -257,63 +269,6 @@ class ProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView
     def get_context_data(self, **kwargs):
         context = super(ProyectoPerfilView, self).get_context_data(**kwargs)
         context['titulo'] = 'Perfil del Proyecto'
-
-        # context['crear_buttom'] = True
-        # context['crear_ingreso_url'] = reverse('crear_ingreso', args=(context['contribuyente'].id, ))
-        # context['crear_egreso_url'] = reverse('crear_egreso', args=(context['contribuyente'].id,))
-        #
-        # context['crear_ingreso_text_buttom'] = 'Nuevo Ingreso'
-        # context['crear_egreso_text_buttom'] = 'Nuevo Egreso'
-        #
-        # # prestamos
-        # context['lista_prestamos_buttom'] = 'Préstamos'
-        # context['lista_prestamos_url'] = reverse('prestamos', args=(context['contribuyente'].id,))
-        #
-        # # resultados
-        # context['lista_resultados_buttom'] = 'Resultados'
-        # context['lista_resultados_url'] = reverse('resultados', args=(context['contribuyente'].id,))
-        #
-        # context['ingresos_text_tab'] = 'Ingresos'
-        # context['egregsos_text_tab'] = 'Egresos'
-        #
-        # # importar url
-        # context['importar_ingresos_url'] = reverse('importar_ingresos', args=(context['contribuyente'].id,))
-        # context['importar_egresos_url'] = reverse('importar_egresos', args=(context['contribuyente'].id,))
-        # context['pdf_generate_formulario104v3_url'] = reverse('pdf_generate_formulario104v3', args=(context['contribuyente'].id,))
-        #
-        # # Error importacion
-        # error_importacion = self.request.session['error_importacion'] if 'error_importacion' in self.request.session else None
-        #
-        # if error_importacion:
-        #     del self.request.session['error_importacion']
-        #     context['error_importacion_exists'] = error_importacion
-        #
-        # # datatables
-        # tipo = self.request.GET.get('tipo', None)  # tipo ingreso o egreso
-        # if tipo:
-        #     if tipo == 'ingreso':
-        #         context['nombres_columnas'] = ['id', 'Fecha', 'Tipo de Documento', 'Operación',
-        #                                        'Ingreso Gravado', 'Ingreso No Gravado']
-        #         context['order'] = [1, "asc"]
-        #         context['datatable_row_link'] = reverse('editar_ingreso', args=(
-        #             context['contribuyente'].id, 1))  # pasamos inicialmente el id 1
-        #         context['list_json'] = reverse('ingreso_list_json', args=(context['contribuyente'].id,))
-        #
-        #     elif tipo == 'egreso':
-        #         context['nombres_columnas'] = ['id', 'Fecha', 'Tipo de Documento', 'Operación', 'Egreso Total']
-        #         context['order'] = [1, "asc"]
-        #         context['datatable_row_link'] = reverse('editar_egreso', args=(
-        #             context['contribuyente'].id, 1))  # pasamos inicialmente el id 1
-        #         context['list_json'] = reverse('egreso_list_json', args=(context['contribuyente'].id,))
-        # else:
-        #     context['nombres_columnas'] = ['id', 'Fecha', 'Tipo de Documento', 'Operación',
-        #                                    'Ingreso Gravado', 'Ingreso No Gravado']
-        #     context['order'] = [1, "asc"]
-        #     context['datatable_row_link'] = reverse('editar_ingreso', args=(
-        #         context['contribuyente'].id, 1))  # pasamos inicialmente el id 1
-        #     context['list_json'] = reverse('ingreso_list_json', args=(context['contribuyente'].id, ))
-
-        # Breadcrumbs
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
                                  {'nombre': 'Proyectos', 'url': reverse('proyectos')},
                                  {'nombre': context['proyecto'].nombre,'url': '#'}

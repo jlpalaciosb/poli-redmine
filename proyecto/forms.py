@@ -10,6 +10,9 @@ from proyecto.models import Proyecto, RolProyecto, MiembroProyecto
 from django.core.exceptions import ValidationError
 
 class ProyectoForm(ModelForm):
+    """
+           Form utilizada para la creacion/actualizacion de los proyectos
+    """
     class Meta:
         model = Proyecto
         fields = ['nombre', 'descripcion', 'cliente', 'duracionSprint',
