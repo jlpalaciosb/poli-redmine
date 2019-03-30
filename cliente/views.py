@@ -27,7 +27,7 @@ class ClienteListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
         context = super(ClienteListView, self).get_context_data(**kwargs)
         context['titulo'] = 'Lista de Clientes'
         context['crear_url'] = reverse('cliente:crear')
-        context['crear_button'] = True
+        context['crear_button'] = self.request.user.has_perm('proyecto.add_cliente')
         context['crear_button_text'] = 'Nuevo Cliente'
 
         # datatable
