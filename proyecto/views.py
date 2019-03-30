@@ -116,7 +116,7 @@ class ProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView
     def get_context_data(self, **kwargs):
         context = super(ProyectoListView, self).get_context_data(**kwargs)
         context['titulo'] = 'Lista de Proyectos'
-        context['crear_button'] = True
+        context['crear_button'] = self.request.user.has_perm('proyecto.add_proyecto')
         context['crear_url'] = reverse('crear_proyecto')
         context['crear_button_text'] = 'Nuevo Proyecto'
 
@@ -260,7 +260,7 @@ class ProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView
     context_object_name = 'proyecto'
     template_name = 'proyecto/proyecto/change_list_perfil.html'
     pk_url_kwarg = 'proyecto_id'
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.view_proyecto'
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
     def handle_no_permission(self):
@@ -278,7 +278,7 @@ class ProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView
 
 class RolListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.change_proyecto'
     permission_denied_message = 'No tiene permiso para ver este proyecto.'
 
     def handle_no_permission(self):
@@ -315,7 +315,7 @@ class RolListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilterBaseD
     columns = ['id', 'nombre']
     order_columns = ['id', 'nombre']
     max_display_length = 100
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.change_proyecto'
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
     def get_initial_queryset(self):
@@ -330,7 +330,7 @@ class RolProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, Success
     model = RolProyecto
     template_name = "change_form.html"
     form_class = RolProyectoForm
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.change_proyecto'
     permission_denied_message = 'No tiene permiso para Crear nuevos proyectos.'
 
     def handle_no_permission(self):
@@ -380,7 +380,7 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Success
     context_object_name = 'rol'
     template_name = 'change_form.html'
     pk_url_kwarg = 'rol_id'
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.change_proyecto'
     permission_denied_message = 'No tiene permiso para Editar Proyectos.'
 
     def handle_no_permission(self):
@@ -429,7 +429,7 @@ class MiembroProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
     model = MiembroProyecto
     template_name = "change_form.html"
     form_class = MiembroProyectoForm
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.change_proyecto'
     permission_denied_message = 'No tiene permiso para Crear nuevos proyectos.'
 
     def handle_no_permission(self):
@@ -467,7 +467,7 @@ class MiembroProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
 
 class MiembroProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.change_proyecto'
     permission_denied_message = 'No tiene permiso para ver este proyecto.'
 
     def handle_no_permission(self):
@@ -504,7 +504,7 @@ class MiembroProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, Custo
     columns = ['id', 'user']
     order_columns = ['id', 'user']
     max_display_length = 100
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.change_proyecto'
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
     def get_initial_queryset(self):
@@ -521,7 +521,7 @@ class MiembroProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
     context_object_name = 'miembro'
     template_name = 'change_form.html'
     pk_url_kwarg = 'miembro_id'
-    permission_required = 'proyecto.add_proyecto'
+    permission_required = 'proyecto.change_proyecto'
     permission_denied_message = 'No tiene permiso para Editar Proyectos.'
 
     def handle_no_permission(self):
