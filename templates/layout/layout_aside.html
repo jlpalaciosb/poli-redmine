@@ -38,7 +38,7 @@
                             </li>
                         {% endif %}
 
-                        {% if perms.proyecto.view_cliente %}
+                        {% if perms.proyecto.add_cliente or perms.proyecto.change_cliente or perms.proyecto.delete_cliente %}
                             <li>
                                 <a href="{% url 'cliente:lista' %}">
                                     <i class="fa fa-users icon text-info-lter"></i>
