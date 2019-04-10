@@ -8,7 +8,7 @@ from django.http import HttpResponseRedirect
 
 from cliente.forms import ClienteForm
 from proyecto.models import Cliente
-
+from proyecto.utils import cualquier_permiso
 
 class ClienteListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     """
@@ -211,10 +211,3 @@ class ClienteDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
             return super(ClienteDeleteView, self).post(request, *args, **kwargs)
         else:
             return HttpResponseRedirect(self.success_url)
-
-# retorna true si el usuario tiene uno de los permisos
-def cualquier_permiso(user, perms):
-    for perm in perms:
-        if user.has_perm(perm):
-            return True
-    return False
