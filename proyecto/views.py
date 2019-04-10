@@ -1,20 +1,15 @@
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.query_utils import Q
-from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
+from django.http import HttpResponseForbidden
 
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
-from django.views.generic.base import ContextMixin, View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
-from django.views.generic.edit import FormView
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from datetime import datetime
 
 from proyecto.forms import ProyectoForm,RolProyectoForm, MiembroProyectoForm,EditarMiembroForm
 from proyecto.models import Proyecto,RolProyecto,MiembroProyecto
+from proyecto.utils import cualquier_permiso
 
 
 class CustomFilterBaseDatatableView(BaseDatatableView):
@@ -107,8 +102,11 @@ class ProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView
     """
 
     template_name = 'proyecto/proyecto/change_list.html'
-    permission_required = 'proyecto.view_proyecto'
+    permission_required = ('proyecto.add_proyecto', 'proyecto.change_proyecto', 'proyecto.delete_proyecto')
     permission_denied_message = 'No tiene permiso para ver este proyecto.'
+
+    def has_permission(self):
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -142,8 +140,11 @@ class ProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilter
     columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada', 'estado']
     order_columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada', 'estado']
     max_display_length = 100
-    permission_required = 'proyecto.view_proyecto'
+    permission_required = ('proyecto.add_proyecto', 'proyecto.change_proyecto', 'proyecto.delete_proyecto')
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+    def has_permission(self):
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
 
 class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
@@ -260,8 +261,11 @@ class ProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView
     context_object_name = 'proyecto'
     template_name = 'proyecto/proyecto/change_list_perfil.html'
     pk_url_kwarg = 'proyecto_id'
-    permission_required = 'proyecto.view_proyecto'
+    permission_required = ('proyecto.add_proyecto', 'proyecto.change_proyecto', 'proyecto.delete_proyecto')
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+    def has_permission(self):
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
