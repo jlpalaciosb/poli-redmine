@@ -23,9 +23,11 @@
                      <input type="password" placeholder="Contraseña" id="password" name="password" class="form-control no-border" required>
                   </div>
                 </div>
-                  {% if form.errors %}
-                    <p style="color: darkred">Por favor, introduzca un Usuario y/o Contraseña válidos.</p>
-                  {% endif %}
+                {% for field, errors in form.errors.items %}
+                    <div style="color: darkred">
+                        {{ errors }}
+                    </div>
+                {% endfor %}
                 <button type="submit" class="btn btn-lg btn-primary btn-block">Iniciar sesión</button>
 
               </form>
@@ -52,7 +54,6 @@
                     };
                 });
             </script>
-
         {% endblock %}
 
     </body>
