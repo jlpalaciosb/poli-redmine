@@ -1,7 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView
 from django.views.generic import TemplateView
 
-
+from ProyectoIS2_9.forms import NuestroAuthenticationForm
 
 
 class IndexView(LoginRequiredMixin, TemplateView):
@@ -15,3 +16,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
         context = super(IndexView, self).get_context_data(**kwargs)
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '#'}]
         return context
+
+
+class NuestroLoginView(LoginView):
+    form_class = NuestroAuthenticationForm
