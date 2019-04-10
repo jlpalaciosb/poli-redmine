@@ -11,19 +11,18 @@ ESTADOS_PROYECTO = (('PENDIENTE', 'Pendiente'),
 
 class Cliente(models.Model):
     """
-    La clase Cliente representa a un cliente de un proyecto específico
+    La clase Cliente representa a un cliente de uno o varios proyectos
     """
-    ruc = models.CharField(verbose_name='RUC', max_length=100)
-    nombre = models.CharField(verbose_name='Nombre y Apellido', max_length=50)
-    direccion = models.CharField(verbose_name='Direccion', max_length=100)
-    pais = models.CharField(verbose_name='Pais', max_length=20)
-    correo = models.EmailField(verbose_name='Correo')
-    telefono = models.CharField(verbose_name='Telefono', max_length=30)
+    ruc = models.CharField(verbose_name='RUC', max_length=15, unique=True)
+    nombre = models.CharField(max_length=60)
+    direccion = models.CharField(verbose_name='dirección', max_length=100)
+    pais = models.CharField(verbose_name='país', max_length=50)
+    correo = models.EmailField(unique=True)
+    telefono = models.CharField(verbose_name='teléfono', max_length=30, unique=True)
 
     def __str__(self):
-        return "({}) ({}) {}".format(self.id, self.ruc, self.nombre)
-    class Meta:
-        permissions = (("view_cliente", "Can view clientes"),)
+        return "(RUC: {}) {}".format(self.ruc, self.nombre)
+
 
 class Proyecto(models.Model):
     """

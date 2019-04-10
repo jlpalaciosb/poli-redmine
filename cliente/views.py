@@ -12,13 +12,15 @@ from proyecto.models import Cliente
 
 class ClienteListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     """
-    Esta vista se encarga de la página para muestra la lista de clientes.
-    Es necesario que el usuario este logueado y tenga el permiso
-    'view_cliente'.
+    Esta vista se encarga de la página que muestra la lista de clientes. Es necesario
+    que el usuario este logueado y tenga cualquier permiso de cliente
     """
     template_name = 'cliente/cliente_list.html'
-    permission_required = 'proyecto.view_cliente'
+    permission_required = ('proyecto.add_cliente', 'proyecto.change_cliente', 'proyecto.delete_cliente')
     permission_denied_message = 'No tiene permiso para ver la lista de clientes.'
+
+    def has_permission(self):
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -44,16 +46,18 @@ class ClienteListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
 
 class ClienteListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatableView):
     """
-    Esta vista retorna la lista de clientes en formato json para el
-    datatable. Es necesario que el usuario este logueado y tenga el
-    permiso 'view_cliente'
+    Esta vista retorna la lista de clientes en json para el datatable. Es necesario
+    que el usuario este logueado y tenga cualquier permiso de cliente
     """
     model = Cliente
     columns = ['id', 'ruc', 'nombre', 'direccion', 'telefono']
     order_columns = ['id', 'ruc', 'nombre', 'direccion', 'telefono']
     max_display_length = 100
-    permission_required = 'proyecto.view_cliente'
+    permission_required = ('proyecto.add_cliente', 'proyecto.change_cliente', 'proyecto.delete_cliente')
     permission_denied_message = 'No tiene permiso para ver la lista de clientes.'
+
+    def has_permission(self):
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -61,16 +65,19 @@ class ClienteListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatable
 
 class ClientePerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     """
-    Esta vista se encarga de la página que muestra los datos de
-    un cliente en específico. Es necesario que el usuario este logueado
-    y tenga el permiso 'view_cliente'.
+    Esta vista se encarga de la página que muestra los datos de un cliente en
+    específico. Es necesario que el usuario este logueado y tenga el cualquier
+    permiso de cliente
     """
     model = Cliente
     context_object_name = 'cliente'
     template_name = 'cliente/cliente_perfil.html'
     pk_url_kwarg = 'cliente_id'
-    permission_required = 'proyecto.view_cliente'
+    permission_required = ('proyecto.add_cliente', 'proyecto.change_cliente', 'proyecto.delete_cliente')
     permission_denied_message = 'No tiene permiso para ver este cliente.'
+
+    def has_permission(self):
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -204,3 +211,10 @@ class ClienteDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
             return super(ClienteDeleteView, self).post(request, *args, **kwargs)
         else:
             return HttpResponseRedirect(self.success_url)
+
+# retorna true si el usuario tiene uno de los permisos
+def cualquier_permiso(user, perms):
+    for perm in perms:
+        if user.has_perm(perm):
+            return True
+    return False
