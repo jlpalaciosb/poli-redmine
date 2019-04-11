@@ -20,7 +20,8 @@
         <div class="col-xs-4">
           <h4>{{ usuario.get_full_name }}</h4>
           <p>
-              <strong>Nombre del Usuario: </strong>   {{ usuario.username|default_if_none:"" }}<br><br>
+              <strong>Username: </strong>   {{ usuario.username|default_if_none:"" }}<br><br>
+              <strong>Correo Electrónico: </strong>   {{ usuario.email|default_if_none:"" }}<br><br>
           </p>
         </div>
 

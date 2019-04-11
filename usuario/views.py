@@ -1,21 +1,16 @@
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models.query_utils import Q
-from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
+from django.http import HttpResponseForbidden
 from django.utils.html import escape
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView, DeleteView
-from django.views.generic.base import ContextMixin, View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse,reverse_lazy
 from django.http import HttpResponseRedirect
-from django.views.generic.edit import FormView
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from datetime import datetime
-from django.contrib.auth import authenticate, login
-from .forms import UsuarioForm,UsuarioEditarForm
 from django.contrib.auth.models import User
+
+from .forms import UsuarioForm,UsuarioEditarForm
+from ProyectoIS2_9.utils import cualquier_permiso
+
 
 class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
@@ -30,12 +25,7 @@ class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
         Se sobreescribe para que si tiene al menos uno de los permisos listados en permission_required, tiene permisos
         :return:
         """
-        user = self.request.user
-        perms = self.get_permission_required()
-        for perm in perms:
-            if(user.has_perm(perm)):
-                return True
-        return False
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def get_context_data(self, **kwargs):
         context = super(UsuarioListView, self).get_context_data(**kwargs)
@@ -45,24 +35,26 @@ class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
         context['crear_button_text'] = 'Nuevo Usuario'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'Nombre','Email']
+        context['nombres_columnas'] = [
+            'id', 'Username', 'Nombres y Apellidos', 'Correo Electrónico'
+        ]
         context['order'] = [1, "asc"]
         context['datatable_row_link'] = reverse('usuario:ver', args=(1,))  # pasamos inicialmente el id 1
         context['list_json'] = reverse('usuario:lista_json')
 
         #Breadcrumbs
-        context['breadcrumb'] = [{'nombre':'Inicio', 'url':'/'},
-                   {'nombre':'Usuarios', 'url': '#'},
-                   ]
-
-
+        context['breadcrumb'] = [
+            {'nombre':'Inicio', 'url':'/'},
+            {'nombre':'Usuarios', 'url': '#'},
+        ]
 
         return context
 
+
 class UsuarioListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatableView):
     model = User
-    columns = ['id', 'username','email']
-    order_columns = ['id', 'username','email']
+    columns = ['id', 'username', 'nombres y apellidos', 'email']
+    order_columns = ['id', 'username', 'nombres y apellidos', 'email']
     max_display_length = 100
     permission_required = (
         'auth.add_user', 'auth.change_user', 'auth.delete_user')
@@ -72,18 +64,13 @@ class UsuarioListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatable
         return HttpResponseForbidden()
 
     def has_permission(self):
-        user = self.request.user
-        perms = self.get_permission_required()
-        for perm in perms:
-            if (user.has_perm(perm)):
-                return True
-        return False
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def render_column(self, row, column):
         # We want to render user as a custom column
-        if column == 'username':
+        if column == 'nombres y apellidos':
             # escape HTML for security reasons
-            return escape('{0} {1}'.format(row.first_name, row.last_name))
+            return escape(row.get_full_name())
         else:
             return super(UsuarioListJson, self).render_column(row, column)
 
@@ -124,10 +111,11 @@ class UsuarioCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
         context['titulo_form_crear'] = 'Insertar Datos del Nuevo Usuario'
 
         # Breadcrumbs
-        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
-                                 {'nombre': 'Usuarios', 'url': reverse('usuario:lista')},
-                                 {'nombre': 'Crear', 'url': '#'}
-                                 ]
+        context['breadcrumb'] = [
+            {'nombre': 'Inicio', 'url': '/'},
+            {'nombre': 'Usuarios', 'url': reverse('usuario:lista')},
+            {'nombre': 'Crear', 'url': '#'}
+        ]
 
         return context
 
@@ -178,11 +166,12 @@ class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
         context['titulo_form_editar_nombre'] = context[UsuarioUpdateView.context_object_name].username
 
         # Breadcrumbs
-        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
-                                 {'nombre': 'Usuarios', 'url': reverse('usuario:lista')},
-                                 {'nombre': context['usuario'].get_full_name, 'url': reverse('usuario:ver',kwargs=self.kwargs)},
-                                 {'nombre': 'Editar', 'url': '#'},
-                                 ]
+        context['breadcrumb'] = [
+            {'nombre': 'Inicio', 'url': '/'},
+            {'nombre': 'Usuarios', 'url': reverse('usuario:lista')},
+            {'nombre': context['usuario'].get_full_name, 'url': reverse('usuario:ver',kwargs=self.kwargs)},
+            {'nombre': 'Editar', 'url': '#'},
+        ]
 
         return context
 
@@ -202,6 +191,7 @@ class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
 
         return super().form_valid(form)
 
+
 class UsuarioPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = User
     context_object_name = 'usuario'
@@ -216,25 +206,16 @@ class UsuarioPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView)
     def get_context_data(self, **kwargs):
         context = super(UsuarioPerfilView, self).get_context_data(**kwargs)
         context['titulo'] = 'Perfil del Usuario'
-        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
-                                 {'nombre': 'Usuarios', 'url': reverse('usuario:lista')},
-                                 {'nombre': context['usuario'].get_full_name(), 'url': '#'}
-                                 ]
+        context['breadcrumb'] = [
+            {'nombre': 'Inicio', 'url': '/'},
+            {'nombre': 'Usuarios', 'url': reverse('usuario:lista')},
+            {'nombre': context['usuario'].get_full_name(), 'url': '#'}
+        ]
 
         return context
 
     def has_permission(self):
-        """
-        Se sobreescribe para que si tiene al menos uno de los permisos listados en permission_required, tiene permisos
-        :return:
-        """
-        user = self.request.user
-        perms = self.get_permission_required()
-        for perm in perms:
-            if(user.has_perm(perm)):
-                return True
-        return False
-
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
 
 class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMessageMixin, DeleteView):
@@ -254,11 +235,12 @@ class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMes
     def get_context_data(self, **kwargs):
         context = super(UsuarioEliminarView, self).get_context_data(**kwargs)
         context['titulo'] = 'Eliminar Rol'
-        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
-                                 {'nombre': 'Usuarios', 'url': reverse('usuario:lista')},
-                                 {'nombre': context['usuario'].username,
-                                  'url': reverse('usuario:ver', kwargs=self.kwargs)},
-                                 {'nombre': 'Eliminar', 'url': '#'}, ]
+        context['breadcrumb'] = [
+            {'nombre': 'Inicio', 'url': '/'},
+            {'nombre': 'Usuarios', 'url': reverse('usuario:lista')},
+            {'nombre': context['usuario'].username, 'url': reverse('usuario:ver', kwargs=self.kwargs)},
+            {'nombre': 'Eliminar', 'url': '#'}
+        ]
         context['eliminable'] = self.eliminable()
         return context
 

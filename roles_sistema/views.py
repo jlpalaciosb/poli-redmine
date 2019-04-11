@@ -1,24 +1,20 @@
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models.query_utils import Q
-from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
-
+from django.http import HttpResponseForbidden
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView, DeleteView
-from django.views.generic.base import ContextMixin, View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse,reverse_lazy
-from django.views.generic.edit import FormView
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from datetime import datetime
 from django.http import HttpResponseRedirect
+
 from roles_sistema.forms import RolSistemaForm
 from proyecto.models import RolAdministrativo
+from ProyectoIS2_9.utils import cualquier_permiso
 
 class RolListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
-    permission_required = ('proyecto.add_roladministrativo','proyecto.change_roladministrativo','proyecto.delete_roladministrativo')
+    permission_required = (
+        'proyecto.add_roladministrativo', 'proyecto.change_roladministrativo', 'proyecto.delete_roladministrativo'
+    )
     permission_denied_message = 'No tiene permiso para ver los roles.'
 
     def handle_no_permission(self):
@@ -29,12 +25,7 @@ class RolListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
         Se sobreescribe para que si tiene al menos uno de los permisos listados en permission_required, tiene permisos
         :return:
         """
-        user = self.request.user
-        perms = self.get_permission_required()
-        for perm in perms:
-            if(user.has_perm(perm)):
-                return True
-        return False
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def get_context_data(self, **kwargs):
         context = super(RolListView, self).get_context_data(**kwargs)
@@ -64,19 +55,15 @@ class RolListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatableView
     order_columns = ['id', 'name']
     max_display_length = 100
     permission_required = (
-    'proyecto.add_roladministrativo', 'proyecto.change_roladministrativo', 'proyecto.delete_roladministrativo')
+        'proyecto.add_roladministrativo', 'proyecto.change_roladministrativo', 'proyecto.delete_roladministrativo'
+    )
     permission_denied_message = 'No tiene permiso para ver los roles.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
     def has_permission(self):
-        user = self.request.user
-        perms = self.get_permission_required()
-        for perm in perms:
-            if (user.has_perm(perm)):
-                return True
-        return False
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
 class RolCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = RolAdministrativo
@@ -167,16 +154,7 @@ class RolPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
         return HttpResponseForbidden()
 
     def has_permission(self):
-        """
-        Se sobreescribe para que si tiene al menos uno de los permisos listados en permission_required, tiene permisos
-        :return:
-        """
-        user = self.request.user
-        perms = self.get_permission_required()
-        for perm in perms:
-            if(user.has_perm(perm)):
-                return True
-        return False
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def get_context_data(self, **kwargs):
         context = super(RolPerfilView, self).get_context_data(**kwargs)
@@ -222,6 +200,3 @@ class RolEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMessage
             return super(RolEliminarView, self).post(request, *args, **kwargs)
         else:
             return HttpResponseRedirect(self.success_url)
-
-
-
