@@ -9,7 +9,7 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 
 from proyecto.forms import ProyectoForm,RolProyectoForm, MiembroProyectoForm,EditarMiembroForm
 from proyecto.models import Proyecto,RolProyecto,MiembroProyecto
-from proyecto.utils import cualquier_permiso
+from ProyectoIS2_9.utils import cualquier_permiso
 
 
 class CustomFilterBaseDatatableView(BaseDatatableView):

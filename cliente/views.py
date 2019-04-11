@@ -8,7 +8,7 @@ from django.http import HttpResponseRedirect
 
 from cliente.forms import ClienteForm
 from proyecto.models import Cliente
-from proyecto.utils import cualquier_permiso
+from ProyectoIS2_9.utils import cualquier_permiso
 
 class ClienteListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     """

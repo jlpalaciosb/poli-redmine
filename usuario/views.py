@@ -1,21 +1,16 @@
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models.query_utils import Q
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.utils.html import escape
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView, DeleteView
-from django.views.generic.base import ContextMixin, View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse,reverse_lazy
 from django.http import HttpResponseRedirect
-from django.views.generic.edit import FormView
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from datetime import datetime
-from django.contrib.auth import authenticate, login
-from .forms import UsuarioForm,UsuarioEditarForm
 from django.contrib.auth.models import User
+
+from .forms import UsuarioForm,UsuarioEditarForm
+from ProyectoIS2_9.utils import cualquier_permiso
+
 
 class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
@@ -30,12 +25,7 @@ class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
         Se sobreescribe para que si tiene al menos uno de los permisos listados en permission_required, tiene permisos
         :return:
         """
-        user = self.request.user
-        perms = self.get_permission_required()
-        for perm in perms:
-            if(user.has_perm(perm)):
-                return True
-        return False
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def get_context_data(self, **kwargs):
         context = super(UsuarioListView, self).get_context_data(**kwargs)
@@ -59,6 +49,7 @@ class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
 
         return context
 
+
 class UsuarioListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatableView):
     model = User
     columns = ['id', 'username','email']
@@ -72,12 +63,7 @@ class UsuarioListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatable
         return HttpResponseForbidden()
 
     def has_permission(self):
-        user = self.request.user
-        perms = self.get_permission_required()
-        for perm in perms:
-            if (user.has_perm(perm)):
-                return True
-        return False
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def render_column(self, row, column):
         # We want to render user as a custom column
@@ -202,6 +188,7 @@ class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
 
         return super().form_valid(form)
 
+
 class UsuarioPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = User
     context_object_name = 'usuario'
@@ -224,17 +211,7 @@ class UsuarioPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView)
         return context
 
     def has_permission(self):
-        """
-        Se sobreescribe para que si tiene al menos uno de los permisos listados en permission_required, tiene permisos
-        :return:
-        """
-        user = self.request.user
-        perms = self.get_permission_required()
-        for perm in perms:
-            if(user.has_perm(perm)):
-                return True
-        return False
-
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
 
 class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMessageMixin, DeleteView):
