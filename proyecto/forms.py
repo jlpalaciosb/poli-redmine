@@ -3,10 +3,12 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, HTML, Layout, Fieldset, Row, Div, Column
 from dal import autocomplete
 from django import forms
+from django.contrib.auth.models import Permission
+from django.db.models import Q
 from django.forms import ModelForm, DateInput, Form
 from django.forms import ModelMultipleChoiceField
 from django.core.exceptions import NON_FIELD_ERRORS
-from proyecto.models import Proyecto, RolProyecto, MiembroProyecto
+from proyecto.models import Proyecto, RolProyecto, MiembroProyecto, TipoUS, Flujo, UserStory, Sprint
 from django.core.exceptions import ValidationError
 
 class ProyectoForm(ModelForm):
@@ -48,11 +50,31 @@ class ProyectoForm(ModelForm):
         ]
         self.helper.layout = Layout(*layout)
 
+
+class PermisosModelMultipleChoiceField(ModelMultipleChoiceField):
+    def label_from_instance(self, obj):
+        return obj.name
+
+
 class RolProyectoForm(ModelForm):
+    permissions = PermisosModelMultipleChoiceField(
+        queryset=Permission.objects.filter(
+            Q(content_type__app_label=Proyecto._meta.app_label, content_type__model=Proyecto._meta.model_name) |
+            Q(content_type__app_label=RolProyecto._meta.app_label, content_type__model=RolProyecto._meta.model_name) |
+            Q(content_type__app_label=MiembroProyecto._meta.app_label, content_type__model=MiembroProyecto._meta.model_name) |
+            Q(content_type__app_label=TipoUS._meta.app_label, content_type__model=TipoUS._meta.model_name) |
+            Q(content_type__app_label=Flujo._meta.app_label, content_type__model=Flujo._meta.model_name) |
+            Q(content_type__app_label=UserStory._meta.app_label, content_type__model=UserStory._meta.model_name) |
+            Q(content_type__app_label=Sprint._meta.app_label, content_type__model=Sprint._meta.model_name)
+        ).exclude(codename='add_proyecto'),
+        widget=forms.CheckboxSelectMultiple,
+        required=True,
+        label="Permisos"
+    )
+
     class Meta:
         model = RolProyecto
-        fields = ['nombre']
-
+        fields = ['nombre', 'permissions']
 
     def validate_unique(self):
         """
@@ -82,7 +104,7 @@ class RolProyectoForm(ModelForm):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-8'
         layout = [
-            'nombre',
+            'nombre', 'permissions',
             FormActions(
                 Submit('guardar', 'Guardar'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),

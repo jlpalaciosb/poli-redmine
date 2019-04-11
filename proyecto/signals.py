@@ -1,11 +1,14 @@
 from django.dispatch import receiver
-from django.db.models.signals import pre_delete,post_save,pre_save,m2m_changed
-from .models import MiembroProyecto,RolProyecto, Proyecto
+from django.db.models.signals import pre_delete, post_save, pre_save, m2m_changed
+from .models import MiembroProyecto, RolProyecto, Proyecto
+
+
 @receiver(pre_delete, sender=MiembroProyecto, dispatch_uid='miembro_delete_signal')
 def quitar_group_miembro_eliminado(sender, instance, using, **kwargs):
     roles = instance.roles.all()
     for aux in roles:
         instance.user.groups.remove(aux.group_ptr)
+
 
 @receiver(post_save, sender=Proyecto, dispatch_uid='roles_precargado')
 def precargar_roles_proyecto(sender, instance,created,raw, using,update_fields, **kwargs):
@@ -40,6 +43,10 @@ def precargar_roles_proyecto(sender, instance,created,raw, using,update_fields, 
         miembro.roles.add(scrum_master)
         miembro.save()
 
+
+@receiver(post_save, sender=RolProyecto, dispatch_uid='cargar_permisos')  # hipotetico
+def cargar_permisos_guardian(sender, instance, created, raw, using, update_fields, **kwargs):  # hipotetico
+    print("test")
 
 
 @receiver(m2m_changed,sender=MiembroProyecto.roles.through,dispatch_uid='salvador')
