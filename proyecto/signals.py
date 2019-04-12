@@ -1,8 +1,12 @@
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete, post_save, pre_save, m2m_changed
 from .models import MiembroProyecto, RolProyecto, Proyecto
-
-
+from django.db.models.signals import pre_delete, post_save, pre_save, m2m_changed
+from .models import MiembroProyecto, RolProyecto, Proyecto
+from django.db.models.signals import pre_delete,post_save,pre_save,m2m_changed
+from .models import MiembroProyecto,RolProyecto, Proyecto
+from guardian.shortcuts import assign_perm,remove_perm
+from django.contrib.auth.models import Permission
 @receiver(pre_delete, sender=MiembroProyecto, dispatch_uid='miembro_delete_signal')
 def quitar_group_miembro_eliminado(sender, instance, using, **kwargs):
     roles = instance.roles.all()
@@ -78,3 +82,38 @@ def miembro_usuario(sender, instance, action, reverse, model, pk_set, using, **k
             miembro.user.groups.remove(rol)
 
         miembro.user.save()
+
+@receiver(m2m_changed,sender=RolProyecto.permissions.through,dispatch_uid='rol_guardian')
+def asignar_permisos_por_objeto(sender, instance, action, reverse, model, pk_set, using, **kwargs):
+    """
+    Signal que sirve para que cada vez que un rol de proyecto es modificado en su conjunto de permisos, se le asigne cada permiso con el proyecto en particular
+    :param sender:
+    :param instance: EL grupo que se anade
+    :param action: Si se elimino o agrego
+    :param reverse:
+    :param model:
+    :param pk_set: Los permisos que se agregar/quitan del rol
+    :param using:
+    :param kwargs:
+    :return:
+    """
+    grupo = instance
+    try:
+        rol=grupo.rolproyecto
+        print("Rol De Proyecto")
+
+        proyecto=rol.proyecto
+        if action == 'post_add':
+            #Si se agregaron permisos entonces se le asigna
+            for perm in pk_set:
+                assign_perm(Permission.objects.get(pk=perm),rol,proyecto)
+
+        if action == 'post_remove':
+            #Si se quitaron permisos entonces se remueve
+            for perm in pk_set:
+                remove_perm(Permission.objects.get(pk=perm),rol,proyecto)
+
+    except RolProyecto.DoesNotExist:
+        #Si los permisos no pertenecn a un rol de proyecto
+        pass
+
