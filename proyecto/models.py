@@ -8,6 +8,10 @@ ESTADOS_PROYECTO = (('PENDIENTE', 'Pendiente'),
                     ('SUSPENDIDO', 'Suspendido'),
                     )
 
+VALOR_CAMPO = (('NUMERO', 'Numero'),
+               ('STRING', 'String'),
+               )
+
 
 class Cliente(models.Model):
     """
@@ -41,6 +45,7 @@ class Proyecto(models.Model):
     estado = models.CharField(verbose_name='Estado', choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
     usuario_creador = models.ForeignKey(User, related_name='usuario_contribuyente_creador')
     usuario_modificador = models.ForeignKey(User, related_name='usuario_contribuyente_modificador')
+
 
 
 class Sprint(models.Model):
@@ -87,8 +92,12 @@ class CampoPersonalizado(models.Model):
     Tipo de User Story especifico
     """
     tipoUS = models.ForeignKey(TipoUS)
-    campo = models.CharField(verbose_name='Campo Personalizado', max_length=20)
+    estado = models.CharField(verbose_name='Estado', choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
+    campo = models.CharField(verbose_name='Campo Personalizado', choices=VALOR_CAMPO, max_length=20, default='STRING')
     tipoDeDato = models.CharField(verbose_name='Tipo de Dato', max_length=7)
+
+    class Meta:
+        unique_together = ("tipoUS", "campo")
 
 
 class UserStory(models.Model):
@@ -120,6 +129,9 @@ class ValorCampoPersonalizado(models.Model):
     us = models.ForeignKey(UserStory)
     campoPersonalizado = models.ForeignKey(CampoPersonalizado)
     valor = models.CharField(verbose_name='Valor del Campo Personalizado', max_length=100)
+
+    class Meta:
+        unique_together = ("us", "campoPersonalizado")
 
 
 class UserStorySprint(models.Model):
