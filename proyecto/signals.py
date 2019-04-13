@@ -48,11 +48,6 @@ def precargar_roles_proyecto(sender, instance,created,raw, using,update_fields, 
         miembro.save()
 
 
-@receiver(post_save, sender=RolProyecto, dispatch_uid='cargar_permisos')  # hipotetico
-def cargar_permisos_guardian(sender, instance, created, raw, using, update_fields, **kwargs):  # hipotetico
-    print("test")
-
-
 @receiver(m2m_changed,sender=MiembroProyecto.roles.through,dispatch_uid='salvador')
 def miembro_usuario(sender, instance, action, reverse, model, pk_set, using, **kwargs):
     """
