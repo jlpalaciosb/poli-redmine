@@ -21,7 +21,7 @@
                             </li>
                         {% endif %}
 
-                        {% if perms.auth.add_user or perms.auth.change_user or perms.auth.delete_user %}
+                        {% if perms.proyecto.add_usuario or perms.proyecto.change_usuario or perms.proyecto.delete_usuario %}
                             <li>
                                 <a href="{% url 'usuario:lista' %}">
                                   <i class="glyphicon glyphicon-user icon text-info-lter"></i>
