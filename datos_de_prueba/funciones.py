@@ -58,4 +58,8 @@ def cargar_rol_administrador():
     print(" + Rol 'Administrador' agregado")
 
 def asignar_roles_administrativos():
-    ra = 1
+    ra = RolAdministrativo.objects.get(name='Administrador')
+    u = User.objects.get(username='camila')
+    u.groups.set([ra])
+    u.save()
+    print(" + Se asignó el rol administrativo '{}' al user '{}'".format(ra.name, u.username))
