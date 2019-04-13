@@ -59,13 +59,7 @@ class PermisosModelMultipleChoiceField(ModelMultipleChoiceField):
 class RolProyectoForm(ModelForm):
     permissions = PermisosModelMultipleChoiceField(
         queryset=Permission.objects.filter(
-            Q(content_type__app_label=Proyecto._meta.app_label, content_type__model=Proyecto._meta.model_name) |
-            Q(content_type__app_label=RolProyecto._meta.app_label, content_type__model=RolProyecto._meta.model_name) |
-            Q(content_type__app_label=MiembroProyecto._meta.app_label, content_type__model=MiembroProyecto._meta.model_name) |
-            Q(content_type__app_label=TipoUS._meta.app_label, content_type__model=TipoUS._meta.model_name) |
-            Q(content_type__app_label=Flujo._meta.app_label, content_type__model=Flujo._meta.model_name) |
-            Q(content_type__app_label=UserStory._meta.app_label, content_type__model=UserStory._meta.model_name) |
-            Q(content_type__app_label=Sprint._meta.app_label, content_type__model=Sprint._meta.model_name)
+            Q(content_type__app_label=Proyecto._meta.app_label, content_type__model=Proyecto._meta.model_name)
         ).exclude(codename='add_proyecto'),
         widget=forms.CheckboxSelectMultiple,
         required=True,
