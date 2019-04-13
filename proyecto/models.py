@@ -198,11 +198,9 @@ class Actividad(models.Model):
     estado = models.IntegerField(verbose_name='Estado')
     us_sprint = models.ForeignKey(UserStorySprint)
 
-<<<<<<< Updated upstream
     class Meta:
         default_permissions =  ()
-=======
->>>>>>> Stashed changes
+
 
 class RolProyecto(Group):
     """
@@ -212,13 +210,9 @@ class RolProyecto(Group):
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
 
     class Meta:
-<<<<<<< Updated upstream
         default_permissions = ()
-        unique_together = ("nombre" , "proyecto")
-=======
         unique_together = ("nombre", "proyecto")
 
->>>>>>> Stashed changes
 
 class RolAdministrativo(Group):
     """
@@ -241,7 +235,6 @@ class MiembroProyecto(models.Model):
     roles = models.ManyToManyField(RolProyecto)
 
     class Meta:
-<<<<<<< Updated upstream
         default_permissions = ()
         unique_together = (("user","proyecto"),)
 
@@ -252,7 +245,6 @@ class Usuario(models.Model):
         permissions = (('add_usuario', 'Agregar Usuario'),
                        ('change_usuario', 'Modificar Usuario'),
                        ('delete_usuario', 'Eliminar Usuario'))
-=======
         unique_together = (("user", "proyecto"),)
 
 
@@ -267,4 +259,3 @@ class MiembroSprint (models.Model):
 
     class Meta:
         unique_together = ('miembro', 'sprint')
->>>>>>> Stashed changes
