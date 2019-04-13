@@ -23,6 +23,10 @@ class Cliente(models.Model):
     def __str__(self):
         return "(RUC: {}) {}".format(self.ruc, self.nombre)
 
+    class Meta:
+        default_permissions =  ()
+        permissions = ( ('add_cliente', 'Agregar Cliente'), ('change_cliente', 'Modificar Cliente'), ('delete_cliente', 'Eliminar Cliente') )
+
 
 class Proyecto(models.Model):
     """
@@ -42,6 +46,30 @@ class Proyecto(models.Model):
     usuario_creador = models.ForeignKey(User, related_name='usuario_contribuyente_creador')
     usuario_modificador = models.ForeignKey(User, related_name='usuario_contribuyente_modificador')
 
+    class Meta:
+        default_permissions = ()
+        permissions = ( ('add_proyecto', 'Agregar Proyecto'),
+                        ('change_proyecto', 'Modificar Proyecto'),
+                        ('delete_proyecto', 'Eliminar Proyecto'),
+                        ('add_rolproyecto', 'Agregar Rol al Proyecto'),
+                        ('change_rolproyecto', 'Modificar Rol del Proyecto'),
+                        ('delete_rolproyecto', 'Eliminar Rol del Proyecto'),
+                        ('add_miembroproyecto', 'Agregar Miembro al Proyecto'),
+                        ('change_miembroproyecto', 'Modificar Miembro del Proyecto'),
+                        ('delete_miembroproyecto', 'Eliminar Miembro del Proyecto'),
+                        ('add_tipous', 'Agregar Tipo User Story al Proyecto'),
+                        ('change_tipous', 'Modificar Tipo User Story del Proyecto'),
+                        ('delete_tipous', 'Eliminar Tipo US del Proyecto'),
+                        ('add_flujo', 'Agregar Flujo al Proyecto'),
+                        ('change_flujo', 'Modificar Flujo del Proyecto'),
+                        ('delete_flujo', 'Eliminar Flujo del Proyecto'),
+                        ('add_us', 'Agregar User Story al Proyecto'),
+                        ('change_us', 'Modificar User Story del Proyecto'),
+                        ('delete_us', 'Eliminar User Story del Proyecto'),
+                        ('administrar_sprint', 'Administrar Sprints del Proyecto'),
+                        ('desarrollador_proyecto', 'Realizar US')
+                        )
+
 
 class Sprint(models.Model):
     """
@@ -56,12 +84,19 @@ class Sprint(models.Model):
     proyecto = models.ForeignKey(Proyecto)
 
 
+    class Meta:
+        default_permissions =  ()
+
+
 class Flujo(models.Model):
     """
     La clase Flujo representa a un flujo de algun proyecto especifico
     """
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
     proyecto = models.ForeignKey(Proyecto)
+
+    class Meta:
+        default_permissions =  ()
 
 
 class Fase(models.Model):
@@ -72,6 +107,9 @@ class Fase(models.Model):
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
     orden = models.IntegerField(verbose_name='Orden')
 
+    class Meta:
+        default_permissions =  ()
+
 
 class TipoUS(models.Model):
     """
@@ -79,6 +117,9 @@ class TipoUS(models.Model):
     """
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
     proyecto = models.ForeignKey(Proyecto)
+
+    class Meta:
+        default_permissions =  ()
 
 
 class CampoPersonalizado(models.Model):
@@ -89,6 +130,9 @@ class CampoPersonalizado(models.Model):
     tipoUS = models.ForeignKey(TipoUS)
     campo = models.CharField(verbose_name='Campo Personalizado', max_length=20)
     tipoDeDato = models.CharField(verbose_name='Tipo de Dato', max_length=7)
+
+    class Meta:
+        default_permissions =  ()
 
 
 class UserStory(models.Model):
@@ -110,6 +154,9 @@ class UserStory(models.Model):
     estadoFaseActual = models.IntegerField(verbose_name='Estado actual en la fase actual del flujo')
     proyecto = models.ForeignKey(Proyecto)
 
+    class Meta:
+        default_permissions =  ()
+
 
 class ValorCampoPersonalizado(models.Model):
     """
@@ -121,6 +168,9 @@ class ValorCampoPersonalizado(models.Model):
     campoPersonalizado = models.ForeignKey(CampoPersonalizado)
     valor = models.CharField(verbose_name='Valor del Campo Personalizado', max_length=100)
 
+    class Meta:
+        default_permissions =  ()
+
 
 class UserStorySprint(models.Model):
     """
@@ -130,6 +180,9 @@ class UserStorySprint(models.Model):
     us = models.ForeignKey(UserStory)
     sprint = models.ForeignKey(Sprint)
     miembro = models.ForeignKey(User)
+
+    class Meta:
+        default_permissions =  ()
 
 
 class Actividad(models.Model):
@@ -146,6 +199,9 @@ class Actividad(models.Model):
     estado = models.IntegerField(verbose_name='Estado')
     us_sprint = models.ForeignKey(UserStorySprint)
 
+    class Meta:
+        default_permissions =  ()
+
 class RolProyecto(Group):
     """
 
@@ -155,6 +211,7 @@ class RolProyecto(Group):
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
 
     class Meta:
+        default_permissions = ()
         unique_together = ("nombre" , "proyecto")
 
 class RolAdministrativo(Group):
@@ -162,6 +219,10 @@ class RolAdministrativo(Group):
         Se pretende agrupar todos los Groups que solo serviran de Rol Administrativo. Con esta clase se podra obtener ese comportamiento
     """
     ##group = models.OneToOneField(Group)
+
+    class Meta:
+        default_permissions =  ()
+        permissions = ( ('add_roladministrativo', 'Agregar Rol Administrativo'), ('change_roladministrativo', 'Modificar Rol Administrativo'), ('delete_roladministrativo', 'Eliminar Rol Administrativo') )
 
 
 class MiembroProyecto(models.Model):
@@ -172,5 +233,13 @@ class MiembroProyecto(models.Model):
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
     roles = models.ManyToManyField(RolProyecto)
     class Meta:
+        default_permissions = ()
         unique_together = (("user","proyecto"),)
 
+class Usuario(models.Model):
+
+    class Meta:
+        default_permissions = ()
+        permissions = (('add_usuario', 'Agregar Usuario'),
+                       ('change_usuario', 'Modificar Usuario'),
+                       ('delete_usuario', 'Eliminar Usuario'))

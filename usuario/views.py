@@ -14,7 +14,7 @@ from ProyectoIS2_9.utils import cualquier_permiso
 
 class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
-    permission_required = ('auth.add_user','auth.change_user','auth.delete_user')
+    permission_required = ('proyecto.add_usuario','proyecto.change_usuario','proyecto.delete_usuario')
     permission_denied_message = 'No tiene permiso para ver los usuarios.'
 
     def handle_no_permission(self):
@@ -30,7 +30,7 @@ class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
     def get_context_data(self, **kwargs):
         context = super(UsuarioListView, self).get_context_data(**kwargs)
         context['titulo'] = 'Lista de Usuarios'
-        context['crear_button'] = self.request.user.has_perm('auth.add_user')
+        context['crear_button'] = self.request.user.has_perm('proyecto.add_usuario')
         context['crear_url'] = reverse('usuario:crear')
         context['crear_button_text'] = 'Nuevo Usuario'
 
@@ -57,7 +57,7 @@ class UsuarioListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatable
     order_columns = ['id', 'username', 'nombres y apellidos', 'email']
     max_display_length = 100
     permission_required = (
-        'auth.add_user', 'auth.change_user', 'auth.delete_user')
+        'proyecto.add_usuario', 'proyecto.change_usuario', 'proyecto.delete_usuario')
     permission_denied_message = 'No tiene permiso para ver los usuarios.'
 
     def handle_no_permission(self):
@@ -86,7 +86,7 @@ class UsuarioCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
     model = User
     template_name = "change_form.html"
     form_class = UsuarioForm
-    permission_required = 'auth.add_user'
+    permission_required = 'proyecto.add_usuario'
     permission_denied_message = 'No tiene permiso para Crear nuevos usuarios.'
 
     def handle_no_permission(self):
@@ -139,7 +139,7 @@ class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
     context_object_name = 'usuario'
     template_name = 'change_form.html'
     pk_url_kwarg = 'user_id'
-    permission_required = 'auth.change_user'
+    permission_required = 'proyecto.change_usuario'
     permission_denied_message = 'No tiene permiso para Editar Usuarios.'
 
     def handle_no_permission(self):
@@ -197,7 +197,7 @@ class UsuarioPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView)
     context_object_name = 'usuario'
     template_name = 'usuario/change_perfil.html'
     pk_url_kwarg = 'user_id'
-    permission_required = ('auth.add_user','auth.change_user','auth.delete_user')
+    permission_required = ('proyecto.add_usuario','proyecto.change_usuario','proyecto.delete_usuario')
     permission_denied_message = 'No tiene permiso para ver Usuarios.'
 
     def handle_no_permission(self):
@@ -223,7 +223,7 @@ class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMes
     context_object_name = 'usuario'
     template_name = 'usuario/eliminar_usuario.html'
     pk_url_kwarg = 'user_id'
-    permission_required = 'auth.delete_user'
+    permission_required = 'proyecto.delete_usuario'
     permission_denied_message = 'No tiene permiso para eliminar el usuario.'
     success_url = reverse_lazy('usuario:lista')
     def handle_no_permission(self):
