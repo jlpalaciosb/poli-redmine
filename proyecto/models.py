@@ -8,6 +8,10 @@ ESTADOS_PROYECTO = (('PENDIENTE', 'Pendiente'),
                     ('SUSPENDIDO', 'Suspendido'),
                     )
 
+VALOR_CAMPO = (('NUMERO', 'Numero'),
+               ('STRING', 'String'),
+               )
+
 
 class Cliente(models.Model):
     """
@@ -71,6 +75,7 @@ class Proyecto(models.Model):
                         )
 
 
+
 class Sprint(models.Model):
     """
     La clase Sprint representa a un Sprint de un proyecto específico
@@ -128,11 +133,14 @@ class CampoPersonalizado(models.Model):
     Tipo de User Story especifico
     """
     tipoUS = models.ForeignKey(TipoUS)
-    campo = models.CharField(verbose_name='Campo Personalizado', max_length=20)
+    estado = models.CharField(verbose_name='Estado', choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
+    campo = models.CharField(verbose_name='Campo Personalizado', choices=VALOR_CAMPO, max_length=20, default='STRING')
     tipoDeDato = models.CharField(verbose_name='Tipo de Dato', max_length=7)
 
     class Meta:
         default_permissions =  ()
+        unique_together = ("tipoUS", "campo")
+
 
 
 class UserStory(models.Model):
@@ -170,6 +178,8 @@ class ValorCampoPersonalizado(models.Model):
 
     class Meta:
         default_permissions =  ()
+        unique_together = ("us", "campoPersonalizado")
+
 
 
 class UserStorySprint(models.Model):
