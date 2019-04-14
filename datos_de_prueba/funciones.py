@@ -32,6 +32,12 @@ def cargar_admin():
         "de django)".format(admin.username)
     )
 
+def poner_staff_a_anonymous():
+    u = get_user('AnonymousUser')
+    u.is_staff = True
+    u.save()
+    print(" * Usuario '{}' ahora es staff".format(u.username))
+
 def cargar_user(username, first_name, last_name, email):
     u = User(username=username, first_name=first_name, last_name=last_name, email=email)
     u.set_password(PASSWORD)
@@ -40,6 +46,7 @@ def cargar_user(username, first_name, last_name, email):
 
 def cargar_users():
     cargar_admin()
+    poner_staff_a_anonymous()
     cargar_user('javier', 'Javier', 'Adorno', 'javier@gmail.com')
     cargar_user('ingrid', 'Ingrid', 'López', 'ingrid@gmail.com')
     cargar_user('moises', 'Moisés', 'Cabrera', 'moises@gmail.com')
@@ -92,8 +99,8 @@ def cargar_roles_administrativos():
 # ASIGNAR ROLES ADMINISTRATIVOS
 
 def asignar_rol_administrativo(username, rol_name):
-    u = User.objects.get(username=username)
-    r = RolAdministrativo.objects.get(name=rol_name)
+    u = get_user(username)
+    r = get_rol_administrativo(rol_name)
     u.groups.add(r)
     u.save()
     print(" + Se asignó el rol administrativo '{}' al user '{}'".format(rol_name, username))
