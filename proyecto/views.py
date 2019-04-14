@@ -137,7 +137,7 @@ class ProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView
 
 class ProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilterBaseDatatableView):
     model = Proyecto
-    columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada', 'estado']
+    columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada','estado']
     order_columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada', 'estado']
     max_display_length = 100
     permission_required = ('proyecto.add_proyecto', 'proyecto.change_proyecto', 'proyecto.delete_proyecto')
@@ -186,16 +186,6 @@ class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
 
         return context
 
-    def form_valid(self, form):
-        proyecto = form.save(commit=False)
-        if not form.instance.pk:
-            proyecto.usuario_creador_id = self.request.user.id
-            proyecto.usuario_modificador_id = self.request.user.id
-        else:
-            proyecto.usuario_modificador_id = self.request.user.id
-
-        return super().form_valid(form)
-
 
 
 
@@ -242,15 +232,6 @@ class ProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
 
         return context
 
-    def form_valid(self, form):
-        proyecto = form.save(commit=False)
-        if not form.instance.pk:
-            proyecto.usuario_creador_id = self.request.user.id
-            proyecto.usuario_modificador_id = self.request.user.id
-        else:
-            proyecto.usuario_modificador_id = self.request.user.id
-
-        return super().form_valid(form)
 
 
 class ProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):

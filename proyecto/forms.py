@@ -3,7 +3,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, HTML, Layout, Fieldset, Row, Div, Column
 from dal import autocomplete
 from django import forms
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission, User
 from django.db.models import Q
 from django.forms import ModelForm, DateInput, Form
 from django.forms import ModelMultipleChoiceField
@@ -18,7 +18,7 @@ class ProyectoForm(ModelForm):
     class Meta:
         model = Proyecto
         fields = ['nombre', 'descripcion', 'cliente', 'duracionSprint',
-                  'diasHabiles', 'fechaInicioEstimada', 'fechaFinEstimada', 'estado']
+                  'diasHabiles', 'fechaInicioEstimada', 'fechaFinEstimada','scrum_master','estado']
         widgets = {
             'fechaInicioEstimada': DateInput(attrs={'class': 'date-time-picker'}),
             'fechaFinEstimada': DateInput(attrs={'class': 'date-time-picker'}),
@@ -27,7 +27,9 @@ class ProyectoForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
         super(ProyectoForm, self).__init__(*args, **kwargs)
-
+        self.fields['scrum_master'].queryset = User.objects.filter(is_staff=False, is_superuser=False)
+        if not Proyecto.objects.filter(id=self.instance.id):
+            self.fields['estado'].widget = forms.HiddenInput()
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
@@ -42,6 +44,7 @@ class ProyectoForm(ModelForm):
                          '<span class="glyphicon glyphicon-calendar"></span>'),
             AppendedText('fechaFinEstimada',
                          '<span class="glyphicon glyphicon-calendar"></span>'),
+            'scrum_master',
             'estado',
             FormActions(
                 Submit('guardar', 'Guardar'),

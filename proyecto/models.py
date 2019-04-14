@@ -44,11 +44,10 @@ class Proyecto(models.Model):
     cliente = models.ForeignKey(Cliente, null=True)
     fechaInicioEstimada = models.DateField(verbose_name='Fecha de Inicio Estimada', null=True, blank=True)
     fechaFinEstimada = models.DateField(verbose_name='Fecha de Finalizacion Estimada', null=True, blank=True)
-    duracionSprint = models.IntegerField(verbose_name='Duracion del Sprint', default=5)
+    duracionSprint = models.IntegerField(verbose_name='Duracion del Sprint',help_text='La duracion del sprint debe estar en semanas', default=5)
     diasHabiles = models.IntegerField(verbose_name='Cantidad de dias Habiles en la Semana', default=5)
     estado = models.CharField(verbose_name='Estado', choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
-    usuario_creador = models.ForeignKey(User, related_name='usuario_contribuyente_creador')
-    usuario_modificador = models.ForeignKey(User, related_name='usuario_contribuyente_modificador')
+    scrum_master = models.ForeignKey(User, verbose_name='Scrum Master', related_name='scrum_master_proyecto_creador')
 
     class Meta:
         default_permissions = ()
@@ -73,7 +72,6 @@ class Proyecto(models.Model):
                         ('administrar_sprint', 'Administrar Sprints del Proyecto'),
                         ('desarrollador_proyecto', 'Realizar US')
                         )
-
 
 
 class Sprint(models.Model):
