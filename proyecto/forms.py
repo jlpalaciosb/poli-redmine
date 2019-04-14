@@ -26,7 +26,9 @@ class ProyectoForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
         super(ProyectoForm, self).__init__(*args, **kwargs)
-        self.fields['scrum_master'].queryset = User.objects.filter(is_superuser=False)
+        self.fields['scrum_master'].queryset = User.objects.filter(is_staff=False, is_superuser=False)
+        if not Proyecto.objects.filter(id=self.instance.id):
+            self.fields['estado'].widget = forms.HiddenInput()
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
