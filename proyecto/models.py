@@ -106,14 +106,15 @@ class Flujo(models.Model):
 
 class Fase(models.Model):
     """
-    La clase Fase representa a una fase de algun flujo específico
+    La clase Fase representa a una fase de algún flujo específico. Los US's están bajo una fase con un
+    estado, dicho estado puede ser TO DO, DOING o DONE.
     """
     flujo = models.ForeignKey(Flujo)
-    nombre = models.CharField(verbose_name='Nombre', max_length=20)
-    orden = models.IntegerField(verbose_name='Orden')
+    nombre = models.CharField(max_length=20)
 
     class Meta:
         default_permissions =  ()
+        unique_together = ('flujo', 'nombre')
 
 
 class TipoUS(models.Model):
