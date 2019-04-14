@@ -39,9 +39,7 @@ class Proyecto(models.Model):
     duracionSprint = models.IntegerField(verbose_name='Duracion del Sprint', default=5)
     diasHabiles = models.IntegerField(verbose_name='Cantidad de dias Habiles en la Semana', default=5)
     estado = models.CharField(verbose_name='Estado', choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
-    usuario_creador = models.ForeignKey(User, related_name='usuario_contribuyente_creador')
-    usuario_modificador = models.ForeignKey(User, related_name='usuario_contribuyente_modificador')
-
+    scrum_master = models.ForeignKey(User, verbose_name='Scrum Master', related_name='scrum_master_proyecto_creador')
 
 class Sprint(models.Model):
     """
