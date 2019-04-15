@@ -108,11 +108,13 @@ class Fase(models.Model):
     estado, dicho estado puede ser TO DO, DOING o DONE.
     """
     flujo = models.ForeignKey(Flujo)
-    nombre = models.CharField(max_length=20)
-
+    nombre = models.CharField(max_length=25)
+    orden = models.IntegerField()
+    
     class Meta:
         default_permissions =  ()
         unique_together = ('flujo', 'nombre')
+        unique_together = ('flujo', 'orden')
 
 
 class TipoUS(models.Model):
