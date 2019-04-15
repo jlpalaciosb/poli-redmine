@@ -113,8 +113,7 @@ class Fase(models.Model):
     
     class Meta:
         default_permissions =  ()
-        unique_together = ('flujo', 'nombre')
-        unique_together = ('flujo', 'orden')
+        unique_together = (('flujo', 'nombre'), ('flujo', 'orden'))
 
 
 class TipoUS(models.Model):
