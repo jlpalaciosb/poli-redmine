@@ -313,7 +313,7 @@ class Actividad(models.Model):
     fase = models.ForeignKey(Fase)
 
     # especifica en que estado estaba el US cuando la actividad fue agregada
-    estado = models.CharField(choices=ESTADOS_US_FASE, default='DOING')
+    estado = models.CharField(choices=ESTADOS_US_FASE, default='DOING', max_length=10)
 
     class Meta:
         default_permissions = ()
