@@ -42,7 +42,7 @@
       </div>
       <div class="row">
         <div class="col-xs-12">
-            {% if perms.auth.change_user %}
+            {% if perms.proyecto.change_usuario %}
                 <a href="{% url 'usuario:editar' usuario.id %}">
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-pencil"></i>
@@ -50,7 +50,7 @@
                   </button>
                 </a>
             {% endif %}
-            {% if perms.auth.delete_user %}
+            {% if perms.proyecto.delete_usuario %}
                 <a href="{% url 'usuario:eliminar' usuario.id %}">
                   <button class="btn m-b-xs btn-danger btn-addon ">
                     <i class="fa fa-trash-o"></i>
