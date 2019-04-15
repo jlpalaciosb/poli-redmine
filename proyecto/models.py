@@ -234,24 +234,6 @@ class UserStorySprint(models.Model):
         default_permissions =  ()
 
 
-class Actividad(models.Model):
-    """
-    La clase Actividad es la representacion de una actividad de un User Story
-    especifico
-    """
-    nombre = models.CharField(verbose_name='Nombre', max_length=20)
-    descripcion = models.CharField(verbose_name='Descripcion', max_length=100)
-    responsable = models.ForeignKey(User)
-    # archivos adjuntos. como?
-    horasTrabajadas = models.IntegerField(verbose_name='Horas Trabajadas')
-    fase = models.ForeignKey(Fase)
-    estado = models.IntegerField(verbose_name='Estado')
-    us_sprint = models.ForeignKey(UserStorySprint)
-
-    class Meta:
-        default_permissions =  ()
-
-
 class RolProyecto(Group):
     """
     """
@@ -288,6 +270,7 @@ class MiembroProyecto(models.Model):
         default_permissions = ()
         unique_together = (("user","proyecto"),)
 
+
 class Usuario(models.Model):
 
     class Meta:
@@ -308,3 +291,29 @@ class MiembroSprint (models.Model):
 
     class Meta:
         unique_together = ('miembro', 'sprint')
+
+
+class Actividad(models.Model):
+    """
+    La clase Actividad es la representación de una actividad de un User Story específico
+    """
+    nombre = models.CharField(max_length=50)
+    descripcion = models.CharField(verbose_name='descripción', max_length=500)
+    usSprint = models.ForeignKey(UserStorySprint)
+
+    # no sirve obtener quien fue el responsable de la actividad por medio de usSprint ya que un US
+    # del Sprint Backlog se podría asignar a otro miembro durante el sprint, por eso es que se agrega
+    # este atributo
+    responsable = models.ForeignKey(MiembroSprint)
+
+    # por ahora todavía no tenemos una clase para archivos adjuntos, en dicha clase se deberá
+    # especificar el ForeignKey a Actividad
+
+    horasTrabajadas = models.IntegerField(verbose_name='horas trabajadas', default=0)
+    fase = models.ForeignKey(Fase)
+
+    # especifica en que estado estaba el US cuando la actividad fue agregada
+    estado = models.CharField(choices=ESTADOS_US_FASE, default='DOING')
+
+    class Meta:
+        default_permissions = ()
