@@ -20,6 +20,7 @@ def precargar_roles_proyecto(sender, instance,created,raw, using,update_fields, 
     Para cada proyecto que se crea, se agregan dos roles predeteminados: Scrum Master y Developer Team
     Como cada Rol es un Grupo. El campo name del Grupo no permite duplicados(unique) entonces el Rol si tiene un nombre que permite duplicado
     Entonces cada Rol creado tendra el nombre correspondiente pero el Grupo tendra el mismo nombre concatenado con el id del proyecto para evitar duplicados
+    Ademas se le agrega al scrum master como miembro del proyecto
     :param sender:
     :param instance:
     :param created:
@@ -29,23 +30,10 @@ def precargar_roles_proyecto(sender, instance,created,raw, using,update_fields, 
     :param kwargs:
     :return:
     """
-    print("HOla")
     if created:
-        scrum_master = RolProyecto()
-        ##scrum_master.permissions.add() anadir los permisos
-        scrum_master.nombre = "Scrum Master"
-        scrum_master.name = "Scrum Master"+instance.id.__str__()
-        scrum_master.proyecto = instance
-        scrum_master.save()
-        developer_team = RolProyecto()
-        developer_team.nombre = "Developer Team"
-        developer_team.name = "Developer Team"+instance.id.__str__()
-        developer_team.proyecto = instance
-        developer_team.save()
-        miembro = MiembroProyecto(user=instance.scrum_master,proyecto=instance)
-        miembro.save()
-        miembro.roles.add(scrum_master)
-        miembro.save()
+        scrum_master=crear_rol_scrum_master_proyecto(instance)
+        crear_rol_developer_team_proyecto(instance)
+        asignar_miembro_scrum_master(instance,scrum_master)
 
 
 @receiver(m2m_changed,sender=MiembroProyecto.roles.through,dispatch_uid='salvador')
@@ -112,3 +100,62 @@ def asignar_permisos_por_objeto(sender, instance, action, reverse, model, pk_set
         #Si los permisos no pertenecn a un rol de proyecto
         pass
 
+def crear_rol_scrum_master_proyecto(proyecto):
+    """
+        Funcion que crea un rol de proyecto denominado Scrum Master a un proyecto dado
+        :param proyecto: El proyecto a cual el rol pertenece
+        :return:
+        """
+    scrum_master = RolProyecto()
+    scrum_master.nombre = "Scrum Master"
+    scrum_master.name = "Scrum Master" + proyecto.id.__str__()
+    scrum_master.proyecto = proyecto
+    scrum_master.save()
+    permisosSM = [
+        'change_proyecto',
+        'delete_proyecto',
+        'add_rolproyecto',
+        'change_rolproyecto',
+        'delete_rolproyecto',
+        'add_miembroproyecto',
+        'change_miembroproyecto',
+        'delete_miembroproyecto',
+        'add_tipous',
+        'change_tipous',
+        'delete_tipous',
+        'add_flujo',
+        'change_flujo',
+        'delete_flujo',
+        'add_us',
+        'change_us',
+        'delete_us',
+        'administrar_sprint'
+    ]
+    for perm in permisosSM:
+        scrum_master.permissions.add(Permission.objects.get(codename=perm))
+    return scrum_master
+
+def crear_rol_developer_team_proyecto(proyecto):
+    """
+    Funcion que crea un rol de proyecto denominado Developer Team a un proyecto dado
+    :param proyecto: El proyecto a cual el rol pertenece
+    :return:
+    """
+    developer_team = RolProyecto()
+    developer_team.nombre = "Developer Team"
+    developer_team.name = "Developer Team" + proyecto.id.__str__()
+    developer_team.proyecto = proyecto
+    developer_team.save()
+    developer_team.permissions.add(Permission.objects.get(codename='desarrollador_proyecto'))
+
+def asignar_miembro_scrum_master(proyecto,scrum_master):
+    """
+    Funcion que agrega a un proyecto un miembro con el rol scrum master
+    :param proyecto:
+    :param scrum_master:
+    :return:
+    """
+    miembro = MiembroProyecto(user=proyecto.scrum_master, proyecto=proyecto)
+    miembro.save()
+    miembro.roles.add(scrum_master)
+    miembro.save()
