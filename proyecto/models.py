@@ -74,21 +74,28 @@ class Proyecto(models.Model):
                         )
 
 
+ESTADOS_SPRINT = (
+    ('PLANIFICADO', 'Planificado'),
+    ('EN_EJECUCION', 'En Ejecución'),
+    ('CERRADO', 'Cerrado'),
+)
 class Sprint(models.Model):
     """
     La clase Sprint representa a un Sprint de un proyecto específico
     """
-    nombre = models.CharField(verbose_name='Nombre', max_length=20)
-    duracion = models.IntegerField(verbose_name='Duracion')
-    fechaInicio = models.DateField(verbose_name='Fecha de Inicio')
-    estado = models.IntegerField(verbose_name='Estado')
-    capacidad = models.IntegerField(verbose_name='Capacidad')
-    miembros = models.ManyToManyField(User)
     proyecto = models.ForeignKey(Proyecto)
-
+    orden = models.IntegerField()
+    duracion = models.IntegerField(verbose_name='duración del sprint (en semanas)')
+    fechaInicio = models.DateField(verbose_name='fecha de inicio', null=True)
+    estado = models.CharField(choices=ESTADOS_SPRINT, default='PLANIFICADO', max_length=15)
+    capacidad = models.IntegerField(
+        verbose_name='capacidad del sprint (en horas)', default=0,
+        help_text='Este valor nos dice cuantas horas de trabajo disponible hay en el sprint'
+    )
 
     class Meta:
         default_permissions =  ()
+        unique_together = ('proyecto', 'orden')
 
 
 class Flujo(models.Model):
