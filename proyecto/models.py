@@ -143,25 +143,56 @@ class CampoPersonalizado(models.Model):
         unique_together = ("tipoUS", "campo")
 
 
-
+ESTADOS_US_FASE = (('TODO', 'To Do'), ('DOING', 'Doing'), ('DONE', 'Done'))
+ESTADOS_US_PROYECTO = (
+    ('PENDIENTE', 'Pendiente'),
+    ('INICIADO', 'Iniciado'),
+    ('CANCELADO', 'Cancelado'),
+    ('TERMINADO', 'Terminado'),
+)
+PRIORIDADES_US = (
+    (0, 'No Importante'),
+    (1, 'Muy Baja'),
+    (2, 'Baja'),
+    (3, 'Media'),
+    (4, 'Alta'),
+    (5, 'Muy Alta'),
+    (6, 'Super Importante'),
+)
 class UserStory(models.Model):
     """
-    La clase UserStory representa a un User Story de un proyecto especifico
+    La clase UserStory representa a un User Story de un proyecto específico
     """
-    descripcionCorta = models.CharField(verbose_name='Descripcion Corta', max_length=50)
-    descripcion = models.CharField(verbose_name='Descripcion', max_length=100)
-    criterioAceptacion = models.CharField(verbose_name='Criterio de Aceptacion', max_length=100)
-    valorNegocio = models.IntegerField(verbose_name='Valor de Negocio')
-    valorTecnico = models.IntegerField(verbose_name='Valor Tecnico')
-    prioridad = models.IntegerField(verbose_name='Prioridad')
-    tiempoPlanificado = models.IntegerField(verbose_name='Tiempo Planificado')
-    tiempoEjecutado = models.IntegerField(verbose_name='Tiempo Ejecutado')
-    estadoSistema = models.IntegerField(verbose_name="Estado en el Sistema")
+    nombre = models.CharField(max_length=50)
+    descripcion = models.CharField(verbose_name='descripción', max_length=500)
     tipo = models.ForeignKey(TipoUS)
-    flujo = models.ForeignKey(Flujo)
-    faseActual = models.IntegerField(verbose_name='Fase actual en el flujo')
-    estadoFaseActual = models.IntegerField(verbose_name='Estado actual en la fase actual del flujo')
+    criterioAceptacion = models.CharField(
+        verbose_name='criterio de aceptación',
+        max_length=500,
+        help_text='Aquí podría especificar las características del producto resultado de las actividades '
+                  'de un US, para que el US sea aceptado'
+    )
+
     proyecto = models.ForeignKey(Proyecto)
+    estadoProyecto = models.IntegerField(
+        verbose_name='estado del US en el proyecto',
+        choices=ESTADOS_US_PROYECTO, default='PENDIENTE',
+    )
+    flujo = models.ForeignKey(Flujo, verbose_name='flujo que debe seguir el US', null=True)
+    fase = models.ForeignKey(Fase, verbose_name='fase en la que se encuentra el US', null=True)
+    estadoFase = models.IntegerField(
+        verbose_name='estado en la fase',
+        choices=ESTADOS_US_FASE, null=True,
+    )
+
+    prioridad = models.IntegerField(choices=PRIORIDADES_US, default=3)
+    valorNegocio = models.IntegerField(verbose_name='valor de negocio', default=1)
+    valorTecnico = models.IntegerField(verbose_name='valor técnico', default=1)
+    tiempoPlanificado = models.IntegerField(
+        verbose_name='tiempo planificado (en horas)',
+        help_text='Especifique cuántas horas cree que le llevará a una persona terminar este US',
+    )
+    tiempoEjecutado = models.IntegerField(verbose_name='tiempo ejecutado (en horas)')
 
     class Meta:
         default_permissions =  ()
