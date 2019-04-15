@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User,Group
+from django.contrib.auth.models import User, Group
 from django.db import models
 
 ESTADOS_PROYECTO = (('PENDIENTE', 'Pendiente'),
@@ -79,6 +79,7 @@ ESTADOS_SPRINT = (
     ('EN_EJECUCION', 'En Ejecución'),
     ('CERRADO', 'Cerrado'),
 )
+
 class Sprint(models.Model):
     """
     La clase Sprint representa a un Sprint de un proyecto específico
@@ -250,23 +251,25 @@ class Actividad(models.Model):
     class Meta:
         default_permissions =  ()
 
+
 class RolProyecto(Group):
     """
-
     """
-    ##group = models.OneToOneField(Group, related_name='rol_es_grupo')
+    # group = models.OneToOneField(Group, related_name='rol_es_grupo')
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
 
     class Meta:
         default_permissions = ()
-        unique_together = ("nombre" , "proyecto")
+        unique_together = ("nombre", "proyecto")
+
 
 class RolAdministrativo(Group):
     """
-        Se pretende agrupar todos los Groups que solo serviran de Rol Administrativo. Con esta clase se podra obtener ese comportamiento
+    Se pretende agrupar todos los Groups que solo serviran de Rol Administrativo.
+    Con esta clase se podra obtener ese comportamiento
     """
-    ##group = models.OneToOneField(Group)
+    # group = models.OneToOneField(Group)
 
     class Meta:
         default_permissions =  ()
@@ -275,11 +278,12 @@ class RolAdministrativo(Group):
 
 class MiembroProyecto(models.Model):
     """
-    La clase
+    La clase representa a un miembro de un proyecto con sus roles del Proyecto
     """
     user = models.ForeignKey(User, verbose_name='Usuario')
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
     roles = models.ManyToManyField(RolProyecto)
+
     class Meta:
         default_permissions = ()
         unique_together = (("user","proyecto"),)
@@ -291,3 +295,16 @@ class Usuario(models.Model):
         permissions = (('add_usuario', 'Agregar Usuario'),
                        ('change_usuario', 'Modificar Usuario'),
                        ('delete_usuario', 'Eliminar Usuario'))
+
+
+class MiembroSprint (models.Model):
+    """
+    Representa la relacion entre un Sprint y un Miembro, cuando es asignado como desarrollador.
+    Almacena la cantidad de horas de trabajo asignadas a ese miembro para ese Sprint especifico.
+    """
+    miembro = models.ForeignKey(MiembroProyecto, verbose_name='Miembro del Sprint')
+    sprint = models.ForeignKey(Sprint, verbose_name='Sprint')
+    horasAsignadas = models.IntegerField(verbose_name='Horas asignadas al miembro')
+
+    class Meta:
+        unique_together = ('miembro', 'sprint')
