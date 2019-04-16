@@ -220,20 +220,6 @@ class ValorCampoPersonalizado(models.Model):
         unique_together = ("us", "campoPersonalizado")
 
 
-
-class UserStorySprint(models.Model):
-    """
-    La clase UserStorySprint es la representacion de un elemento dentro del
-    Sprint Backlog de un Sprint especifico
-    """
-    us = models.ForeignKey(UserStory)
-    sprint = models.ForeignKey(Sprint)
-    miembro = models.ForeignKey(User)
-
-    class Meta:
-        default_permissions =  ()
-
-
 class RolProyecto(Group):
     """
     """
@@ -280,7 +266,7 @@ class Usuario(models.Model):
                        ('delete_usuario', 'Eliminar Usuario'))
 
 
-class MiembroSprint (models.Model):
+class MiembroSprint(models.Model):
     """
     Representa la relacion entre un Sprint y un Miembro, cuando es asignado como desarrollador.
     Almacena la cantidad de horas de trabajo asignadas a ese miembro para ese Sprint especifico.
@@ -291,6 +277,19 @@ class MiembroSprint (models.Model):
 
     class Meta:
         unique_together = ('miembro', 'sprint')
+
+
+class UserStorySprint(models.Model):
+    """
+    La clase UserStorySprint sirve para asignar un US al Sprint Backlog de un sprint
+    """
+    us = models.ForeignKey(UserStory)
+    sprint = models.ForeignKey(Sprint)
+    asignee = models.ForeignKey(MiembroSprint)
+
+    class Meta:
+        default_permissions = ()
+        unique_together = ('us', 'sprint')
 
 
 class Actividad(models.Model):
