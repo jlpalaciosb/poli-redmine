@@ -103,11 +103,13 @@ class Flujo(models.Model):
     """
     La clase Flujo representa a un flujo de algun proyecto especifico
     """
-    nombre = models.CharField(verbose_name='Nombre', max_length=20)
+    nombre = models.CharField(max_length=50)
     proyecto = models.ForeignKey(Proyecto)
+    cantidadFases = models.IntegerField(default=0)
 
     class Meta:
-        default_permissions =  ()
+        default_permissions = ()
+        unique_together = ('proyecto', 'nombre')
 
 
 class Fase(models.Model):
