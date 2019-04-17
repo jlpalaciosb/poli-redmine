@@ -7,7 +7,10 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
+from guardian.mixins import PermissionRequiredMixin as GuardianPermissionRequiredMixin
+
 from proyecto.forms import ProyectoForm,RolProyectoForm, MiembroProyectoForm,EditarMiembroForm
+from proyecto.mixins import GuardianAnyPermissionRequiredMixin
 from proyecto.models import Proyecto,RolProyecto,MiembroProyecto
 from ProyectoIS2_9.utils import cualquier_permiso
 
@@ -410,12 +413,24 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Success
 
         return super().form_valid(form)
 
-class MiembroProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
+
+class MiembroProyectoCreateView(LoginRequiredMixin, GuardianPermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = MiembroProyecto
     template_name = "change_form.html"
     form_class = MiembroProyectoForm
-    permission_required = 'proyecto.change_proyecto'
+    permission_required = 'proyecto.add_miembroproyecto'
+    return_403 = True
     permission_denied_message = 'No tiene permiso para agregar nuevos miembros a este proyecto'
+
+    # guardian va a comprobar que el usuario logueado tiene todos los permisos retornados
+    # por get_required_permissions() sobre el objecto que retorna este método
+    def get_object(self, queryset=None):
+        pid = self.kwargs['proyecto_id']
+        try:
+            p = Proyecto.objects.get(pk=pid)
+        except Proyecto.DoesNotExist:
+            raise Http404('no existe proyecto')
+        return p
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -451,14 +466,22 @@ class MiembroProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
 
         return context
 
-class MiembroProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class MiembroProyectoListView(LoginRequiredMixin, GuardianAnyPermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
     permission_required = (
         'proyecto.add_miembroproyecto',
         'proyecto.change_miembroproyecto',
         'proyecto.delete_miembroproyecto',
     )
+    return_403 = True
     permission_denied_message = 'No tiene permiso para ver la lista de miembros de este proyecto'
+
+    def get_object(self, queryset=None):
+        try:
+            p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        except Proyecto.DoesNotExist:
+            raise Http404('no existe proyecto')
+        return p
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -467,7 +490,7 @@ class MiembroProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, Templ
         context = super(MiembroProyectoListView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
         context['titulo'] = 'Lista de Miembros del Proyecto '+ proyecto.nombre
-        context['crear_button'] = True
+        context['crear_button'] = self.request.user.has_perm('proyecto.add_miembroproyecto', self.get_object())
         context['crear_url'] = reverse('proyecto_miembro_crear', kwargs=self.kwargs)
         context['crear_button_text'] = 'Nuevo Miembro'
 
@@ -491,7 +514,7 @@ class MiembroProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, Templ
         return context
 
 
-class MiembroProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilterBaseDatatableView):
+class MiembroProyectoListJson(LoginRequiredMixin, GuardianAnyPermissionRequiredMixin, CustomFilterBaseDatatableView):
     model = MiembroProyecto
     columns = ['id', 'user.username']
     order_columns = ['id', 'user.username']
@@ -500,7 +523,15 @@ class MiembroProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, Custo
         'proyecto.change_miembroproyecto',
         'proyecto.delete_miembroproyecto',
     )
+    return_403 = True
     permission_denied_message = 'No tiene permiso para ver la lista de miembros de este proyecto'
+
+    def get_object(self, queryset=None):
+        try:
+            p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        except Proyecto.DoesNotExist:
+            raise Http404('no existe proyecto')
+        return p
 
     def get_initial_queryset(self):
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
