@@ -1,7 +1,9 @@
 from django.core.exceptions import PermissionDenied
+from django.http import Http404
 from guardian.mixins import PermissionRequiredMixin
 
 from ProyectoIS2_9.utils import get_40x_or_None_ANY
+from proyecto.models import Proyecto
 
 
 class GuardianAnyPermissionRequiredMixin(PermissionRequiredMixin):
@@ -29,3 +31,15 @@ class GuardianAnyPermissionRequiredMixin(PermissionRequiredMixin):
         if forbidden and self.raise_exception:
             raise PermissionDenied()
         return forbidden
+
+
+class ProyectoMixin:
+    """
+    Esta clase sirve cuando en la url de la vista se define el parametro proyecto_id
+    """
+    def get_proyecto(self):
+        try:
+            p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        except Proyecto.DoesNotExist:
+            raise Http404('no existe proyecto con el id en la url')
+        return p
