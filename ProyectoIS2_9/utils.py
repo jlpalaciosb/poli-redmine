@@ -1,26 +1,14 @@
-"""
-django-guardian helper functions.
-
-Functions defined within this module should be considered as django-guardian's
-internal functionality. They are **not** guaranteed to be stable - which means
-they actual input parameters/output type may change in future releases.
-"""
 from __future__ import unicode_literals
 
 import logging
 import os
-from itertools import chain
 
 from django.conf import settings
-from django.contrib.auth import REDIRECT_FIELD_NAME, get_user_model
-from django.contrib.auth.models import AnonymousUser, Group
+from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.db.models import Model, QuerySet
 from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render
 from guardian.conf import settings as guardian_settings
-from guardian.ctypes import get_content_type
-from guardian.exceptions import NotUserNorGroup
 
 logger = logging.getLogger(__name__)
 abspath = lambda *p: os.path.abspath(os.path.join(*p))
@@ -37,6 +25,20 @@ def cualquier_permiso(user, perms):
 def get_40x_or_None_ANY(request, perms, obj=None, login_url=None,
                     redirect_field_name=None, return_403=False,
                     return_404=False, accept_global_perms=False):
+    """
+    Este es un copy paste de guardian.utils.get_40x_or_None que lo que hace es verificar
+    que el usuario tenga al menos un permiso de los permisos definidos en perm. Basicamente lo
+    unico que se hizo fue reemplazar el built-in de python all por any
+    :param request:
+    :param perms:
+    :param obj:
+    :param login_url:
+    :param redirect_field_name:
+    :param return_403:
+    :param return_404:
+    :param accept_global_perms:
+    :return:
+    """
     login_url = login_url or settings.LOGIN_URL
     redirect_field_name = redirect_field_name or REDIRECT_FIELD_NAME
 

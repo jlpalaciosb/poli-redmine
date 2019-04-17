@@ -10,7 +10,7 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import PermissionRequiredMixin as GuardianPermissionRequiredMixin
 
 from proyecto.forms import ProyectoForm,RolProyectoForm, MiembroProyectoForm,EditarMiembroForm
-from proyecto.mixins import GuardianAnyPermissionRequiredMixin
+from proyecto.mixins import GuardianAnyPermissionRequiredMixin, ProyectoMixin
 from proyecto.models import Proyecto,RolProyecto,MiembroProyecto
 from ProyectoIS2_9.utils import cualquier_permiso
 
@@ -414,7 +414,8 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Success
         return super().form_valid(form)
 
 
-class MiembroProyectoCreateView(LoginRequiredMixin, GuardianPermissionRequiredMixin, SuccessMessageMixin, CreateView):
+class MiembroProyectoCreateView(LoginRequiredMixin, GuardianPermissionRequiredMixin, SuccessMessageMixin,
+                                CreateView, ProyectoMixin):
     model = MiembroProyecto
     template_name = "change_form.html"
     form_class = MiembroProyectoForm
@@ -424,16 +425,9 @@ class MiembroProyectoCreateView(LoginRequiredMixin, GuardianPermissionRequiredMi
 
     # guardian va a comprobar que el usuario logueado tiene todos los permisos retornados
     # por get_required_permissions() sobre el objecto que retorna este método
-    def get_permission_object(self):
-        pid = self.kwargs['proyecto_id']
-        try:
-            p = Proyecto.objects.get(pk=pid)
-        except Proyecto.DoesNotExist:
-            raise Http404('no existe proyecto')
-        return p
+    def get_permission_object(self): return self.get_proyecto()
 
-    def handle_no_permission(self):
-        return HttpResponseForbidden()
+    def handle_no_permission(self): return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
         return "Miembro de Proyecto '{}' incorporado exitosamente.".format(cleaned_data['user'])
@@ -451,7 +445,6 @@ class MiembroProyectoCreateView(LoginRequiredMixin, GuardianPermissionRequiredMi
 
     def get_context_data(self, **kwargs):
         context = super(MiembroProyectoCreateView, self).get_context_data(**kwargs)
-        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Miembro de Proyectos'
         context['titulo_form_crear'] = 'Insertar Datos del Miembro del Proyecto'
 
@@ -459,37 +452,31 @@ class MiembroProyectoCreateView(LoginRequiredMixin, GuardianPermissionRequiredMi
         context['breadcrumb'] = [
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
-            {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
+            {'nombre': self.get_proyecto().nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
             {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list',kwargs=self.kwargs)},
             {'nombre': 'Nuevo Miembro', 'url': '#'}
         ]
 
         return context
 
-class MiembroProyectoListView(LoginRequiredMixin, GuardianAnyPermissionRequiredMixin, TemplateView):
+class MiembroProyectoListView(LoginRequiredMixin, GuardianAnyPermissionRequiredMixin, TemplateView,
+                              ProyectoMixin):
     template_name = 'change_list.html'
     permission_required = (
         'proyecto.add_miembroproyecto',
         'proyecto.change_miembroproyecto',
         'proyecto.delete_miembroproyecto',
-    )
+    ) # Tiene permiso al tener cualquiera de estos permisos
     return_403 = True
     permission_denied_message = 'No tiene permiso para ver la lista de miembros de este proyecto'
 
-    def get_permission_object(self):
-        try:
-            p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        except Proyecto.DoesNotExist:
-            raise Http404('no existe proyecto')
-        return p
+    def get_permission_object(self): return self.get_proyecto()
 
-    def handle_no_permission(self):
-        return HttpResponseForbidden()
+    def handle_no_permission(self): return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
         context = super(MiembroProyectoListView, self).get_context_data(**kwargs)
-        proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
-        context['titulo'] = 'Lista de Miembros del Proyecto '+ proyecto.nombre
+        context['titulo'] = 'Lista de Miembros del Proyecto '+ self.get_proyecto().nombre
         context['crear_button'] = self.request.user.has_perm('proyecto.add_miembroproyecto', self.get_permission_object())
         context['crear_url'] = reverse('proyecto_miembro_crear', kwargs=self.kwargs)
         context['crear_button_text'] = 'Nuevo Miembro'
@@ -507,14 +494,15 @@ class MiembroProyectoListView(LoginRequiredMixin, GuardianAnyPermissionRequiredM
         context['breadcrumb'] = [
             {'nombre':'Inicio', 'url':'/'},
             {'nombre':'Proyectos', 'url': reverse('proyectos')},
-            {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', kwargs=kwargs)},
+            {'nombre': self.get_proyecto().nombre, 'url': reverse('perfil_proyecto', kwargs=kwargs)},
             {'nombre': 'Miembros', 'url': '#'},
         ]
 
         return context
 
 
-class MiembroProyectoListJson(LoginRequiredMixin, GuardianAnyPermissionRequiredMixin, CustomFilterBaseDatatableView):
+class MiembroProyectoListJson(LoginRequiredMixin, GuardianAnyPermissionRequiredMixin,
+                              CustomFilterBaseDatatableView, ProyectoMixin):
     model = MiembroProyecto
     columns = ['id', 'user.username']
     order_columns = ['id', 'user.username']
@@ -522,23 +510,18 @@ class MiembroProyectoListJson(LoginRequiredMixin, GuardianAnyPermissionRequiredM
         'proyecto.add_miembroproyecto',
         'proyecto.change_miembroproyecto',
         'proyecto.delete_miembroproyecto',
-    )
+    ) # Tiene permiso al tener cualquiera de estos permisos
     return_403 = True
     permission_denied_message = 'No tiene permiso para ver la lista de miembros de este proyecto'
 
-    def get_permission_object(self):
-        try:
-            p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        except Proyecto.DoesNotExist:
-            raise Http404('no existe proyecto')
-        return p
+    def get_permission_object(self): return self.get_proyecto()
 
     def get_initial_queryset(self):
-        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        return proyecto.miembroproyecto_set.all()
+        return self.get_proyecto().miembroproyecto_set.all()
 
 
-class MiembroProyectoPerfilView(LoginRequiredMixin, GuardianAnyPermissionRequiredMixin, DetailView):
+class MiembroProyectoPerfilView(LoginRequiredMixin, GuardianAnyPermissionRequiredMixin, DetailView,
+                                ProyectoMixin):
     model = MiembroProyecto
     context_object_name = 'miembro'
     template_name = 'proyecto/miembro/miembro_perfil.html'
@@ -547,33 +530,26 @@ class MiembroProyectoPerfilView(LoginRequiredMixin, GuardianAnyPermissionRequire
         'proyecto.add_miembroproyecto',
         'proyecto.change_miembroproyecto',
         'proyecto.delete_miembroproyecto',
-    )
+    ) # Tiene permiso al tener cualquiera de estos permisos
     return_403 = True
     permission_denied_message = 'No tiene permiso para ver el perfil de este miembro de este proyecto'
 
-    def get_permission_object(self):
-        try:
-            p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        except Proyecto.DoesNotExist:
-            raise Http404('no existe proyecto')
-        return p
+    def get_permission_object(self): return self.get_proyecto()
 
-    def handle_no_permission(self):
-        return HttpResponseForbidden()
+    def handle_no_permission(self): return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo'] = 'Perfil del Miembro'
 
-        pid = self.kwargs['proyecto_id']
-        proyecto = Proyecto.objects.get(pk=pid)
         miembro = context['object']
 
         # Breadcrumbs
+        pid = self.kwargs['proyecto_id']
         context['breadcrumb'] = [
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
-            {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', kwargs={'proyecto_id': pid})},
+            {'nombre': self.get_proyecto().nombre, 'url': reverse('perfil_proyecto', kwargs={'proyecto_id': pid})},
             {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list', kwargs={'proyecto_id': pid})},
             {'nombre': miembro.user.username, 'url': '#'},
         ]
@@ -584,24 +560,22 @@ class MiembroProyectoPerfilView(LoginRequiredMixin, GuardianAnyPermissionRequire
         return context
 
 
-class MiembroProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
+class MiembroProyectoUpdateView(LoginRequiredMixin, GuardianPermissionRequiredMixin,
+                                SuccessMessageMixin, UpdateView, ProyectoMixin):
     model = MiembroProyecto
     form_class = EditarMiembroForm
     context_object_name = 'miembro'
     template_name = 'change_form.html'
     pk_url_kwarg = 'miembro_id'
-    permission_required = (
-        'proyecto.add_miembroproyecto',
-        'proyecto.change_miembroproyecto',
-        'proyecto.delete_miembroproyecto',
-    )
+    permission_required = 'proyecto.change_miembroproyecto'
+    return_403 = True
     permission_denied_message = 'No tiene permiso para editar miembros de este proyecto'
 
-    def handle_no_permission(self):
-        return HttpResponseForbidden()
+    def get_permission_object(self): return self.get_proyecto()
 
-    def get_success_message(self, cleaned_data):
-        return "Miembro de Proyecto editado exitosamente"
+    def handle_no_permission(self): return HttpResponseForbidden()
+
+    def get_success_message(self, cleaned_data): return "Miembro de Proyecto editado exitosamente"
 
     def get_success_url(self):
         pid = self.kwargs['proyecto_id']
@@ -618,7 +592,7 @@ class MiembroProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
 
     def get_context_data(self, **kwargs):
         context = super(MiembroProyectoUpdateView, self).get_context_data(**kwargs)
-        p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        p = self.get_proyecto()
         m = MiembroProyecto.objects.get(pk=self.kwargs['miembro_id'])
         context['titulo'] = 'Editar Miembro de Proyecto'
         context['titulo_form_editar'] = 'Datos del Miembro'
