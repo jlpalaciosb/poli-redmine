@@ -40,7 +40,7 @@
                 {% endif %}
                 <!-- Se comprueba que el rol no sea por defecto ni que tenga ningun miembro asociado-->
                 {% if 'delete_rolproyecto' in permisosGuardian and not rol.is_default and not rol.miembroproyecto_set.all%}
-                    <a href="#">
+                    <a href="{% url 'proyecto_rol_eliminar' rol.proyecto.id rol.id %}">
                       <button class="btn m-b-xs btn-danger btn-addon ">
                         <i class="fa fa-trash-o"></i>
                         Eliminar
