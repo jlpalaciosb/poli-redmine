@@ -6,8 +6,10 @@ from django import forms
 from django.contrib.auth.models import Permission, User
 from django.db.models import Q
 from django.forms import ModelForm, DateInput, Form
-from django.forms import ModelMultipleChoiceField
+from django.forms import ModelMultipleChoiceField, ModelChoiceField
 from django.core.exceptions import NON_FIELD_ERRORS
+from django.http import Http404
+
 from proyecto.models import Proyecto, RolProyecto, MiembroProyecto, TipoUS, Flujo, UserStory, Sprint
 from django.core.exceptions import ValidationError
 
@@ -113,6 +115,8 @@ class RolesModelMultipleChoiceField(ModelMultipleChoiceField):
     def label_from_instance(self, obj):
         return obj.nombre
 
+
+
 class MiembroProyectoForm(ModelForm):
 
     class Meta:
@@ -122,17 +126,29 @@ class MiembroProyectoForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
-        proy=Proyecto.objects.get(pk=kwargs.pop('proyecto_id'))
+
+        try:
+            proy=Proyecto.objects.get(pk=kwargs.pop('proyecto_id'))
+        except Proyecto.DoesNotExist:
+            raise Http404('No se encontró ningún proyecto coincidente con la consulta')
+
         if kwargs['instance'] is None:
             miembro = MiembroProyecto(proyecto=proy)
             kwargs['instance']=miembro
         super(MiembroProyectoForm, self).__init__(*args, **kwargs)
         self.fields['roles']= RolesModelMultipleChoiceField(
-                                    queryset=proy.rolproyecto_set.all(),
-                                    widget=forms.CheckboxSelectMultiple,
-                                    required=True,
-                                    label="Roles"
-                                )
+            queryset=proy.rolproyecto_set.all(),
+            required=True,
+            widget=forms.CheckboxSelectMultiple,
+            label="Roles",
+        )
+        self.fields['user'] = ModelChoiceField(
+            queryset=User.objects.all()
+                .exclude(is_superuser=True).exclude(is_staff=True)
+                .exclude(miembroproyecto__proyecto__id__exact=proy.id), # VERIFICAR que realmente funciona en todos los casos
+            required=True,
+            label='Usuario',
+        )
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
@@ -174,11 +190,11 @@ class EditarMiembroForm(MiembroProyectoForm):
             kwargs['instance']=miembro
         super(MiembroProyectoForm, self).__init__(*args, **kwargs)
         self.fields['roles']= RolesModelMultipleChoiceField(
-                                    queryset=proy.rolproyecto_set.all(),
-                                    widget=forms.CheckboxSelectMultiple,
-                                    required=True,
-                                    label="Roles"
-                                )
+            queryset=proy.rolproyecto_set.all(),
+            widget=forms.CheckboxSelectMultiple,
+            required=True,
+            label="Roles"
+        )
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
