@@ -228,7 +228,7 @@ class RolProyecto(Group):
     # group = models.OneToOneField(Group, related_name='rol_es_grupo')
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
-
+    is_default = models.BooleanField(default=False)#indica si el atributo es por defecto
     class Meta:
         default_permissions = ()
         unique_together = ("nombre", "proyecto")

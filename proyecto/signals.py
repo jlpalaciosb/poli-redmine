@@ -110,6 +110,7 @@ def crear_rol_scrum_master_proyecto(proyecto):
     scrum_master.nombre = "Scrum Master"
     scrum_master.name = "Scrum Master" + proyecto.id.__str__()
     scrum_master.proyecto = proyecto
+    scrum_master.is_default = True
     scrum_master.save()
     permisosSM = [
         'change_proyecto',
@@ -145,6 +146,7 @@ def crear_rol_developer_team_proyecto(proyecto):
     developer_team.nombre = "Developer Team"
     developer_team.name = "Developer Team" + proyecto.id.__str__()
     developer_team.proyecto = proyecto
+    developer_team.is_default = True
     developer_team.save()
     developer_team.permissions.add(Permission.objects.get(codename='desarrollador_proyecto'))
 
