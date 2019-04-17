@@ -1,0 +1,53 @@
+{% extends 'layout/layout.html' %}
+{% load static %}
+{% load guardian_tags %}
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3 col-lg-6">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            <div class="row">
+
+                <div class="col-xs-6">
+                    <h4><strong>Rol: </strong>{{ rol.nombre }}</h4>
+                    <p>
+                        <strong>Permisos del Rol: </strong>  <br>
+                        <ul>
+                            {% for permiso in rol.permissions.all %}
+
+                                <li>{{  permiso.name }}</li>
+                            {% endfor %}
+                        </ul>
+                        <br>
+                    </p>
+                </div>
+                {% get_obj_perms request.user for rol.proyecto as "permisosGuardian" %}
+                <!-- Se comprueba que tenga el permiso para el proyecto en particular y que el rol no sea por defecto-->
+                {% if 'change_rolproyecto' in permisosGuardian  and not rol.is_default %}
+                    <a href="{% url 'proyecto_rol_editar' rol.proyecto.id rol.id %}">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                        <i class="fa fa-pencil"></i>
+                        Editar
+                      </button>
+                    </a>
+                {% endif %}
+                <!-- Se comprueba que el rol no sea por defecto ni que tenga ningun miembro asociado-->
+                {% if 'delete_rolproyecto' in permisosGuardian and not rol.is_default and not rol.miembroproyecto_set.all%}
+                    <a href="#">
+                      <button class="btn m-b-xs btn-danger btn-addon ">
+                        <i class="fa fa-trash-o"></i>
+                        Eliminar
+                      </button>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
