@@ -255,7 +255,7 @@ class MiembroSprint (models.Model):
     """
     miembro = models.ForeignKey(MiembroProyecto, verbose_name='Miembro del Sprint')
     sprint = models.ForeignKey(Sprint, verbose_name='Sprint')
-    horasAsignadas = models.IntegerField(verbose_name='Horas asignadas al miembro')
+    horasAsignadas = models.IntegerField(verbose_name='Horas por día asignadas al miembro')
 
     class Meta:
         unique_together = ('miembro', 'sprint')
