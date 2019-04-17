@@ -482,7 +482,7 @@ class MiembroProyectoListView(LoginRequiredMixin, GuardianAnyPermissionRequiredM
         context['crear_button_text'] = 'Nuevo Miembro'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'Nombre de Usuario']
+        context['nombres_columnas'] = ['id', 'Nombre_de_Usuario', 'Roles']
         context['order'] = [1, "asc"]
         editar_kwargs = self.kwargs.copy()
         editar_kwargs['miembro_id'] = 6436276 # pasamos inicialmente un id aleatorio
@@ -502,10 +502,10 @@ class MiembroProyectoListView(LoginRequiredMixin, GuardianAnyPermissionRequiredM
 
 
 class MiembroProyectoListJson(LoginRequiredMixin, GuardianAnyPermissionRequiredMixin,
-                              CustomFilterBaseDatatableView, ProyectoMixin):
+                              BaseDatatableView, ProyectoMixin):
     model = MiembroProyecto
-    columns = ['id', 'user.username']
-    order_columns = ['id', 'user.username']
+    columns = ['id', 'user', 'roles']
+    order_columns = ['', 'user', '']
     permission_required = (
         'proyecto.add_miembroproyecto',
         'proyecto.change_miembroproyecto',
@@ -513,11 +513,27 @@ class MiembroProyectoListJson(LoginRequiredMixin, GuardianAnyPermissionRequiredM
     ) # Tiene permiso al tener cualquiera de estos permisos
     return_403 = True
     permission_denied_message = 'No tiene permiso para ver la lista de miembros de este proyecto'
+    max_display_length = 100
 
     def get_permission_object(self): return self.get_proyecto()
 
+    def render_column(self, miembro, column):
+        if column == 'roles':
+            return ', '.join(rol.nombre for rol in miembro.roles.all())
+        elif column == 'user':
+            return miembro.user.username
+        else:
+            return super().render_column(miembro, column)
+
     def get_initial_queryset(self):
         return self.get_proyecto().miembroproyecto_set.all()
+
+    def filter_queryset(self, qs):
+        search = self.request.GET.get('search[value]', None)
+        qs_params = Q(user__username__icontains=search) | Q(user__first_name__icontains=search) | Q(user__last_name__icontains=search)
+        return qs.filter(qs_params)
+
+    def ordering(self, qs): return qs.order_by('user__username')
 
 
 class MiembroProyectoPerfilView(LoginRequiredMixin, GuardianAnyPermissionRequiredMixin, DetailView,
