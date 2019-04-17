@@ -1,5 +1,5 @@
 from django.db.models.query_utils import Q
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, Http404
 
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
@@ -415,13 +415,13 @@ class MiembroProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
     template_name = "change_form.html"
     form_class = MiembroProyectoForm
     permission_required = 'proyecto.change_proyecto'
-    permission_denied_message = 'No tiene permiso para Crear nuevos proyectos.'
+    permission_denied_message = 'No tiene permiso para agregar nuevos miembros a este proyecto'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
-        return "Miembro de Proyecto '{}' creado exitosamente.".format(cleaned_data['user'])
+        return "Miembro de Proyecto '{}' incorporado exitosamente.".format(cleaned_data['user'])
 
     def get_success_url(self):
         return reverse('proyecto_miembro_list',kwargs=self.kwargs)
@@ -441,19 +441,24 @@ class MiembroProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
         context['titulo_form_crear'] = 'Insertar Datos del Miembro del Proyecto'
 
         # Breadcrumbs
-        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
-                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
-                                 {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
-                                 {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list',kwargs=self.kwargs)},
-                                 {'nombre': 'Crear', 'url': '#'}
-                                 ]
+        context['breadcrumb'] = [
+            {'nombre': 'Inicio', 'url': '/'},
+            {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+            {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
+            {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list',kwargs=self.kwargs)},
+            {'nombre': 'Nuevo Miembro', 'url': '#'}
+        ]
 
         return context
 
 class MiembroProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
-    permission_required = 'proyecto.change_proyecto'
-    permission_denied_message = 'No tiene permiso para ver este proyecto.'
+    permission_required = (
+        'proyecto.add_miembroproyecto',
+        'proyecto.change_miembroproyecto',
+        'proyecto.delete_miembroproyecto',
+    )
+    permission_denied_message = 'No tiene permiso para ver la lista de miembros de este proyecto'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -463,42 +468,85 @@ class MiembroProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, Templ
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
         context['titulo'] = 'Lista de Miembros del Proyecto '+ proyecto.nombre
         context['crear_button'] = True
-        context['crear_url'] = reverse('proyecto_miembro_crear',kwargs=self.kwargs)
-        context['crear_button_text'] = 'Nuevo Miembro del Proyecto'
+        context['crear_url'] = reverse('proyecto_miembro_crear', kwargs=self.kwargs)
+        context['crear_button_text'] = 'Nuevo Miembro'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'Nombre del Miembro']
+        context['nombres_columnas'] = ['id', 'Nombre de Usuario']
         context['order'] = [1, "asc"]
-        context['datatable_row_link'] = reverse('proyecto_miembro_editar', args=(self.kwargs['proyecto_id'],99999))  # pasamos inicialmente el id 1
-        context['list_json'] = reverse('proyecto_miembro_list_json', kwargs=self.kwargs)
-        context['roles']=True
+        editar_kwargs = self.kwargs.copy()
+        editar_kwargs['miembro_id'] = 6436276 # pasamos inicialmente un id aleatorio
+        context['datatable_row_link'] = reverse('proyecto_miembro_perfil', kwargs=editar_kwargs)
+        context['list_json'] = reverse('proyecto_miembro_list_json', kwargs=kwargs)
+        context['miembro_proyecto'] = True
+
         #Breadcrumbs
-        context['breadcrumb'] = [{'nombre':'Inicio', 'url':'/'},
-                   {'nombre':'Proyectos', 'url': reverse('proyectos')},
-                    {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
-                    {'nombre': 'Miembros', 'url': '#'}
-                   ]
-
-
+        context['breadcrumb'] = [
+            {'nombre':'Inicio', 'url':'/'},
+            {'nombre':'Proyectos', 'url': reverse('proyectos')},
+            {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', kwargs=kwargs)},
+            {'nombre': 'Miembros', 'url': '#'},
+        ]
 
         return context
 
 
 class MiembroProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilterBaseDatatableView):
-    model = RolProyecto
-    columns = ['id', 'user']
-    order_columns = ['id', 'user']
-    max_display_length = 100
-    permission_required = 'proyecto.change_proyecto'
-    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+    model = MiembroProyecto
+    columns = ['id', 'user.username']
+    order_columns = ['id', 'user.username']
+    permission_required = (
+        'proyecto.add_miembroproyecto',
+        'proyecto.change_miembroproyecto',
+        'proyecto.delete_miembroproyecto',
+    )
+    permission_denied_message = 'No tiene permiso para ver la lista de miembros de este proyecto'
 
     def get_initial_queryset(self):
-        """
-        Se sobreescribe el metodo para que la lista sean todos los roles de un proyecto en particular
-        :return:
-        """
-        proyecto=Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         return proyecto.miembroproyecto_set.all()
+
+
+class MiembroProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+    model = MiembroProyecto
+    context_object_name = 'miembro'
+    template_name = 'proyecto/miembro/miembro_perfil.html'
+    pk_url_kwarg = 'miembro_id'
+    permission_required = (
+        'proyecto.add_miembroproyecto',
+        'proyecto.change_miembroproyecto',
+        'proyecto.delete_miembroproyecto',
+    )
+    permission_denied_message = 'No tiene permiso para ver el perfil de este miembro de este proyecto'
+
+    def has_permission(self):
+        return cualquier_permiso(self.request.user, self.get_permission_required())
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = 'Perfil del Miembro'
+
+        pid = self.kwargs['proyecto_id']
+        proyecto = Proyecto.objects.get(pk=pid)
+        miembro = context['object']
+
+        # Breadcrumbs
+        context['breadcrumb'] = [
+            {'nombre': 'Inicio', 'url': '/'},
+            {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+            {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', kwargs={'proyecto_id': pid})},
+            {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list', kwargs={'proyecto_id': pid})},
+            {'nombre': miembro.user.username, 'url': '#'},
+        ]
+
+        context['puedeEditar'] = True
+        context['puedeEliminar'] = True
+
+        return context
+
 
 class MiembroProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = MiembroProyecto
@@ -506,20 +554,26 @@ class MiembroProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
     context_object_name = 'miembro'
     template_name = 'change_form.html'
     pk_url_kwarg = 'miembro_id'
-    permission_required = 'proyecto.change_proyecto'
-    permission_denied_message = 'No tiene permiso para Editar Proyectos.'
+    permission_required = (
+        'proyecto.add_miembroproyecto',
+        'proyecto.change_miembroproyecto',
+        'proyecto.delete_miembroproyecto',
+    )
+    permission_denied_message = 'No tiene permiso para editar miembros de este proyecto'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
-        return "Miembro de Proyecto  editado exitosamente."
+        return "Miembro de Proyecto editado exitosamente"
 
     def get_success_url(self):
-        return reverse('proyecto_miembro_list',args=(self.kwargs['proyecto_id'],))
+        pid = self.kwargs['proyecto_id']
+        mid = self.kwargs['miembro_id']
+        return reverse('proyecto_miembro_perfil', args=(pid, mid))
 
     def get_form_kwargs(self):
-        kwargs = super(MiembroProyectoUpdateView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs.update({
             'success_url': self.get_success_url(),
             'proyecto_id': self.kwargs['proyecto_id'],
@@ -528,18 +582,21 @@ class MiembroProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Suc
 
     def get_context_data(self, **kwargs):
         context = super(MiembroProyectoUpdateView, self).get_context_data(**kwargs)
-        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        m = MiembroProyecto.objects.get(pk=self.kwargs['miembro_id'])
         context['titulo'] = 'Editar Miembro de Proyecto'
         context['titulo_form_editar'] = 'Datos del Miembro'
-        context['titulo_form_editar_nombre'] = context[MiembroProyectoUpdateView.context_object_name].user
+        context['titulo_form_editar_nombre'] = m.user.username
 
         # Breadcrumbs
-        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
-                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
-                                 {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto',args=(self.kwargs['proyecto_id'],))},
-                                 {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list' ,args=(self.kwargs['proyecto_id'],))},
-                                 {'nombre': 'Editar', 'url': '#'}
-                                 ]
+        context['breadcrumb'] = [
+            {'nombre': 'Inicio', 'url': '/'},
+            {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+            {'nombre': p.nombre, 'url': reverse('perfil_proyecto', args=(p.id,))},
+            {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list', args=(p.id,))},
+            {'nombre': m.user.username, 'url': reverse('proyecto_miembro_perfil', args=(p.id, m.id))},
+            {'nombre': 'Editar', 'url': '#'}
+        ]
 
         return context
 

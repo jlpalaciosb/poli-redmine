@@ -10,7 +10,7 @@
 
     {% block titulo %}
         <div class="bg-light lter b-b wrapper-md col-md-12">
-            <h1 class="m-n font-thin h3 col-lg-6">{{ titulo }}</h1>
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
         </div>
     {% endblock %}
 
@@ -76,6 +76,8 @@
                     var url = '{{ datatable_row_link }}';
                     {% if roles %}
                         url = url.replace(99999, data[0]);
+                    {% elif miembro_proyecto %}
+                        url = url.replace(6436276, data[0]);
                     {% else %}
                         url = url.replace(1, data[0]);
                     {% endif %}
