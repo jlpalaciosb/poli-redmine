@@ -1,12 +1,51 @@
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
-from guardian.mixins import PermissionRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from guardian.mixins import PermissionRequiredMixin as GuardianPermissionRequiredMixin
 
 from ProyectoIS2_9.utils import get_40x_or_None_ANY
-from proyecto.models import Proyecto
+from proyecto.models import Proyecto, MiembroProyecto
 
 
-class GuardianAnyPermissionRequiredMixin(PermissionRequiredMixin):
+class PermisosPorProyecto(GuardianPermissionRequiredMixin):
+    """
+    Clase a ser heredada por las vistas que necesitan autorizacion de permisos para un proyecto en particular. Se debe especificar la lista de permisos
+    """
+    return_403 = True
+    proyecto_param = 'proyecto_id'#El parametro que contiene el id del proyecto a verificar
+
+    def get_permission_object(self):
+        """
+        Metodo que obtiene el proyecto con el cual los permisos a verificar deberian estar asociados
+        :return:
+        """
+        try:
+            p = Proyecto.objects.get(pk=self.kwargs[self.proyecto_param])
+        except Proyecto.DoesNotExist:
+            raise Http404('no existe proyecto con el id en la url')
+        return p
+
+
+class PermisosEsMiembro(PermissionRequiredMixin):
+    """
+    Clase a ser heredada por las vistas de un proyecto que necesitan comprobar si un usuario es miembro de un proyecto para permitir acceso a las mismas.
+    Es decir, si es miembro del proyecto podra acceder a la vista. Usada gralmente para vistas que involucran solo visualizacion
+    """
+    proyecto_param = 'proyecto_id'  # El parametro que contiene el id del proyecto a verificar
+
+    def has_permission(self):
+        """
+        Si el usuario que hace el request es miembro del proyecto por quien solicita entonces tiene permisos
+        :return: True si el usuario es miembro y false si el usuario no es miembro del proyecto
+        """
+        try:
+            MiembroProyecto.objects.get(user=self.request.user, proyecto__pk=self.kwargs[self.proyecto_param])
+            return True
+        except MiembroProyecto.DoesNotExist:
+            return False
+
+
+class GuardianAnyPermissionRequiredMixin(GuardianPermissionRequiredMixin):
     def check_permissions(self, request):
         """
         Checks if *request.user* has ANY of the permissions returned by
@@ -31,15 +70,3 @@ class GuardianAnyPermissionRequiredMixin(PermissionRequiredMixin):
         if forbidden and self.raise_exception:
             raise PermissionDenied()
         return forbidden
-
-
-class ProyectoMixin:
-    """
-    Esta clase sirve cuando en la url de la vista se define el parametro proyecto_id
-    """
-    def get_proyecto(self):
-        try:
-            p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        except Proyecto.DoesNotExist:
-            raise Http404('no existe proyecto con el id en la url')
-        return p

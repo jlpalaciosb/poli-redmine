@@ -9,7 +9,7 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.http import HttpResponseRedirect
 
 from proyecto.forms import ProyectoForm,RolProyectoForm, MiembroProyectoForm,EditarMiembroForm
-from proyecto.mixins import GuardianAnyPermissionRequiredMixin, ProyectoMixin
+from proyecto.mixins import GuardianAnyPermissionRequiredMixin
 from proyecto.models import Proyecto,RolProyecto,MiembroProyecto
 from ProyectoIS2_9.utils import cualquier_permiso
 from guardian.mixins import PermissionRequiredMixin as GuardianPermissionRequiredMixin
