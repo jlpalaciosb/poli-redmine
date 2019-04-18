@@ -178,32 +178,35 @@ class MiembroProyectoForm(ModelForm):
         finally:
             exclude.append('proyecto')
 
-class EditarMiembroForm(MiembroProyectoForm):
+
+class EditarMiembroForm(ModelForm):
     class Meta:
         model = MiembroProyecto
         fields = ['roles']
+
     def __init__(self, *args, **kwargs):
-        self.success_url = kwargs.pop('success_url')
-        proy=Proyecto.objects.get(pk=kwargs.pop('proyecto_id'))
-        if kwargs['instance'] is None:
-            miembro = MiembroProyecto(proyecto=proy)
-            kwargs['instance']=miembro
-        super(MiembroProyectoForm, self).__init__(*args, **kwargs)
+        success_url = kwargs.pop('success_url')
+        p = Proyecto.objects.get(pk=kwargs.pop('proyecto_id'))
+
+        super().__init__(*args, **kwargs)
+
         self.fields['roles']= RolesModelMultipleChoiceField(
-            queryset=proy.rolproyecto_set.all(),
+            queryset=p.rolproyecto_set.all(),
             widget=forms.CheckboxSelectMultiple,
             required=True,
             label="Roles"
         )
-        self.helper = FormHelper()
-        self.helper.form_class = 'form-horizontal'
-        self.helper.label_class = 'col-lg-2'
-        self.helper.field_class = 'col-lg-8'
+
         layout = [
             'roles',
             FormActions(
                 Submit('guardar', 'Guardar'),
-                HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
+                HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(success_url)),
             ),
         ]
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
         self.helper.layout = Layout(*layout)
