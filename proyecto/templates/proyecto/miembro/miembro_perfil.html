@@ -42,7 +42,15 @@
                 <a href="{% url 'proyecto_miembro_editar' miembro.proyecto.id miembro.id %}">
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-pencil"></i>
-                    Editar
+                    Editar Roles
+                  </button>
+                </a>
+            {% endif %}
+            {% if isSM %}
+                <a href="#">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-arrow-right"></i>
+                    Pasar rol de Scrum Master
                   </button>
                 </a>
             {% endif %}

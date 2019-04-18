@@ -1,5 +1,5 @@
 from django.db.models.query_utils import Q
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseBadRequest
 
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -155,6 +155,8 @@ class MiembroProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembro, DetailVie
 
         context['puedeEditar'] = self.request.user.has_perm('proyecto.change_miembroproyecto', p)
         context['puedeEliminar'] = self.request.user.has_perm('proyecto.delete_miembroproyecto', p)
+        # True si el usuario logueado es scrum master en el proyecto
+        context['isSM'] = True
 
         return context
 
@@ -174,7 +176,7 @@ class MiembroProyectoUpdateView(LoginRequiredMixin, PermisosPorProyecto, Success
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
-        return "Miembro de Proyecto editado exitosamente"
+        return "Roles del miembro editado exitosamente"
 
     def get_success_url(self):
         pid = self.kwargs['proyecto_id']
@@ -195,8 +197,8 @@ class MiembroProyectoUpdateView(LoginRequiredMixin, PermisosPorProyecto, Success
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         m = context['object']
 
-        context['titulo'] = 'Editar Miembro de Proyecto'
-        context['titulo_form_editar'] = 'Datos del Miembro'
+        context['titulo'] = 'Editar Roles del Miembro'
+        context['titulo_form_editar'] = 'Miembro de Proyecto'
         context['titulo_form_editar_nombre'] = m.user.username
 
         # Breadcrumbs
@@ -206,7 +208,7 @@ class MiembroProyectoUpdateView(LoginRequiredMixin, PermisosPorProyecto, Success
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', args=(p.id,))},
             {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list', args=(p.id,))},
             {'nombre': m.user.username, 'url': reverse('proyecto_miembro_perfil', args=(p.id, m.id))},
-            {'nombre': 'Editar', 'url': '#'}
+            {'nombre': 'Editar Roles', 'url': '#'}
         ]
 
         return context
