@@ -110,6 +110,23 @@ class RolUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageM
     permission_required = 'proyecto.change_roladministrativo'
     permission_denied_message = 'No tiene permiso para Editar Roles.'
 
+    def has_permission(self):
+        """
+        Se sobreescribe la comprobacion de permisos para denegar el acceso si el usuario posee el rol administrativo a editar
+        :return:
+        """
+        try:
+            rol_a_editar = RolAdministrativo.objects.get(pk=self.kwargs['rol_id'])
+            roles_usuario = RolAdministrativo.objects.filter(user=self.request.user)
+            if(rol_a_editar in roles_usuario):
+                return False
+        except RolAdministrativo.DoesNotExist:
+            return super(RolUpdateView, self).has_permission()
+        except:
+            return super(RolUpdateView, self).has_permission()
+        else:
+            return super(RolUpdateView, self).has_permission()
+
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
