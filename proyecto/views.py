@@ -132,17 +132,13 @@ class CustomFilterBaseDatatableView(BaseDatatableView):
         return qs
 
 
-class ProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class ProyectoListView(LoginRequiredMixin, TemplateView):
     """
     Vista Basada en Clases para listar los proyectos existentes
     """
 
     template_name = 'proyecto/proyecto/change_list.html'
-    permission_required = ('proyecto.add_proyecto', 'proyecto.change_proyecto', 'proyecto.delete_proyecto')
-    permission_denied_message = 'No tiene permiso para ver este proyecto.'
 
-    def has_permission(self):
-        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -171,16 +167,19 @@ class ProyectoListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView
         return context
 
 
-class ProyectoListJson(LoginRequiredMixin, PermissionRequiredMixin, CustomFilterBaseDatatableView):
+
+class ProyectoListJson(LoginRequiredMixin, CustomFilterBaseDatatableView, ):
     model = Proyecto
     columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada','estado']
     order_columns = ['id', 'nombre', 'fechaInicioEstimada', 'fechaInicioEstimada', 'estado']
     max_display_length = 100
-    permission_required = ('proyecto.add_proyecto', 'proyecto.change_proyecto', 'proyecto.delete_proyecto')
-    permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
-    def has_permission(self):
-        return cualquier_permiso(self.request.user, self.get_permission_required())
+    def get_initial_queryset(self):
+        """
+        Un usuario es miembro de distintos proyectos. Se obtiene todos los proyectos con los que esta relacionados a traves de la lista de Miembro del user
+        :return:
+        """
+        return Proyecto.objects.filter(id__in = list(map(lambda x: x.proyecto_id, MiembroProyecto.objects.filter(user=self.request.user))))
 
 
 class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
@@ -225,7 +224,7 @@ class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
 
 
 
-class ProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
+class ProyectoUpdateView(LoginRequiredMixin, PermisosPorProyecto, SuccessMessageMixin, UpdateView):
     """
            Vista Basada en Clases para la actualizacion de los proyectos
     """
@@ -270,7 +269,7 @@ class ProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
 
 
 
-class ProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class ProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembro, DetailView):
     """
            Vista Basada en Clases para la visualizacion del perfil de un proyecto
     """
@@ -278,11 +277,7 @@ class ProyectoPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView
     context_object_name = 'proyecto'
     template_name = 'proyecto/proyecto/change_list_perfil.html'
     pk_url_kwarg = 'proyecto_id'
-    permission_required = ('proyecto.add_proyecto', 'proyecto.change_proyecto', 'proyecto.delete_proyecto')
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
-
-    def has_permission(self):
-        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
