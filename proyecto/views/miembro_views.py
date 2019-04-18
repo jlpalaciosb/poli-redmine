@@ -1,5 +1,5 @@
 from django.db.models.query_utils import Q
-from django.http import HttpResponseForbidden, HttpResponseBadRequest
+from django.http import HttpResponseForbidden
 
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -8,11 +8,11 @@ from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
 from proyecto.forms import MiembroProyectoForm,EditarMiembroForm
-from proyecto.mixins import PermisosPorProyecto, PermisosEsMiembro
+from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
 from proyecto.models import MiembroProyecto, Proyecto
 
 
-class MiembroProyectoCreateView(LoginRequiredMixin, PermisosPorProyecto, SuccessMessageMixin, CreateView):
+class MiembroProyectoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, CreateView):
     """
     Vista para incorporar un miembro a un proyecto
     """
@@ -56,7 +56,7 @@ class MiembroProyectoCreateView(LoginRequiredMixin, PermisosPorProyecto, Success
 
         return context
 
-class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembro, TemplateView):
+class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
     """
     Vista para listar los miembros de un proyecto. Cualquier usuario que sea miembro del proyecto
     tiene acceso a esta vista
@@ -94,7 +94,7 @@ class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembro, TemplateVie
         return context
 
 
-class MiembroProyectoListJson(LoginRequiredMixin, PermisosEsMiembro, BaseDatatableView):
+class MiembroProyectoListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView):
     """
     Vista que retorna en json la lista de miembros para el datatable
     """
@@ -123,7 +123,7 @@ class MiembroProyectoListJson(LoginRequiredMixin, PermisosEsMiembro, BaseDatatab
     def ordering(self, qs): return qs.order_by('user__username')
 
 
-class MiembroProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembro, DetailView):
+class MiembroProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     """
     Vista para el perfil de un miembro de un proyecto. Cualquier usuario que sea miembro del proyecto
     tiene acceso a esta vista
@@ -161,7 +161,7 @@ class MiembroProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembro, DetailVie
         return context
 
 
-class MiembroProyectoUpdateView(LoginRequiredMixin, PermisosPorProyecto, SuccessMessageMixin, UpdateView):
+class MiembroProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, UpdateView):
     """
     Vista que permite modificar los roles de un miembro de proyecto
     """

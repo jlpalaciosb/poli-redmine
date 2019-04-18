@@ -7,7 +7,7 @@ from ProyectoIS2_9.utils import get_40x_or_None_ANY
 from proyecto.models import Proyecto, MiembroProyecto
 
 
-class PermisosPorProyecto(GuardianPermissionRequiredMixin):
+class PermisosPorProyectoMixin(GuardianPermissionRequiredMixin):
     """
     Clase a ser heredada por las vistas que necesitan autorizacion de permisos para un proyecto en particular. Se debe especificar la lista de permisos
     """
@@ -26,7 +26,7 @@ class PermisosPorProyecto(GuardianPermissionRequiredMixin):
         return p
 
 
-class PermisosEsMiembro(PermissionRequiredMixin):
+class PermisosEsMiembroMixin(PermissionRequiredMixin):
     """
     Clase a ser heredada por las vistas de un proyecto que necesitan comprobar si un usuario es miembro de un proyecto para permitir acceso a las mismas.
     Es decir, si es miembro del proyecto podra acceder a la vista. Usada gralmente para vistas que involucran solo visualizacion
