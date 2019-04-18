@@ -1,5 +1,6 @@
 {% extends 'change_list.html' %}
 {% load static %}
+{% load guardian_tags %}
 {% block content %}
     {{ block.super }}
 {% endblock %}
@@ -34,7 +35,9 @@
       </div>
       <div class="row">
         <div class="col-xs-12">
-            {% if perms.proyecto.change_proyecto %}
+        <!-- Se trae todos los permisos asociados con el usuario y el proyecto actual -->
+        {% get_obj_perms request.user for proyecto as "permisosGuardian" %}
+            {% if 'change_proyecto' in permisosGuardian %}
                 <a href="{% url 'editar_proyecto' proyecto.id %}">
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-pencil"></i>

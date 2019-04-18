@@ -224,7 +224,7 @@ class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
 
 
 
-class ProyectoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
+class ProyectoUpdateView(LoginRequiredMixin, PermisosPorProyecto, SuccessMessageMixin, UpdateView):
     """
            Vista Basada en Clases para la actualizacion de los proyectos
     """
