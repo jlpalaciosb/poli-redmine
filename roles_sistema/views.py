@@ -5,7 +5,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse,reverse_lazy
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.http import HttpResponseRedirect
-
+from datos_de_prueba.funciones import ROL_ADMINISTRADOR_NOMBRE
 from roles_sistema.forms import RolSistemaForm
 from proyecto.models import RolAdministrativo
 from ProyectoIS2_9.utils import cualquier_permiso
@@ -110,6 +110,23 @@ class RolUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageM
     permission_required = 'proyecto.change_roladministrativo'
     permission_denied_message = 'No tiene permiso para Editar Roles.'
 
+    def has_permission(self):
+        """
+        Se sobreescribe la comprobacion de permisos para denegar el acceso si el usuario posee el rol administrativo a editar
+        :return:
+        """
+        try:
+            rol_a_editar = self.get_object()
+            roles_usuario = RolAdministrativo.objects.filter(user=self.request.user)
+            if(rol_a_editar in roles_usuario or rol_a_editar.name == ROL_ADMINISTRADOR_NOMBRE):
+                return False
+        except RolAdministrativo.DoesNotExist:
+            return super(RolUpdateView, self).has_permission()
+        except:
+            return super(RolUpdateView, self).has_permission()
+        else:
+            return super(RolUpdateView, self).has_permission()
+
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
@@ -163,6 +180,8 @@ class RolPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
                                  {'nombre': 'Roles Administrativos', 'url': reverse('rol_sistema:lista')},
                                  {'nombre': context['rol'].name, 'url': '#'}
                                  ]
+        rol = self.get_object()
+        context['es_rol_administrador'] = rol.name == ROL_ADMINISTRADOR_NOMBRE
 
         return context
 
@@ -175,6 +194,23 @@ class RolEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMessage
     permission_required = 'proyecto.delete_roladministrativo'
     permission_denied_message = 'No tiene permiso para eliminar el rol.'
     success_url = reverse_lazy('rol_sistema:lista')
+
+    def has_permission(self):
+        """
+        Se sobreescribe la comprobacion de permisos para denegar el acceso si hay algun usuario que posea el rol administrativo a eliminar o es el rol administrador
+        :return:
+        """
+        try:
+            rol_a_eliminar = self.get_object()
+            if(not self.eliminable() or rol_a_eliminar.name == ROL_ADMINISTRADOR_NOMBRE):
+                return False
+        except RolAdministrativo.DoesNotExist:
+            return super(RolEliminarView, self).has_permission()
+        except:
+            return super(RolEliminarView, self).has_permission()
+        else:
+            return super(RolEliminarView, self).has_permission()
+
     def handle_no_permission(self):
         return HttpResponseForbidden()
 

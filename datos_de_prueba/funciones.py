@@ -3,7 +3,7 @@ from proyecto.models import Cliente
 from proyecto.models import RolAdministrativo
 
 PASSWORD = '12345' # contraseña para todos los usuarios
-
+ROL_ADMINISTRADOR_NOMBRE = 'Administrador'
 
 # GETTERS
 
@@ -84,7 +84,7 @@ def cargar_rol_administrativo(nombre, permisos):
 
 def cargar_roles_administrativos():
     cargar_rol_administrativo(
-        'Administrador',
+        ROL_ADMINISTRADOR_NOMBRE,
         [
             'add_usuario', 'change_usuario', 'delete_usuario',
             'add_cliente', 'change_cliente', 'delete_cliente',

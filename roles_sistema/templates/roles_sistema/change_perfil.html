@@ -40,7 +40,8 @@
       </div>
       <div class="row">
         <div class="col-xs-12">
-            {% if perms.proyecto.change_roladministrativo %}
+            <!-- Se comprueba si tiene permiso para editar y que el usuario no posea dicho rol y si el rol no es el rol administrador -->
+            {% if perms.proyecto.change_roladministrativo and not rol.group_ptr in user.groups.all and not es_rol_administrador%}
                 <a href="{% url 'rol_sistema:editar' rol.id %}">
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-pencil"></i>
@@ -48,7 +49,8 @@
                   </button>
                 </a>
             {% endif %}
-            {% if perms.proyecto.delete_roladministrativo %}
+            <!-- Se comprueba si tiene permiso para eliminar y si el rol no es el rol administrador y si ningun usuario utiliza el rol -->
+            {% if perms.proyecto.delete_roladministrativo and not es_rol_administrador and not rol.user_set.all%}
                 <a href="{% url 'rol_sistema:eliminar' rol.id %}">
                   <button class="btn m-b-xs btn-danger btn-addon ">
                     <i class="fa fa-trash-o"></i>
