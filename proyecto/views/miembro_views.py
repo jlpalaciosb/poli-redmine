@@ -7,7 +7,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
-from proyecto.forms import MiembroProyectoForm,EditarMiembroForm
+from proyecto.forms import CrearMiembroForm, EditarMiembroForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
 from proyecto.models import MiembroProyecto, Proyecto
 
@@ -18,7 +18,7 @@ class MiembroProyectoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Su
     """
     model = MiembroProyecto
     template_name = "change_form.html"
-    form_class = MiembroProyectoForm
+    form_class = CrearMiembroForm
     permission_required = 'proyecto.add_miembroproyecto'
 
     def handle_no_permission(self):
@@ -51,10 +51,11 @@ class MiembroProyectoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Su
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
             {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list', kwargs=self.kwargs)},
-            {'nombre': 'Nuevo Miembro', 'url': '#'}
+            {'nombre': 'Crear Miembro', 'url': '#'}
         ]
 
         return context
+
 
 class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
     """
@@ -73,7 +74,7 @@ class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
         context['titulo'] = 'Lista de Miembros del Proyecto '+ p.nombre
         context['crear_button'] = self.request.user.has_perm('proyecto.add_miembroproyecto', p)
         context['crear_url'] = reverse('proyecto_miembro_crear', kwargs=self.kwargs)
-        context['crear_button_text'] = 'Nuevo Miembro'
+        context['crear_button_text'] = 'Crear Miembro'
 
         # datatables
         context['nombres_columnas'] = ['id', 'Nombre_de_Usuario', 'Roles']
