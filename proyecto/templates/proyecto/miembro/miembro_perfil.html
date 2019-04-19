@@ -46,7 +46,7 @@
                   </button>
                 </a>
             {% endif %}
-            {% if isSM %}
+            {% if pasarSM %}
                 <a href="#">
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-arrow-right"></i>
@@ -55,7 +55,7 @@
                 </a>
             {% endif %}
             {% if puedeEliminar %}
-                <a href="#">
+                <a href="{% url 'proyecto_miembro_excluir' miembro.proyecto.id miembro.id %}">
                   <button class="btn m-b-xs btn-danger btn-addon ">
                     <i class="fa fa-trash-o"></i>
                     Excluir del Proyecto

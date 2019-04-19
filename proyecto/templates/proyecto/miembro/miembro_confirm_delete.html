@@ -3,7 +3,7 @@
 {% block content %}
     {% block titulo %}
         <div class="bg-light lter b-b wrapper-md col-md-12">
-            <h1 class="m-n font-thin h3 col-lg-6">{{ titulo }}</h1>
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
         </div>
     {% endblock %}
 
@@ -18,7 +18,7 @@
                     {% csrf_token %}
                     <div class="row">
                         <div class="col-xs-12">
-                            <p>Seguro que quiere eliminar el cliente "{{ cliente }}"?</p>
+                            <p>¿Seguro que quiere excluir al miembro {{ miembro.user.username }} del proyecto?</p>
                         </div>
                     </div>
                     <div class="row">
@@ -27,7 +27,7 @@
                                 <i class="fa fa-check"></i>
                                 Confirmar
                             </button>
-                            <a href="{% url 'cliente:ver' cliente.id %}">
+                            <a href="{% url 'proyecto_miembro_perfil' miembro.proyecto.id miembro.id %}">
                                 <button type="button" class="btn m-b-xs btn-default btn-addon">
                                     <i class="fa fa-close"></i>
                                     Cancelar
@@ -40,14 +40,13 @@
                 <div class="row">
                     <div class="col-xs-12">
                         <p>
-                            No se puede eliminar el cliente "{{ cliente }}" porque tiene
-                            vinculado al menos un proyecto
+                            No se puede excluir al miembro {{ miembro.user.username }} porque {{ motivo }}
                         </p>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-xs-12">
-                        <a href="{% url 'cliente:ver' cliente.id %}">
+                        <a href="{% url 'proyecto_miembro_perfil' miembro.proyecto.id miembro.id %}">
                             <button type="button" class="btn m-b-xs btn-default btn-addon">
                                 <i class="fa fa-check"></i>
                                 Volver
