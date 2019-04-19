@@ -1,11 +1,12 @@
-from django.db.models import Model
 from django.db.models.query_utils import Q
 from django.http import HttpResponseForbidden, Http404
-
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView, DeleteView
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
 from proyecto.forms import CrearMiembroForm, EditarMiembroForm
@@ -13,7 +14,7 @@ from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
 from proyecto.models import MiembroProyecto, Proyecto
 
 
-class MiembroProyectoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, CreateView):
+class MiembroProyectoCreateView(SuccessMessageMixin, PermisosPorProyectoMixin, LoginRequiredMixin, CreateView):
     """
     Vista para incorporar un miembro a un proyecto
     """
@@ -58,7 +59,7 @@ class MiembroProyectoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Su
         return context
 
 
-class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
+class MiembroProyectoListView(PermisosEsMiembroMixin, LoginRequiredMixin, TemplateView):
     """
     Vista para listar los miembros de un proyecto. Cualquier usuario que sea miembro del proyecto
     tiene acceso a esta vista
@@ -96,7 +97,7 @@ class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
         return context
 
 
-class MiembroProyectoListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView):
+class MiembroProyectoListJson(PermisosEsMiembroMixin, LoginRequiredMixin, BaseDatatableView):
     """
     Vista que retorna en json la lista de miembros para el datatable
     """
@@ -125,7 +126,7 @@ class MiembroProyectoListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDa
     def ordering(self, qs): return qs.order_by('user__username')
 
 
-class MiembroProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
+class MiembroProyectoPerfilView(PermisosEsMiembroMixin, LoginRequiredMixin, DetailView):
     """
     Vista para el perfil de un miembro de un proyecto. Cualquier usuario que sea miembro del proyecto
     tiene acceso a esta vista
@@ -163,7 +164,7 @@ class MiembroProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
         return context
 
 
-class MiembroProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, UpdateView):
+class MiembroProyectoUpdateView(SuccessMessageMixin, PermisosPorProyectoMixin, LoginRequiredMixin, UpdateView):
     """
     Vista que permite modificar los roles de un miembro de proyecto
     """
@@ -216,7 +217,15 @@ class MiembroProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Su
         return context
 
 
-class MiembroProyectoDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView):
+delete_decorators = [login_required, require_http_methods(['GET', 'POST'])]
+@method_decorator(delete_decorators, name='dispatch')
+class MiembroProyectoDeleteView(PermisosPorProyectoMixin, DeleteView):
+    """
+    Vista para excluir a un miembro del proyecto. Condiciones:
+    * El miembro a excluir no debe tener el rol de 'Scrum Master'
+    * El miembro a excluir no debe pertenecer a ningún sprint
+    * El miembro a excluir no debe ser el mismo usuario logueado
+    """
     model = MiembroProyecto
     pk_url_kwarg = 'miembro_id'
     context_object_name = 'miembro'
@@ -225,28 +234,13 @@ class MiembroProyectoDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, De
     proyecto = None # proyecto en cuestion
     miembro = None # miembro en cuestion
 
-    def handle_no_permission(self):
-        return HttpResponseForbidden()
-
-    def get(self, request, *args, **kwargs):
-        self.init_proyecto_miembro()
-        return super().get(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        self.init_proyecto_miembro()
-        if self.eliminable() == 'Yes':
-            return super().post(request, *args, **kwargs)
-        else:
-            return HttpResponseForbidden()
-
-    def init_proyecto_miembro(self):
+    def dispatch(self, *args, **kwargs):
         try:
-            self.proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-            self.miembro = MiembroProyecto.objects.get(pk=self.kwargs['miembro_id'])
-        except Proyecto.DoesNotExist:
-            raise Http404('no existe proyecto con el id recibido en la url')
-        except MiembroProyecto.DoesNotExist:
-            raise Http404('no existe miembro con el id recibido en la url')
+            self.proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
+            self.miembro = MiembroProyecto.objects.get(pk=kwargs['miembro_id'])
+        except (Proyecto.DoesNotExist, MiembroProyecto.DoesNotExist):
+            raise Http404('no existe proyecto o miembro con el id recibido en la url')
+        return super(MiembroProyectoDeleteView, self).dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -262,14 +256,19 @@ class MiembroProyectoDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, De
             {'nombre': 'Excluir del Proyecto', 'url': '#'}
         ]
 
-        elim = self.eliminable()
-        if elim == 'Yes':
+        eliminable = self.eliminable()
+        if eliminable == 'Yes':
             context['eliminable'] = True
         else:
             context['eliminable'] = False
-            context['motivo'] = elim
+            context['motivo'] = eliminable
         
         return context
+
+    def delete(self, request, *args, **kwargs):
+        if self.eliminable() != 'Yes':
+            return HttpResponseForbidden()
+        return super().delete(request, *args, **kwargs)
 
     def eliminable(self):
         if self.miembro.roles.filter(nombre='Scrum Master').count() == 1:

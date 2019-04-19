@@ -8,7 +8,6 @@ from django.forms import  ModelChoiceField
 from proyecto.models import Proyecto, MiembroProyecto
 
 class CrearMiembroForm(ModelForm):
-
     class Meta:
         model = MiembroProyecto
         fields = ['user','roles']
@@ -24,7 +23,7 @@ class CrearMiembroForm(ModelForm):
         self.fields['user'] = ModelChoiceField(
             queryset=User.objects.all()
                 .exclude(is_superuser=True).exclude(is_staff=True)
-                .exclude(miembroproyecto__proyecto__id__exact=p.id), # VERIFICAR que realmente funciona en todos los casos
+                .exclude(miembroproyecto__proyecto__id__exact=p.id),
             required=True,
             label='Usuario',
         )
@@ -53,7 +52,6 @@ class CrearMiembroForm(ModelForm):
 
 
 class EditarMiembroForm(ModelForm):
-
     class Meta:
         model = MiembroProyecto
         fields = ['roles']
@@ -98,6 +96,5 @@ class EditarMiembroForm(ModelForm):
 
 
 class RolesModelMultipleChoiceField(ModelMultipleChoiceField):
-
     def label_from_instance(self, obj):
         return obj.nombre
