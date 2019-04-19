@@ -157,8 +157,8 @@ class MiembroProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
 
         context['puedeEditar'] = self.request.user.has_perm('proyecto.change_miembroproyecto', p)
         context['puedeEliminar'] = self.request.user.has_perm('proyecto.delete_miembroproyecto', p)
-        # True si el usuario logueado es scrum master en el proyecto
-        context['isSM'] = True
+        # True si el usuario logueado es el miembro que se esta viendo y ademas es scrum master en el proyecto
+        context['pasarSM'] = self.request.user == m.user and m.roles.filter(nombre='Scrum Master').count() == 1
 
         return context
 
@@ -272,7 +272,7 @@ class MiembroProyectoDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, De
         return context
 
     def eliminable(self):
-        if self.miembro.roles.filter(nombre='Scrum Master').count() > 0:
+        if self.miembro.roles.filter(nombre='Scrum Master').count() == 1:
             return 'es Scrum Master'
         if self.miembro.miembrosprint_set.all().count() > 0:
             return 'es miembro de al menos un sprint'
