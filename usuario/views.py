@@ -60,6 +60,13 @@ class UsuarioListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatable
         'proyecto.add_usuario', 'proyecto.change_usuario', 'proyecto.delete_usuario')
     permission_denied_message = 'No tiene permiso para ver los usuarios.'
 
+    def get_initial_queryset(self):
+        """
+            Se excluyen del listado a todos los que son superusuario o tienen acceso al django admin
+        :return:
+        """
+        return User.objects.all().exclude(is_superuser=True).exclude(is_staff=True)
+
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
@@ -73,13 +80,6 @@ class UsuarioListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatable
             return escape(row.get_full_name())
         else:
             return super(UsuarioListJson, self).render_column(row, column)
-
-    def get_initial_queryset(self):
-        """
-        Se sobreescribe el metodo para que la lista sean todos los usuarios que no sean Anonymous User
-        :return:
-        """
-        return self.model.objects.exclude(username='AnonymousUser')
 
 
 class UsuarioCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
