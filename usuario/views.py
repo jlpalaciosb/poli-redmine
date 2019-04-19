@@ -2,6 +2,7 @@ from django.http import HttpResponseForbidden
 from django.utils.html import escape
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from .mixin import PermissionRequiredAndNotSuperUserMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse,reverse_lazy
 from django.http import HttpResponseRedirect
@@ -133,7 +134,7 @@ class UsuarioCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
         return super().form_valid(form)
 
 
-class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
+class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredAndNotSuperUserMixin, SuccessMessageMixin, UpdateView):
     model = User
     form_class = UsuarioEditarForm
     context_object_name = 'usuario'
@@ -192,7 +193,7 @@ class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
         return super().form_valid(form)
 
 
-class UsuarioPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class UsuarioPerfilView(LoginRequiredMixin, PermissionRequiredAndNotSuperUserMixin, DetailView):
     model = User
     context_object_name = 'usuario'
     template_name = 'usuario/change_perfil.html'
@@ -215,10 +216,13 @@ class UsuarioPerfilView(LoginRequiredMixin, PermissionRequiredMixin, DetailView)
         return context
 
     def has_permission(self):
+        user = self.get_object()
+        if (user.is_staff or user.is_superuser):
+            return False
         return cualquier_permiso(self.request.user, self.get_permission_required())
 
 
-class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMessageMixin, DeleteView):
+class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredAndNotSuperUserMixin,SuccessMessageMixin, DeleteView):
     model = User
     context_object_name = 'usuario'
     template_name = 'usuario/eliminar_usuario.html'
@@ -226,6 +230,7 @@ class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMes
     permission_required = 'proyecto.delete_usuario'
     permission_denied_message = 'No tiene permiso para eliminar el usuario.'
     success_url = reverse_lazy('usuario:lista')
+
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
