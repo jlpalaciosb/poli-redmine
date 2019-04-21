@@ -3,9 +3,10 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, HTML, Layout
 from django import forms
 from django.forms import ModelForm
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from proyecto.models import RolAdministrativo
 from django.forms import ModelMultipleChoiceField
+from ProyectoIS2_9.utils import es_administrador
 
 
 class GroupModelMultipleChoiceField(ModelMultipleChoiceField):
@@ -50,3 +51,14 @@ class UsuarioForm(ModelForm):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-8'
         self.helper.layout = Layout(*layout)
+
+    def clean_groups(self):
+        if Group.objects.filter(name='Administrador').count() == 1 and \
+           self.cleaned_data['groups'].filter(name='Administrador').count() == 0 and \
+           es_administrador(self.save(commit=False)):
+            raise forms.ValidationError('No se le puede quitar el rol de Administrador porque es el único usuario con dicho rol')
+        return self.cleaned_data['groups']
+
+class EditarUsuarioForm(UsuarioForm):
+    password = forms.CharField(required=False, widget=forms.PasswordInput,
+            help_text='Deje este campo vacío para no cambiar la contraseña');
