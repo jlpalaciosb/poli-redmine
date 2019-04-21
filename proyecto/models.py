@@ -135,6 +135,7 @@ class TipoUS(models.Model):
 
     class Meta:
         default_permissions =  ()
+        unique_together = ('nombre', 'proyecto')
 
 
 class CampoPersonalizado(models.Model):
@@ -143,13 +144,12 @@ class CampoPersonalizado(models.Model):
     Tipo de User Story especifico
     """
     tipoUS = models.ForeignKey(TipoUS)
-    estado = models.CharField(verbose_name='Estado', choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
-    campo = models.CharField(verbose_name='Campo Personalizado', choices=VALOR_CAMPO, max_length=20, default='STRING')
-    tipoDeDato = models.CharField(verbose_name='Tipo de Dato', max_length=7)
+    tipo_dato = models.CharField(verbose_name='Tipo de dato del Campo', choices=VALOR_CAMPO, max_length=7, default='STRING')
+    nombre_campo = models.CharField(verbose_name='Nombre del campo', max_length=20)
 
     class Meta:
         default_permissions =  ()
-        unique_together = ("tipoUS", "campo")
+        unique_together = ("tipoUS", "nombre_campo")
 
 
 ESTADOS_US_FASE = (('TODO', 'To Do'), ('DOING', 'Doing'), ('DONE', 'Done'))
