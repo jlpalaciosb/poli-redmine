@@ -1,0 +1,64 @@
+{% extends 'layout/layout.html' %}
+{% load static %}
+
+
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+
+    <div class="wrapper-md">
+    <div class="well m-t bg-light lt">
+      <div class="row">
+
+        <div class="col-xs-4">
+          <h4>{{ user.get_full_name }}</h4>
+          <p>
+              <strong>Username: </strong>   {{ user.username }}<br><br>
+              <strong>Correo Electrónico: </strong>   {{ user.email }}<br><br>
+          </p>
+        </div>
+
+        <div class="col-xs-6">
+          <h4>&nbsp;</h4>
+          <p>
+              <strong>Roles Administrativos: </strong>  <br>
+              <ul>
+                {% for roles in user.groups.all %}
+                    {% if roles.roladministrativo %}
+                    <li>{{  roles.roladministrativo.name }}</li>
+                    {% endif %}
+                {% endfor %}
+              </ul>
+              <br>
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+            <a href="{% url 'usuario:propio_editar' %}">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Edite sus Datos
+                  </button>
+                </a>
+
+
+                <a href="{% url 'usuario:propio_cambiarcontrasenha' %}">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-key"></i>
+                    Cambie su Contraseña
+                  </button>
+                </a>
+
+        </div>
+      </div>
+    </div>
+    </div>
+{% endblock %}

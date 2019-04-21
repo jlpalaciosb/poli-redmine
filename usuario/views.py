@@ -1,13 +1,13 @@
 from django.http import HttpResponseForbidden
 from django.utils.html import escape
-from django.views.generic import TemplateView, DetailView, UpdateView, CreateView, DeleteView
+from django.views.generic import View, TemplateView, DetailView, UpdateView, CreateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse,reverse_lazy
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.auth.models import User, Group
 
-from .forms import UsuarioForm, EditarUsuarioForm
+from .forms import UsuarioForm, UsuarioEditarForm, UsuarioPropioEditarForm
 from ProyectoIS2_9.utils import cualquier_permiso, es_administrador
 
 
@@ -112,7 +112,7 @@ class UsuarioCreateView(SuccessMessageMixin, PermissionRequiredMixin, LoginRequi
 
 class UsuarioUpdateView(SuccessMessageMixin, PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
     model = User
-    form_class = EditarUsuarioForm
+    form_class = UsuarioEditarForm
     context_object_name = 'usuario'
     template_name = 'change_form.html'
     pk_url_kwarg = 'user_id'
@@ -257,3 +257,56 @@ class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMe
         if self.eliminable() != 'Yes':
             return HttpResponseForbidden()
         return super().delete(request, *args, **kwargs)
+
+
+class UsuarioPropioPerfilView(LoginRequiredMixin, TemplateView):
+    template_name = 'usuario/propio/change_perfil.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['titulo'] = 'Su Perfil'
+
+        context['breadcrumb'] = [
+            {'nombre': 'Inicio', 'url': '/'},
+            {'nombre': 'Perfil', 'url': '#'}
+        ]
+
+        return context
+
+
+class UsuarioPropioEditarView(SuccessMessageMixin, LoginRequiredMixin, UpdateView):
+    model = User
+    form_class = UsuarioPropioEditarForm
+    context_object_name = 'usuario'
+    template_name = 'change_form.html'
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def get_success_message(self, cleaned_data):
+        return "Editó sus datos exitosamente"
+
+    def get_success_url(self):
+        return reverse('usuario:propio_perfil')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'success_url': self.get_success_url()})
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['titulo'] = 'Edite sus Datos Personales'
+        context['titulo_form_editar'] = 'Datos del Usuario'
+        context['titulo_form_editar_nombre'] = context['usuario'].username
+
+        # Breadcrumbs
+        context['breadcrumb'] = [
+            {'nombre': 'Inicio', 'url': '/'},
+            {'nombre': 'Perfil', 'url': reverse('usuario:propio_perfil')},
+            {'nombre': 'Edite sus Datos', 'url': '#'},
+        ]
+
+        return context
