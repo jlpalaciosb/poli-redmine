@@ -22,6 +22,11 @@ def cualquier_permiso(user, perms):
     return False
 
 
+# retorna true si el usuario es administrador
+def es_administrador(user):
+    return user.groups.filter(name='Administrador').count() == 1
+
+
 def get_40x_or_None_ANY(request, perms, obj=None, login_url=None,
                     redirect_field_name=None, return_403=False,
                     return_404=False, accept_global_perms=False):
