@@ -34,44 +34,42 @@ class Cliente(models.Model):
 
 class Proyecto(models.Model):
     """
-    La clase Proyecto representa un proyecto creado por algún
-    usuario
+    La clase Proyecto representa un proyecto
     """
-    nombre = models.CharField(verbose_name='Nombre', max_length=100,
-                              help_text='El nombre del proyecto (debe ser único en el sistema)',
-                              unique=True, default='MyAwesomeProject')
-    descripcion = models.TextField(verbose_name='Descripcion del Proyecto', null=True, blank=True)
-    cliente = models.ForeignKey(Cliente, null=True)
-    fechaInicioEstimada = models.DateField(verbose_name='Fecha de Inicio Estimada', null=True, blank=True)
-    fechaFinEstimada = models.DateField(verbose_name='Fecha de Finalizacion Estimada', null=True, blank=True)
-    duracionSprint = models.IntegerField(verbose_name='Duracion del Sprint',help_text='La duracion del sprint debe estar en semanas', default=5)
-    diasHabiles = models.IntegerField(verbose_name='Cantidad de dias Habiles en la Semana', default=5)
-    estado = models.CharField(verbose_name='Estado', choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
-    scrum_master = models.ForeignKey(User, verbose_name='Scrum Master', related_name='scrum_master_proyecto_creador')
+    nombre = models.CharField(max_length=100, unique=True, default='My Awesome Project')
+    descripcion = models.TextField(help_text='describa en qué consistirá el proyecto', null=True, blank=True)
+    cliente = models.ForeignKey(Cliente)
+    fechaInicioEstimada = models.DateField(verbose_name='inicio', help_text='fecha de inicio estimada', null=True, blank=True)
+    fechaFinEstimada = models.DateField(verbose_name='finalización', help_text='fecha de finalización estimada', null=True, blank=True)
+    duracionSprint = models.IntegerField(verbose_name='duración del sprint', help_text='duración estimada para los sprints (en semanas)', default=4)
+    diasHabiles = models.IntegerField(verbose_name='días hábiles', help_text='cantidad de días hábiles en la semana', default=5)
+    estado = models.CharField(choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
+    scrum_master = models.ForeignKey(User, verbose_name='scrum master')
 
     class Meta:
         default_permissions = ()
-        permissions = ( ('add_proyecto', 'Agregar Proyecto'),
-                        ('change_proyecto', 'Modificar Proyecto'),
-                        ('delete_proyecto', 'Eliminar Proyecto'),
-                        ('add_rolproyecto', 'Agregar Rol al Proyecto'),
-                        ('change_rolproyecto', 'Modificar Rol del Proyecto'),
-                        ('delete_rolproyecto', 'Eliminar Rol del Proyecto'),
-                        ('add_miembroproyecto', 'Agregar Miembro al Proyecto'),
-                        ('change_miembroproyecto', 'Modificar Miembro del Proyecto'),
-                        ('delete_miembroproyecto', 'Eliminar Miembro del Proyecto'),
-                        ('add_tipous', 'Agregar Tipo User Story al Proyecto'),
-                        ('change_tipous', 'Modificar Tipo User Story del Proyecto'),
-                        ('delete_tipous', 'Eliminar Tipo US del Proyecto'),
-                        ('add_flujo', 'Agregar Flujo al Proyecto'),
-                        ('change_flujo', 'Modificar Flujo del Proyecto'),
-                        ('delete_flujo', 'Eliminar Flujo del Proyecto'),
-                        ('add_us', 'Agregar User Story al Proyecto'),
-                        ('change_us', 'Modificar User Story del Proyecto'),
-                        ('delete_us', 'Eliminar User Story del Proyecto'),
-                        ('administrar_sprint', 'Administrar Sprints del Proyecto'),
-                        ('desarrollador_proyecto', 'Realizar US')
-                        )
+        permissions = (
+            ('add_proyecto', 'Agregar Proyecto'),
+            ('change_proyecto', 'Modificar Proyecto'),
+            ('delete_proyecto', 'Eliminar Proyecto'),
+            ('add_rolproyecto', 'Agregar Rol al Proyecto'),
+            ('change_rolproyecto', 'Modificar Rol del Proyecto'),
+            ('delete_rolproyecto', 'Eliminar Rol del Proyecto'),
+            ('add_miembroproyecto', 'Agregar Miembro al Proyecto'),
+            ('change_miembroproyecto', 'Modificar Miembro del Proyecto'),
+            ('delete_miembroproyecto', 'Eliminar Miembro del Proyecto'),
+            ('add_tipous', 'Agregar Tipo User Story al Proyecto'),
+            ('change_tipous', 'Modificar Tipo User Story del Proyecto'),
+            ('delete_tipous', 'Eliminar Tipo US del Proyecto'),
+            ('add_flujo', 'Agregar Flujo al Proyecto'),
+            ('change_flujo', 'Modificar Flujo del Proyecto'),
+            ('delete_flujo', 'Eliminar Flujo del Proyecto'),
+            ('add_us', 'Agregar User Story al Proyecto'),
+            ('change_us', 'Modificar User Story del Proyecto'),
+            ('delete_us', 'Eliminar User Story del Proyecto'),
+            ('administrar_sprint', 'Administrar Sprints del Proyecto'),
+            ('desarrollador_proyecto', 'Realizar US')
+        )
 
 
 ESTADOS_SPRINT = (
@@ -79,7 +77,6 @@ ESTADOS_SPRINT = (
     ('EN_EJECUCION', 'En Ejecución'),
     ('CERRADO', 'Cerrado'),
 )
-
 class Sprint(models.Model):
     """
     La clase Sprint representa a un Sprint de un proyecto específico
