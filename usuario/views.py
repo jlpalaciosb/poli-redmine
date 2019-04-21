@@ -5,10 +5,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse,reverse_lazy
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
 from .forms import UsuarioForm
-from ProyectoIS2_9.utils import cualquier_permiso
+from ProyectoIS2_9.utils import cualquier_permiso, es_administrador
 
 
 class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
@@ -33,7 +33,7 @@ class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
 
         # datatables
         context['nombres_columnas'] = [
-            'id', 'Username', 'Nombres y Apellidos', 'Correo Electrónico'
+            'id', 'Username', 'Correo Electrónico'
         ]
         context['order'] = [1, "asc"]
         context['datatable_row_link'] = reverse('usuario:ver', args=(1,))  # pasamos inicialmente el id 1
@@ -50,8 +50,8 @@ class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
 
 class UsuarioListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatableView):
     model = User
-    columns = ['id', 'username', 'nombres y apellidos', 'email']
-    order_columns = ['id', 'username', 'nombres y apellidos', 'email']
+    columns = ['id', 'username', 'email']
+    order_columns = ['id', 'username', 'email']
     max_display_length = 100
     permission_required = ('proyecto.add_usuario', 'proyecto.change_usuario', 'proyecto.delete_usuario')
 
@@ -66,14 +66,6 @@ class UsuarioListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatable
 
     def has_permission(self):
         return cualquier_permiso(self.request.user, self.get_permission_required())
-
-    def render_column(self, row, column):
-        # We want to render user as a custom column
-        if column == 'nombres y apellidos':
-            # escape HTML for security reasons
-            return escape(row.get_full_name())
-        else:
-            return super(UsuarioListJson, self).render_column(row, column)
 
 
 class UsuarioCreateView(SuccessMessageMixin, PermissionRequiredMixin, LoginRequiredMixin, CreateView):
@@ -255,10 +247,12 @@ class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMe
         en un proyecto
         :return 'Yes' si es posible o <motivo> de por qué no se puede eliminar
         """
-        if self.get_object().miembroproyecto_set.all().count() > 0:
-            return 'el usuario es miembro de al menos un proyecto'
-        if self.get_object() == self.request.user:
-            return 'el usuario es usted mismo'
+        usr_elim = self.get_object()
+        if usr_elim.miembroproyecto_set.all().count() > 0:
+            return 'es miembro de al menos un proyecto'
+        if usr_elim == self.request.user:
+            return 'es usted mismo'
+
         return 'Yes'
 
     def delete(self, request, *args, **kwargs):
