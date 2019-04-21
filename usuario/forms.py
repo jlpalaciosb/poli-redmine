@@ -1,13 +1,10 @@
-from crispy_forms.bootstrap import FormActions, AppendedText
+from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, HTML, Layout, Fieldset, Row, Div, Column
-from dal import autocomplete
+from crispy_forms.layout import Submit, HTML, Layout
 from django import forms
-from django.forms import ModelForm, DateInput, Form
-from django.contrib.auth.models import Permission,User,Group
+from django.forms import ModelForm
+from django.contrib.auth.models import User
 from proyecto.models import RolAdministrativo
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
 from django.forms import ModelMultipleChoiceField
 
 class GroupModelMultipleChoiceField(ModelMultipleChoiceField):
@@ -17,10 +14,10 @@ class GroupModelMultipleChoiceField(ModelMultipleChoiceField):
 class UsuarioForm(ModelForm):
     aux = True
     groups = GroupModelMultipleChoiceField(
-                                                queryset=RolAdministrativo.objects.all(),
-                                                widget=forms.CheckboxSelectMultiple,
-                                                required=False,
-                                                label="Roles Administrativos"
+        queryset=RolAdministrativo.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Roles Administrativos"
     )
     password = forms.CharField(required=aux,widget=forms.PasswordInput)
     class Meta:

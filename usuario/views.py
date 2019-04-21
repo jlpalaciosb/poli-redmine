@@ -2,21 +2,18 @@ from django.http import HttpResponseForbidden
 from django.utils.html import escape
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from .mixin import PermissionRequiredAndNotSuperUserMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse,reverse_lazy
-from django.http import HttpResponseRedirect
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.auth.models import User
 
-from .forms import UsuarioForm,UsuarioEditarForm
+from .forms import UsuarioForm, UsuarioEditarForm
 from ProyectoIS2_9.utils import cualquier_permiso
 
 
 class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
     permission_required = ('proyecto.add_usuario','proyecto.change_usuario','proyecto.delete_usuario')
-    permission_denied_message = 'No tiene permiso para ver los usuarios.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -24,7 +21,6 @@ class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
     def has_permission(self):
         """
         Se sobreescribe para que si tiene al menos uno de los permisos listados en permission_required, tiene permisos
-        :return:
         """
         return cualquier_permiso(self.request.user, self.get_permission_required())
 
@@ -57,14 +53,11 @@ class UsuarioListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatable
     columns = ['id', 'username', 'nombres y apellidos', 'email']
     order_columns = ['id', 'username', 'nombres y apellidos', 'email']
     max_display_length = 100
-    permission_required = (
-        'proyecto.add_usuario', 'proyecto.change_usuario', 'proyecto.delete_usuario')
-    permission_denied_message = 'No tiene permiso para ver los usuarios.'
+    permission_required = ('proyecto.add_usuario', 'proyecto.change_usuario', 'proyecto.delete_usuario')
 
     def get_initial_queryset(self):
         """
-            Se excluyen del listado a todos los que son superusuario o tienen acceso al django admin
-        :return:
+        Se excluyen del listado a todos los que son superusuario o tienen acceso al django admin
         """
         return User.objects.all().exclude(is_superuser=True).exclude(is_staff=True)
 
@@ -83,12 +76,11 @@ class UsuarioListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatable
             return super(UsuarioListJson, self).render_column(row, column)
 
 
-class UsuarioCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
+class UsuarioCreateView(SuccessMessageMixin, PermissionRequiredMixin, LoginRequiredMixin, CreateView):
     model = User
     template_name = "change_form.html"
     form_class = UsuarioForm
     permission_required = 'proyecto.add_usuario'
-    permission_denied_message = 'No tiene permiso para Crear nuevos usuarios.'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -101,9 +93,7 @@ class UsuarioCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
 
     def get_form_kwargs(self):
         kwargs = super(UsuarioCreateView, self).get_form_kwargs()
-        kwargs.update({
-            'success_url': reverse('usuario:lista')
-        })
+        kwargs.update({'success_url': reverse('usuario:lista')})
         return kwargs
 
     def get_context_data(self, **kwargs):
@@ -121,27 +111,28 @@ class UsuarioCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
         return context
 
     def form_valid(self, form):
-        """
-
-        :param form:
-        :return:
-        """
         usuario = form.save(commit=False)
         if not form.instance.pk:
             usuario.set_password(usuario.password)
 
-
         return super().form_valid(form)
 
 
-class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredAndNotSuperUserMixin, SuccessMessageMixin, UpdateView):
+class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = User
     form_class = UsuarioEditarForm
     context_object_name = 'usuario'
     template_name = 'change_form.html'
     pk_url_kwarg = 'user_id'
     permission_required = 'proyecto.change_usuario'
-    permission_denied_message = 'No tiene permiso para Editar Usuarios.'
+    
+    def has_permission(self):
+        usr_edit = self.get_object()
+        # nunca se puede editar superuser o staff
+        if usr_edit.is_staff or usr_edit.is_superuser: return False
+        # un usuario siempre puede editar sus propios datos
+        if usr_edit == self.request.user: return True            
+        return super().has_permission()
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -177,11 +168,6 @@ class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredAndNotSuperUserMix
         return context
 
     def form_valid(self, form):
-        """
-
-        :param form:
-        :return:
-        """
         usuario = form.save(commit=False)
         if not form.instance.pk:
             usuario.set_password(usuario.password)
@@ -193,43 +179,51 @@ class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredAndNotSuperUserMix
         return super().form_valid(form)
 
 
-class UsuarioPerfilView(LoginRequiredMixin, PermissionRequiredAndNotSuperUserMixin, DetailView):
+class UsuarioPerfilView(PermissionRequiredMixin, LoginRequiredMixin, DetailView):
     model = User
     context_object_name = 'usuario'
     template_name = 'usuario/change_perfil.html'
     pk_url_kwarg = 'user_id'
     permission_required = ('proyecto.add_usuario','proyecto.change_usuario','proyecto.delete_usuario')
-    permission_denied_message = 'No tiene permiso para ver Usuarios.'
+
+    def has_permission(self):
+        usr_ver = self.get_object()
+        # nunca se puede ver superuser o staff
+        if usr_ver.is_staff or usr_ver.is_superuser: return False
+        # un usuario siempre puede ver sus propios datos
+        if usr_ver == self.request.user: return True
+        return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
         context = super(UsuarioPerfilView, self).get_context_data(**kwargs)
+
         context['titulo'] = 'Perfil del Usuario'
+
         context['breadcrumb'] = [
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Usuarios', 'url': reverse('usuario:lista')},
-            {'nombre': context['usuario'].get_full_name(), 'url': '#'}
+            {'nombre': context['usuario'].username, 'url': '#'}
         ]
 
         return context
 
-    def has_permission(self):
-        user = self.get_object()
-        if (user.is_staff or user.is_superuser):
-            return False
-        return cualquier_permiso(self.request.user, self.get_permission_required())
 
-
-class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredAndNotSuperUserMixin,SuccessMessageMixin, DeleteView):
+class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, DeleteView):
     model = User
     context_object_name = 'usuario'
     template_name = 'usuario/eliminar_usuario.html'
     pk_url_kwarg = 'user_id'
     permission_required = 'proyecto.delete_usuario'
-    permission_denied_message = 'No tiene permiso para eliminar el usuario.'
     success_url = reverse_lazy('usuario:lista')
+
+    def has_permission(self):
+        usr_delete = self.get_object()
+        # nunca se puede eliminar superuser o staff
+        if usr_delete.is_staff or usr_delete.is_superuser: return False
+        return super().has_permission()
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -239,26 +233,39 @@ class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredAndNotSuperUserM
 
     def get_context_data(self, **kwargs):
         context = super(UsuarioEliminarView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Eliminar Rol'
+
+        context['titulo'] = 'Eliminar Usuario'
+
         context['breadcrumb'] = [
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Usuarios', 'url': reverse('usuario:lista')},
             {'nombre': context['usuario'].username, 'url': reverse('usuario:ver', kwargs=self.kwargs)},
             {'nombre': 'Eliminar', 'url': '#'}
         ]
-        context['eliminable'] = self.eliminable()
+
+        eliminable = self.eliminable()
+        if eliminable == 'Yes':
+            context['eliminable'] = True
+        else:
+            context['eliminable'] = False
+            context['motivo'] = eliminable
+
         return context
 
     def eliminable(self):
         """
-        Si un usuario es miembro de algun proyecto entonces no se puede eliminar.
-        Faltaria poner mas condiciones como si tiene algun US o algo asi
-        :return:
+        Si un usuario es miembro de algun proyecto entonces no se puede eliminar. No hace falta
+        otras condiciones como si tiene algun US o algo así, porque en tal caso sí o sí estaría
+        en un proyecto
+        :return 'Yes' si es posible o <motivo> de por qué no se puede eliminar
         """
-        return not self.get_object().miembroproyecto_set.all()
+        if self.get_object().miembroproyecto_set.all().count() > 0:
+            return 'el usuario es miembro de al menos un proyecto'
+        if self.get_object() == self.request.user:
+            return 'el usuario es usted mismo'
+        return 'Yes'
 
-    def post(self, request, *args, **kwargs):
-        if self.eliminable():
-            return super(UsuarioEliminarView, self).post(request, *args, **kwargs)
-        else:
-            return HttpResponseRedirect(self.success_url)
+    def delete(self, request, *args, **kwargs):
+        if self.eliminable() != 'Yes':
+            return HttpResponseForbidden()
+        return super().delete(request, *args, **kwargs)

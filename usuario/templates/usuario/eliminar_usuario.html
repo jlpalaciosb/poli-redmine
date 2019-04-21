@@ -3,7 +3,7 @@
 {% block content %}
     {% block titulo %}
         <div class="bg-light lter b-b wrapper-md col-md-12">
-            <h1 class="m-n font-thin h3 col-lg-6">{{ titulo }}</h1>
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
         </div>
     {% endblock %}
 
@@ -13,7 +13,7 @@
 
     <div class="wrapper-md">
         <div class="well m-t bg-light lt">
-            {% if eliminable and user.id != usuario.id %}
+            {% if eliminable %}
                 <form action="" method="post">
                     {% csrf_token %}
                     <div class="row">
@@ -36,30 +36,11 @@
                         </div>
                     </div>
                 </form>
-            {% elif  user.id == usuario.id%}
-                <div class="row">
-                    <div class="col-xs-12">
-                        <p>
-                            No se puede eliminar el usuario "{{ usuario.username }}" porque esta logueado actualmente con el mismo
-                        </p>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-xs-12">
-                        <a href="{% url 'usuario:ver' usuario.id %}">
-                            <button type="button" class="btn m-b-xs btn-default btn-addon">
-                                <i class="fa fa-check"></i>
-                                Volver
-                            </button>
-                        </a>
-                    </div>
-                </div>
             {% else %}
                 <div class="row">
                     <div class="col-xs-12">
                         <p>
-                            No se puede eliminar el usuario "{{ usuario.username }}" por que tiene
-                            vinculado al menos un proyecto
+                            No se puede eliminar al usuario {{ usuario.username }} porque {{ motivo }}
                         </p>
                     </div>
                 </div>
