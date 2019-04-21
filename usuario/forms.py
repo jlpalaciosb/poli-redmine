@@ -52,13 +52,13 @@ class UsuarioForm(ModelForm):
         self.helper.field_class = 'col-lg-8'
         self.helper.layout = Layout(*layout)
 
+class EditarUsuarioForm(UsuarioForm):
+    password = forms.CharField(required=False, widget=forms.PasswordInput,
+            help_text='Deje este campo vacío para no cambiar la contraseña');
+
     def clean_groups(self):
         if Group.objects.filter(name='Administrador').count() == 1 and \
            self.cleaned_data['groups'].filter(name='Administrador').count() == 0 and \
            es_administrador(self.save(commit=False)):
             raise forms.ValidationError('No se le puede quitar el rol de Administrador porque es el único usuario con dicho rol')
         return self.cleaned_data['groups']
-
-class EditarUsuarioForm(UsuarioForm):
-    password = forms.CharField(required=False, widget=forms.PasswordInput,
-            help_text='Deje este campo vacío para no cambiar la contraseña');

@@ -7,7 +7,7 @@ from django.urls import reverse,reverse_lazy
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.auth.models import User, Group
 
-from .forms import UsuarioForm
+from .forms import UsuarioForm, EditarUsuarioForm
 from ProyectoIS2_9.utils import cualquier_permiso, es_administrador
 
 
@@ -110,9 +110,9 @@ class UsuarioCreateView(SuccessMessageMixin, PermissionRequiredMixin, LoginRequi
         return super().form_valid(form)
 
 
-class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
+class UsuarioUpdateView(SuccessMessageMixin, PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
     model = User
-    form_class = UsuarioForm
+    form_class = EditarUsuarioForm
     context_object_name = 'usuario'
     template_name = 'change_form.html'
     pk_url_kwarg = 'user_id'
@@ -120,7 +120,6 @@ class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
     
     def has_permission(self):
         usr_edit = self.get_object()
-        # nunca se puede editar superuser o staff
         if usr_edit.is_staff or usr_edit.is_superuser: return False
         return super().has_permission()
 
@@ -135,7 +134,6 @@ class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
 
     def get_form_kwargs(self):
         kwargs = super(UsuarioUpdateView, self).get_form_kwargs()
-
         kwargs.update({
             'success_url': self.get_success_url()
         })
@@ -151,7 +149,7 @@ class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
         context['breadcrumb'] = [
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Usuarios', 'url': reverse('usuario:lista')},
-            {'nombre': context['usuario'].get_full_name, 'url': reverse('usuario:ver',kwargs=self.kwargs)},
+            {'nombre': context['usuario'].username, 'url': reverse('usuario:ver',kwargs=self.kwargs)},
             {'nombre': 'Editar', 'url': '#'},
         ]
 
@@ -178,7 +176,6 @@ class UsuarioPerfilView(PermissionRequiredMixin, LoginRequiredMixin, DetailView)
 
     def has_permission(self):
         usr_ver = self.get_object()
-        # nunca se puede ver superuser o staff
         if usr_ver.is_staff or usr_ver.is_superuser: return False
         return cualquier_permiso(self.request.user, self.get_permission_required())
 
@@ -209,7 +206,6 @@ class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMe
 
     def has_permission(self):
         usr_delete = self.get_object()
-        # nunca se puede eliminar superuser o staff
         if usr_delete.is_staff or usr_delete.is_superuser: return False
         return super().has_permission()
 
@@ -252,6 +248,8 @@ class UsuarioEliminarView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMe
             return 'es miembro de al menos un proyecto'
         if usr_elim == self.request.user:
             return 'es usted mismo'
+        if es_administrador(usr_elim) and Group.objects.filter(name='Administrador').count() == 1:
+            return 'es el único que tiene el rol de Administrador'
 
         return 'Yes'
 
