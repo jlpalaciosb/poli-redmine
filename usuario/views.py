@@ -7,7 +7,7 @@ from django.urls import reverse,reverse_lazy
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.auth.models import User
 
-from .forms import UsuarioForm, UsuarioEditarForm
+from .forms import UsuarioForm
 from ProyectoIS2_9.utils import cualquier_permiso
 
 
@@ -120,7 +120,7 @@ class UsuarioCreateView(SuccessMessageMixin, PermissionRequiredMixin, LoginRequi
 
 class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = User
-    form_class = UsuarioEditarForm
+    form_class = UsuarioForm
     context_object_name = 'usuario'
     template_name = 'change_form.html'
     pk_url_kwarg = 'user_id'
@@ -130,8 +130,6 @@ class UsuarioUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMess
         usr_edit = self.get_object()
         # nunca se puede editar superuser o staff
         if usr_edit.is_staff or usr_edit.is_superuser: return False
-        # un usuario siempre puede editar sus propios datos
-        if usr_edit == self.request.user: return True            
         return super().has_permission()
 
     def handle_no_permission(self):
@@ -190,8 +188,6 @@ class UsuarioPerfilView(PermissionRequiredMixin, LoginRequiredMixin, DetailView)
         usr_ver = self.get_object()
         # nunca se puede ver superuser o staff
         if usr_ver.is_staff or usr_ver.is_superuser: return False
-        # un usuario siempre puede ver sus propios datos
-        if usr_ver == self.request.user: return True
         return cualquier_permiso(self.request.user, self.get_permission_required())
 
     def handle_no_permission(self):
