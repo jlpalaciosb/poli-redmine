@@ -35,3 +35,11 @@ class ListaDeMiembrosTest(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(403, response.status_code)
 
+class ListaDeMiembrosJSONTest(ListaDeMiembrosTest):
+    url_name = 'proyecto_miembro_list_json'
+
+    def test_retorna_todos_los_miembros(self):
+        self.client.login(username='user_a', password=PWD)
+        response = self.client.get(self.url)
+        self.assertContains(response, 'user_a')
+        self.assertContains(response, 'user_b')
