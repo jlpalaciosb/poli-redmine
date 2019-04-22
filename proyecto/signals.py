@@ -50,18 +50,18 @@ def miembro_usuario(sender, instance, action, reverse, model, pk_set, using, **k
     :param kwargs:
     :return:
     """
-    print("SI")
+    #print("SI")
     miembro = instance
     if action == 'post_add':
         for rol in pk_set:
-            print("si")
+            #print("si")
             miembro.user.groups.add(rol)
 
         miembro.user.save()
 
     if action == 'post_remove':
         for rol in pk_set:
-            print("si")
+            #print("si")
             miembro.user.groups.remove(rol)
 
         miembro.user.save()
@@ -83,7 +83,7 @@ def asignar_permisos_por_objeto(sender, instance, action, reverse, model, pk_set
     grupo = instance
     try:
         rol=grupo.rolproyecto
-        print("Rol De Proyecto")
+        #print("Rol De Proyecto")
 
         proyecto=rol.proyecto
         if action == 'post_add':

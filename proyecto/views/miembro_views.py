@@ -66,9 +66,6 @@ class MiembroProyectoListView(PermisosEsMiembroMixin, LoginRequiredMixin, Templa
     """
     template_name = 'change_list.html'
 
-    def handle_no_permission(self):
-        return HttpResponseForbidden()
-
     def get_context_data(self, **kwargs):
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
 
@@ -119,7 +116,7 @@ class MiembroProyectoListJson(PermisosEsMiembroMixin, LoginRequiredMixin, BaseDa
         return p.miembroproyecto_set.all()
 
     def filter_queryset(self, qs):
-        search = self.request.GET.get('search[value]', None)
+        search = self.request.GET.get('search[value]', '')
         qs_params = Q(user__username__icontains=search) | Q(user__first_name__icontains=search) | Q(user__last_name__icontains=search)
         return qs.filter(qs_params)
 
@@ -135,9 +132,6 @@ class MiembroProyectoPerfilView(PermisosEsMiembroMixin, LoginRequiredMixin, Deta
     context_object_name = 'miembro'
     template_name = 'proyecto/miembro/miembro_perfil.html'
     pk_url_kwarg = 'miembro_id'
-
-    def handle_no_permission(self):
-        return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
