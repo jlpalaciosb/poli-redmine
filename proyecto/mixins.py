@@ -1,5 +1,5 @@
 from django.core.exceptions import PermissionDenied
-from django.http import Http404
+from django.http import Http404, HttpResponseForbidden
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from guardian.mixins import PermissionRequiredMixin as GuardianPermissionRequiredMixin
 
@@ -43,6 +43,9 @@ class PermisosEsMiembroMixin(PermissionRequiredMixin):
             return True
         except MiembroProyecto.DoesNotExist:
             return False
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
 
 
 class GuardianAnyPermissionRequiredMixin(GuardianPermissionRequiredMixin):
