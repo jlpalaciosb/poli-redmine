@@ -8,7 +8,6 @@ EMAIL = 'email@email.com'
 PWD = '12345'
 TELEF = '0986738162'
 
-
 class MiembrosBaseTest(TestCase):
     """
     Test base para las vistas de miembros de proyecto
@@ -45,7 +44,7 @@ class MiembrosBaseTest(TestCase):
         self.assertEqual(403, response.status_code)
 
 
-class ListaDeMiembrosTest(MiembrosBaseTest):
+class MiembroProyectoListViewTest(MiembrosBaseTest):
     """
     Test para la vista MiembroProyectoListView
     """
@@ -55,9 +54,9 @@ class ListaDeMiembrosTest(MiembrosBaseTest):
         self.url = reverse('proyecto_miembro_list', args=(pid,))
 
 
-class ListaDeMiembrosJSONTest(MiembrosBaseTest):
+class MiembroProyectoListJsonViewTest(MiembrosBaseTest):
     """
-    Test para la vista MiembroProyectoListJson
+    Test para la vista MiembroProyectoListJsonView
     """
     def setUp(self):
         super().setUp()
@@ -69,3 +68,20 @@ class ListaDeMiembrosJSONTest(MiembrosBaseTest):
         response = self.client.get(self.url)
         self.assertContains(response, 'user_a')
         self.assertContains(response, 'user_b')
+
+
+class MiembroProyectoPerfilViewTest(MiembrosBaseTest):
+    """
+    Test para la vista MiembroProyectoPerfilView
+    """
+    def setUp(self):
+        super().setUp()
+        pid = Proyecto.objects.get(nombre='proyecto_1').id
+        # el perfil va a ser del miembro que es Scrum Master
+        mid = MiembroProyecto.objects.get(user__username='user_a', proyecto__nombre='proyecto_1').id
+        self.url = reverse('proyecto_miembro_perfil', args=(pid, mid))
+
+    def test_muestra_que_es_scrum_master(self):
+        self.client.login(username='user_b', password=PWD)
+        response = self.client.get(self.url)
+        self.assertContains(response, 'Scrum Master')

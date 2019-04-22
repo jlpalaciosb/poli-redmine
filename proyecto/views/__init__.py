@@ -5,5 +5,5 @@ from .rol_views import \
     RolListView, RolListJson, RolProyectoCreateView, RolProyectoUpdateView, RolPerfilView, RolEliminarView
 
 from .miembro_views import \
-    MiembroProyectoCreateView, MiembroProyectoListView, MiembroProyectoListJson, \
+    MiembroProyectoCreateView, MiembroProyectoListView, MiembroProyectoListJsonView, \
     MiembroProyectoPerfilView, MiembroProyectoUpdateView, MiembroProyectoDeleteView
