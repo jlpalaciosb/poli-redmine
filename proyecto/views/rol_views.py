@@ -6,7 +6,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.http import HttpResponseRedirect
-
+from django.http import Http404
 from proyecto.forms import RolProyectoForm
 from proyecto.models import Proyecto,RolProyecto
 from guardian.shortcuts import get_perms
@@ -142,9 +142,10 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
         try:
             rol = RolProyecto.objects.get(pk=self.kwargs['rol_id'])
             if rol.is_default:
-               return self.handle_no_permission()
-        finally:
-            super(RolProyectoUpdateView, self).check_permissions(request)
+                return self.handle_no_permission()
+            return super(RolProyectoUpdateView, self).check_permissions(request)
+        except RolProyecto.DoesNotExist:
+            raise Http404('no existe rol de proyecto con el id en la url')
 
     def get_success_message(self, cleaned_data):
         return "Rol de Proyecto '{}' editado exitosamente.".format(cleaned_data['nombre'])
@@ -249,8 +250,11 @@ class RolEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessa
             rol = RolProyecto.objects.get(pk=self.kwargs['rol_id'])
             if rol.is_default:
                return self.handle_no_permission()
-        finally:
-            super(RolEliminarView, self).check_permissions(request)
+            return super(RolEliminarView, self).check_permissions(request)
+        except RolProyecto.DoesNotExist:
+            raise Http404('no existe rol de proyecto con el id en la url')
+
+
 
     def get_success_message(self, cleaned_data):
         return "Rol eliminado exitosamente."

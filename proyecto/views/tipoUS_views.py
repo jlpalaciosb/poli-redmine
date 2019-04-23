@@ -1,6 +1,6 @@
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import CreateView, UpdateView, TemplateView
+from django.views.generic import CreateView, UpdateView, TemplateView, DetailView
 from proyecto.models import TipoUS, Proyecto
 from proyecto.forms import TipoUsForm, CampoPersonalizadoFormSet
 from django.http import Http404, HttpResponseForbidden
@@ -74,8 +74,23 @@ class TipoUsUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMess
     template_name = 'proyecto/tipous/change_form.html'
     context_object_name = 'tipous'
 
+    def check_permissions(self, request):
+        """
+        Se sobreescribe el metodo para no permitir la modificacion de un tipo de us si algun US ya tiene asociado el tipo de us
+        :param request:
+        :return:
+        """
+        try:
+            tipous = TipoUS.objects.get(pk=self.kwargs['rol_id'])
+            if tipous.userstory_set.all():
+               return self.handle_no_permission()
+            return super(TipoUsUpdateView, self).check_permissions(request)
+        except TipoUS.DoesNotExist:
+            raise Http404('no existe tipo de us con el id en la url')
+
+
     def get_success_url(self):
-        return reverse('proyecto_tipous_list', args=(self.kwargs['proyecto_id'],))
+        return reverse('proyecto_tipous_ver', kwargs=self.kwargs)
 
     def get_success_message(self, cleaned_data):
         return "Tipo de US '{}' editado exitosamente.".format(cleaned_data['nombre'])
@@ -92,6 +107,7 @@ class TipoUsUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMess
                                  {'nombre': 'Proyectos', 'url': reverse('proyectos')},
                                  {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
                                  {'nombre': 'Tipos de US', 'url': reverse('proyecto_tipous_list', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Ver Tipo de US', 'url': reverse('proyecto_tipous_ver', kwargs=self.kwargs)},
                                  {'nombre': 'Editar', 'url': '#'}
                                  ]
         if self.request.POST:
@@ -116,7 +132,7 @@ class TipoUsUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMess
             kwargs = super().get_form_kwargs()
             #La instancia del tipo de US va ser uno cuyo proyecto sea aquel que le corresponda el id del request
             kwargs.update({
-                           'success_url': reverse('proyecto_tipous_list', args=(self.kwargs['proyecto_id'],))
+                           'success_url': reverse('proyecto_tipous_ver', kwargs=self.kwargs)
                            })
             return kwargs
         except Proyecto.DoesNotExist:
@@ -143,7 +159,7 @@ class TipoUsListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
         # datatables
         context['nombres_columnas'] = ['id', 'Nombre']
         context['order'] = [1, "asc"]
-        context['datatable_row_link'] = reverse('proyecto_tipous_editar', args=(self.kwargs['proyecto_id'],99999))  # pasamos inicialmente el id 1
+        context['datatable_row_link'] = reverse('proyecto_tipous_ver', args=(self.kwargs['proyecto_id'],99999))  # pasamos inicialmente el id 1
         context['list_json'] = reverse('proyecto_tipous_list_json', kwargs=self.kwargs)
         context['roles']=True
         #Breadcrumbs
@@ -174,3 +190,36 @@ class TipoUsListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
         """
         proyecto=Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         return proyecto.tipous_set.all()
+
+class TipoUSPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
+    """
+           Vista Basada en Clases para la visualizacion del perfil de un tipo de us
+    """
+    model = TipoUS
+    context_object_name = 'tipous'
+    template_name = 'proyecto/tipous/tipous_perfil.html'
+    pk_url_kwarg = 'tipous_id'
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        context = super(TipoUSPerfilView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        context['titulo'] = 'Ver Tipo de US'
+        context['titulo_form_editar'] = 'Datos del Tipo de US'
+        context['titulo_form_editar_nombre'] = context[TipoUSPerfilView.context_object_name].nombre
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre,
+                                  'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Tipos de US',
+                                  'url': reverse('proyecto_tipous_list', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Ver Tipo de US', 'url': '#'}
+                                 ]
+
+        return context
