@@ -7,35 +7,3 @@
 
     {% endblock %}
 {% endblock %}
-{% block extrajs %}
-    {{ block.super }}
-    <script>
-        form_count = Number($("#id_cantidad_campos_personalizado").val());
-        // get extra form count so we know what index to use for the next item.
-
-        $("#add_campo_button").click(function() {
-            form_count ++;
-
-            /*element = $(
-                '<div id="div_id_nombre_del_campo" class="form-group"> <label for="id_nombre_del_campo" class="control-label col-lg-2">\n' +
-                '                Nombre del campo </label> <div class="controls col-lg-8"> <input type="text" name="nombre_del_campo_'+form_count+'" id="id_nombre_del_campo" class="textinput textInput form-control"> </div> </div>'+
-                '<div id="div_id_tipo_de_dato" class="form-group"> <label for="id_tipo_de_dato" class="control-label col-lg-2 ">\n' +
-                '                Tipo de dato </label> <div class="controls col-lg-8"> <select name="tipo_de_dato_'+form_count+'" id="id_tipo_de_dato" class="select form-control"> <option value="NUMERO">Numero</option> <option value="STRING">String</option>\n' +
-                '\n' +
-                '</select> </div> </div>'+
-                '<hr>'
-            );*/
-            element = $(
-                {% autoescape off %}
-                '{{   campo_personalizado_form }}'.replace(/nombre_campo/g,'nombre_campo_'+form_count).replace(/tipo_dato/g,'tipo_dato_'+form_count).replace(/campo_id/g,'campo_id_'+form_count)
-                {% endautoescape %}
-            )
-            $("#campos_div").append(element);
-            // build element and append it to our forms container
-            $("#id_cantidad_campos_personalizado").val(form_count);
-            // increment form count so our view knows to populate
-            // that many fields for validation
-        })
-
-    </script>
-{% endblock %}
