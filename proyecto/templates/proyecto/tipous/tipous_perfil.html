@@ -40,7 +40,7 @@
                 {% endif %}
 
                 {% if 'delete_tipous' in permisosGuardian and not tipous.userstory_set.all%}
-                    <a href="#">
+                    <a href="{% url 'proyecto_tipous_eliminar' tipous.proyecto.id tipous.id %}">
                       <button class="btn m-b-xs btn-danger btn-addon ">
                         <i class="fa fa-trash-o"></i>
                         Eliminar

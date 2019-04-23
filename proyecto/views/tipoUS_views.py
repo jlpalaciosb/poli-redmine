@@ -1,6 +1,6 @@
-from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
+from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, SuccessMessageOnDeleteMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import CreateView, UpdateView, TemplateView, DetailView
+from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
 from proyecto.models import TipoUS, Proyecto
 from proyecto.forms import TipoUsForm, CampoPersonalizadoFormSet
 from django.http import Http404, HttpResponseForbidden
@@ -9,6 +9,8 @@ from django.db import transaction
 from guardian.shortcuts import  get_perms
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.messages.views import SuccessMessageMixin
+from django.http import HttpResponseRedirect
+
 
 class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, CreateView):
 
@@ -81,7 +83,7 @@ class TipoUsUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMess
         :return:
         """
         try:
-            tipous = TipoUS.objects.get(pk=self.kwargs['rol_id'])
+            tipous = TipoUS.objects.get(pk=self.kwargs['tipous_id'])
             if tipous.userstory_set.all():
                return self.handle_no_permission()
             return super(TipoUsUpdateView, self).check_permissions(request)
@@ -223,3 +225,53 @@ class TipoUSPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
                                  ]
 
         return context
+
+class TipoUsEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageOnDeleteMixin, DeleteView):
+    """
+    Vista que elimina un TIPO DE US en caso que tenga los permisos necesarios y que no este asociado con ningun user story
+    """
+    model = TipoUS
+    context_object_name = 'tipous'
+    template_name = 'proyecto/tipous/tipous_eliminar.html'
+    pk_url_kwarg = 'tipous_id'
+    permission_required = 'proyecto.delete_tipous'
+    permission_denied_message = 'No tiene permiso para eliminar el tipo de us.'
+    success_message = 'Tipo de US eliminado correctamente'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_success_url(self):
+        return reverse('proyecto_tipous_list', args=(self.kwargs['proyecto_id'],))
+
+
+    def get_success_message(self, cleaned_data):
+        return "Tipo de US eliminado exitosamente."
+
+    def get_context_data(self, **kwargs):
+        context = super(TipoUsEliminarView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        context['titulo'] = 'Eliminar Tipo de US'
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Tipos de US', 'url': reverse('proyecto_tipous_list', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': context[self.context_object_name].nombre, 'url': reverse('proyecto_tipous_ver', args=(self.kwargs['proyecto_id'],self.kwargs['tipous_id']))},
+            {'nombre': 'Eliminar', 'url': '#'}
+        ]
+        context['eliminable'] = self.eliminable()
+        return context
+
+    def eliminable(self):
+        """
+        Si un tipo de us esta asociado con al menos un user story entonces no se puede eliminar.
+        :return:
+        """
+        return not self.get_object().userstory_set.all()
+
+    def post(self, request, *args, **kwargs):
+        if self.eliminable():
+            return super(TipoUsEliminarView, self).post(request, *args, **kwargs)
+        else:
+            return HttpResponseRedirect(self.success_url)
+
