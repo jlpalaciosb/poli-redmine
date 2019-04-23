@@ -12,7 +12,7 @@ class CampoPersonalizadoForm(forms.ModelForm):
         model = CampoPersonalizado
         exclude = ()
 
-
+#Este es la declaracion del subform. EL form que se va a repetir
 CampoPersonalizadoFormSet = forms.inlineformset_factory(
     TipoUS, CampoPersonalizado, form=CampoPersonalizadoForm,max_num=5,
     fields=['nombre_campo', 'tipo_dato'], extra=1, can_delete=True, labels = {'nombre_campo':'Nombre del Campo', 'tipo_dato':'Tipo de Dato'},

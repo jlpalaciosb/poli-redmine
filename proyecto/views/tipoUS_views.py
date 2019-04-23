@@ -13,7 +13,9 @@ from django.http import HttpResponseRedirect
 
 
 class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, CreateView):
-
+    """
+    Vista para creacion de tipo de us. Se permiten hasta 5 campos personalizados
+    """
     permission_required = ['proyecto.add_tipous']
     model = TipoUS
     form_class = TipoUsForm
@@ -68,7 +70,9 @@ class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMess
         return context
 
 class TipoUsUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, UpdateView):
-
+    """
+    Vistas para modificar un Tipo de US. No se permite acceder a esta vista si al menos un user story tiene asociado este tipo de us.
+    """
     permission_required = 'proyecto.change_tipous'
     model = TipoUS
     pk_url_kwarg = 'tipous_id'
