@@ -7,3 +7,5 @@ from .rol_views import \
 from .miembro_views import \
     MiembroProyectoCreateView, MiembroProyectoListView, MiembroProyectoListJson, \
     MiembroProyectoPerfilView, MiembroProyectoUpdateView, MiembroProyectoDeleteView
+
+from .tipoUS_views import TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView
