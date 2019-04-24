@@ -164,7 +164,6 @@ class MiembroProyectoUpdateView(SuccessMessageMixin, PermisosPorProyectoMixin, L
     """
     model = MiembroProyecto
     form_class = EditarMiembroForm
-    context_object_name = 'miembro'
     template_name = 'change_form.html'
     pk_url_kwarg = 'miembro_id'
     permission_required = 'proyecto.change_miembroproyecto'

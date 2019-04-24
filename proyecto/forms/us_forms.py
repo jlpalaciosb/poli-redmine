@@ -17,6 +17,7 @@ class USForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.proyecto = Proyecto.objects.get(pk=kwargs.pop('proyecto_id'))
         self.success_url = kwargs.pop('success_url')
+        self.creando = kwargs.pop('creando')
 
         if kwargs['instance'] is None:
             kwargs['instance'] = UserStory(proyecto=self.proyecto)
@@ -45,6 +46,10 @@ class USForm(ModelForm):
 
     def clean_nombre(self):
         c = UserStory.objects.filter(nombre=self.cleaned_data['nombre'], proyecto=self.proyecto).count()
-        if c == 1:
-            raise forms.ValidationError('Ya existe un US con este nombre para este proyecto')
+        if self.creando:
+            if c == 1:
+                raise forms.ValidationError('Ya existe un US con este nombre para este proyecto')
+        else:
+            if self.instance.nombre != self.cleaned_data['nombre'] and c == 1:
+                raise forms.ValidationError('Existe otro US con este nombre para este proyecto')
         return self.cleaned_data['nombre']

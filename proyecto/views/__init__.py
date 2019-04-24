@@ -10,4 +10,4 @@ from .miembro_views import \
 
 from .tipoUS_views import TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView
 
-from .us_views import USCreateView
+from .us_views import USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView
