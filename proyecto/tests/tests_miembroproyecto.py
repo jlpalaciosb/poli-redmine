@@ -176,7 +176,7 @@ class MiembroProyectoUpdateViewTest(MiembroTestsBase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 403)
 
-    def test_editar_miembro(self):
+    def test_agregar_rol_al_miembro(self):
         self.client.login(username='user_b', password=PWD)
 
         # le vamos a agregar el rol developer team al miembro a editar
@@ -191,3 +191,44 @@ class MiembroProyectoUpdateViewTest(MiembroTestsBase):
 
         # verificamos que ahora ya tiene el rol 'Developer Team'
         self.assertEqual(self.med.roles.filter(nombre='Developer Team').count(), 1)
+
+
+class MiembroProyectoDeleteViewTest(MiembroTestsBase):
+    mel = None # miembro a eliminar
+
+    def setUp(self):
+        super().setUp()
+        p1 = Proyecto.objects.get(nombre='proyecto_1')
+        self.mel = MiembroProyecto.objects.get(user__username='user_c', proyecto__nombre='proyecto_1')
+        self.url = reverse('proyecto_miembro_excluir', args=(p1.id, self.mel.id))
+        ub = User.objects.get(username='user_b')
+        assign_perm('proyecto.delete_miembroproyecto', ub, p1)
+
+    def test_con_permiso_puede_ver(self):
+        self.client.login(username='user_a', password=PWD)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.login(username='user_b', password=PWD)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_sin_permiso_no_puede_ver(self):
+        self.client.login(username='user_c', password=PWD)  # es miembro pero no tiene permiso
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+        self.client.login(username='user_d', password=PWD)  # ni siquiera es miembro
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_excluir_miembro(self):
+        self.client.login(username='user_a', password=PWD)
+
+        c = MiembroProyecto.objects.filter(user__username='user_c', proyecto__nombre='proyecto_1').count()
+        self.assertEqual(c, 1) # verificamos que es miembro de proyecto
+
+        self.client.post(self.url)
+
+        c = MiembroProyecto.objects.filter(user__username='user_c', proyecto__nombre='proyecto_1').count()
+        self.assertEqual(c, 0) # verificamos que ya no es miembro de proyecto
