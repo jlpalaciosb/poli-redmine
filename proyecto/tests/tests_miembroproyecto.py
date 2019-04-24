@@ -128,7 +128,7 @@ class MiembroProyectoCreateViewTest(MiembroTestsBase):
         self.assertEqual(response.status_code, 403)
 
     def test_agregar_miembro(self):
-        self.client.login(username='user_a', password=PWD)
+        self.client.login(username='user_b', password=PWD)
         ue = User.objects.get(username='user_e')
         dtrol = RolProyecto.objects.get(nombre='Developer Team', proyecto__nombre='proyecto_1')
 
@@ -142,3 +142,52 @@ class MiembroProyectoCreateViewTest(MiembroTestsBase):
 
         c = MiembroProyecto.objects.filter(user=ue, proyecto__nombre='proyecto_1').count()
         self.assertEqual(c, 1)
+
+
+class MiembroProyectoUpdateViewTest(MiembroTestsBase):
+    """
+    Test para la vista MiembroProyectoUpdateView
+    """
+    med = None
+
+    def setUp(self):
+        super().setUp()
+        p1 = Proyecto.objects.get(nombre='proyecto_1')
+        self.med = MiembroProyecto.objects.get(user__username='user_a', proyecto__id=p1.id)  # miembro a editar
+        self.url = reverse('proyecto_miembro_editar', args=(p1.id, self.med.id))
+        ub = User.objects.get(username='user_b')
+        assign_perm('proyecto.change_miembroproyecto', ub, p1)
+
+    def test_con_permiso_puede_ver(self):
+        self.client.login(username='user_a', password=PWD)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        self.client.login(username='user_b', password=PWD)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_sin_permiso_no_puede_ver(self):
+        self.client.login(username='user_c', password=PWD) # es miembro pero no tiene permiso
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+        self.client.login(username='user_d', password=PWD) # ni siquiera es miembro
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_editar_miembro(self):
+        self.client.login(username='user_b', password=PWD)
+
+        # le vamos a agregar el rol developer team al miembro a editar
+        dtrol = RolProyecto.objects.get(nombre='Developer Team', proyecto__nombre='proyecto_1')
+
+        # verificamos que al comienzo no tiene el rol 'Developer Team'
+        self.assertEqual(self.med.roles.filter(nombre='Developer Team').count(), 0)
+
+        self.client.post(self.url, data={
+            'roles': (dtrol.id,),
+        })
+
+        # verificamos que ahora ya tiene el rol 'Developer Team'
+        self.assertEqual(self.med.roles.filter(nombre='Developer Team').count(), 1)
