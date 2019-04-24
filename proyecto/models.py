@@ -170,10 +170,9 @@ class UserStory(models.Model):
     La clase UserStory representa a un User Story de un proyecto específico
     """
     nombre = models.CharField(max_length=50)
-    descripcion = models.CharField(verbose_name='descripción', max_length=500)
-    criterioAceptacion = models.CharField(
-        verbose_name='criterio de aceptación',
-        max_length=500,
+    descripcion = models.TextField(verbose_name='descripción')
+    criteriosAceptacion = models.TextField(
+        verbose_name='criterios de aceptación',
         help_text='condiciones para que el US sea aceptado como terminado'
     )
 
