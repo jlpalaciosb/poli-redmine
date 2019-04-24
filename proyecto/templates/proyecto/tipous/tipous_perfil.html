@@ -1,0 +1,53 @@
+{% extends 'layout/layout.html' %}
+{% load static %}
+{% load guardian_tags %}
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            <div class="row">
+
+                <div class="col-xs-6">
+                    <h4><strong>Tipo de US: </strong>{{ tipous.nombre }}</h4>
+                    <p>
+                        <strong>Campos Personalizados: </strong>  <br>
+                        <ul>
+                            {% for campo in tipous.campopersonalizado_set.all %}
+
+                                <li><strong>Nombre:</strong> {{ campo.nombre_campo }}. <strong>Tipo de Dato:</strong> {{ campo.tipo_dato }}</li>
+                            {% endfor %}
+                        </ul>
+                        <br>
+                    </p>
+                </div>
+                {% get_obj_perms request.user for tipous.proyecto as "permisosGuardian" %}
+                <!-- Se comprueba que tenga el permiso para el proyecto en particular y no tenga ningun us asociado-->
+                {% if 'change_tipous' in permisosGuardian and not tipous.userstory_set.all%}
+                    <a href="{% url 'proyecto_tipous_editar' tipous.proyecto.id tipous.id %}">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                        <i class="fa fa-pencil"></i>
+                        Editar
+                      </button>
+                    </a>
+                {% endif %}
+
+                {% if 'delete_tipous' in permisosGuardian and not tipous.userstory_set.all%}
+                    <a href="{% url 'proyecto_tipous_eliminar' tipous.proyecto.id tipous.id %}">
+                      <button class="btn m-b-xs btn-danger btn-addon ">
+                        <i class="fa fa-trash-o"></i>
+                        Eliminar
+                      </button>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

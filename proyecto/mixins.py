@@ -5,7 +5,8 @@ from guardian.mixins import PermissionRequiredMixin as GuardianPermissionRequire
 
 from ProyectoIS2_9.utils import get_40x_or_None_ANY
 from proyecto.models import Proyecto, MiembroProyecto
-
+from django.contrib import messages
+from django.views.generic import DeleteView
 
 class PermisosPorProyectoMixin(GuardianPermissionRequiredMixin):
     """
@@ -73,3 +74,9 @@ class GuardianAnyPermissionRequiredMixin(GuardianPermissionRequiredMixin):
         if forbidden and self.raise_exception:
             raise PermissionDenied()
         return forbidden
+
+class SuccessMessageOnDeleteMixin():
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, self.success_message)
+        return super(DeleteView, self).delete(request, *args, **kwargs)
