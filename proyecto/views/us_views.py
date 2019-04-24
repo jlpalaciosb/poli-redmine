@@ -1,4 +1,3 @@
-from django.db.models.query_utils import Q
 from django.http import HttpResponseForbidden, Http404
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView, DeleteView
 from django.views.decorators.http import require_http_methods
@@ -9,181 +8,173 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
-from proyecto.forms import CrearMiembroForm, EditarMiembroForm
+from proyecto.forms import USForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
-from proyecto.models import MiembroProyecto, Proyecto
+from proyecto.models import MiembroProyecto, Proyecto, UserStory
 
 
-class MiembroProyectoCreateView(SuccessMessageMixin, PermisosPorProyectoMixin, LoginRequiredMixin, CreateView):
+class USCreateView(SuccessMessageMixin, PermisosPorProyectoMixin, LoginRequiredMixin, CreateView):
     """
-    Vista para incorporar un miembro a un proyecto
+    Vista para crear un US para el proyecto
     """
-    model = MiembroProyecto
+    model = UserStory
     template_name = "change_form.html"
-    form_class = CrearMiembroForm
-    permission_required = 'proyecto.add_miembroproyecto'
+    form_class = USForm
+    permission_required = 'proyecto.add_us'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
-        return "Miembro de Proyecto '{}' incorporado exitosamente.".format(cleaned_data['user'])
+        return "US creado exitosamente"
 
     def get_success_url(self):
-        return reverse('proyecto_miembro_list',kwargs=self.kwargs)
+        return reverse('proyecto_us_list', kwargs=self.kwargs)
 
     def get_form_kwargs(self):
-        kwargs = super(MiembroProyectoCreateView, self).get_form_kwargs()
+        kwargs = super().get_form_kwargs()
         kwargs.update({
-            'success_url': reverse('proyecto_miembro_list',kwargs=self.kwargs),
-            'proyecto_id': self.kwargs['proyecto_id']
+            'success_url': reverse('proyecto_us_list', kwargs=self.kwargs),
+            'proyecto_id': self.kwargs['proyecto_id'],
+            'creando': True,
         })
         return kwargs
 
     def get_context_data(self, **kwargs):
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
 
-        context = super(MiembroProyectoCreateView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Miembro de Proyectos'
-        context['titulo_form_crear'] = 'Insertar Datos del Miembro del Proyecto'
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = 'Crear US'
+        context['titulo_form_crear'] = 'Insertar Datos del US'
 
         # Breadcrumbs
         context['breadcrumb'] = [
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
-            {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list', kwargs=self.kwargs)},
-            {'nombre': 'Crear Miembro', 'url': '#'}
+            {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', kwargs=self.kwargs)},
+            {'nombre': 'Crear US', 'url': '#'}
         ]
 
         return context
 
 
-class MiembroProyectoListView(PermisosEsMiembroMixin, LoginRequiredMixin, TemplateView):
+class USListView(PermisosEsMiembroMixin, LoginRequiredMixin, TemplateView):
     """
-    Vista para listar los miembros de un proyecto. Cualquier usuario que sea miembro del proyecto
-    tiene acceso a esta vista
+    Vista para ver el product backlog del proyecto
     """
     template_name = 'change_list.html'
 
     def get_context_data(self, **kwargs):
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
 
-        context = super(MiembroProyectoListView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Lista de Miembros del Proyecto '+ p.nombre
-        context['crear_button'] = self.request.user.has_perm('proyecto.add_miembroproyecto', p)
-        context['crear_url'] = reverse('proyecto_miembro_crear', kwargs=self.kwargs)
-        context['crear_button_text'] = 'Crear Miembro'
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = 'Product Backlog'
+        context['crear_button'] = self.request.user.has_perm('proyecto.add_us', p)
+        context['crear_url'] = reverse('proyecto_us_crear', kwargs=self.kwargs)
+        context['crear_button_text'] = 'Crear US'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'Nombre_de_Usuario', 'Roles']
-        context['order'] = [1, "asc"]
-        editar_kwargs = self.kwargs.copy(); editar_kwargs['miembro_id'] = 6436276 # pasamos inicialmente un id aleatorio
-        context['datatable_row_link'] = reverse('proyecto_miembro_perfil', kwargs=editar_kwargs)
-        context['list_json'] = reverse('proyecto_miembro_list_json', kwargs=kwargs)
-        context['miembro_proyecto'] = True
+        context['nombres_columnas'] = ['id', 'Nombre', 'Prioridad']
+        context['order'] = [2, "desc"]
+        ver_kwargs = self.kwargs.copy()
+        ver_kwargs['us_id'] = 7836271  # pasamos inicialmente un id aleatorio
+        context['datatable_row_link'] = reverse('proyecto_us_ver', kwargs=ver_kwargs)
+        context['list_json'] = reverse('proyecto_us_list_json', kwargs=kwargs)
+        context['user_story'] = True
 
-        #Breadcrumbs
+        # Breadcrumbs
         context['breadcrumb'] = [
-            {'nombre':'Inicio', 'url':'/'},
-            {'nombre':'Proyectos', 'url': reverse('proyectos')},
+            {'nombre': 'Inicio', 'url': '/'},
+            {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', kwargs=kwargs)},
-            {'nombre': 'Miembros', 'url': '#'},
+            {'nombre': 'User Stories', 'url': '#'},
         ]
 
         return context
 
 
-class MiembroProyectoListJsonView(PermisosEsMiembroMixin, LoginRequiredMixin, BaseDatatableView):
+class USListJsonView(PermisosEsMiembroMixin, LoginRequiredMixin, BaseDatatableView):
     """
-    Vista que retorna en json la lista de miembros para el datatable
+    Vista que retorna en json la lista de user stories del product backlog
     """
     model = MiembroProyecto
-    columns = ['id', 'user', 'roles']
-    order_columns = ['', 'user', '']
+    columns = ['id', 'nombre', 'prioridad']
+    order_columns = ['', 'nombre', 'prioridad']
     max_display_length = 100
-
-    def render_column(self, miembro, column):
-        if column == 'roles':
-            return ', '.join(rol.nombre for rol in miembro.roles.all())
-        elif column == 'user':
-            return miembro.user.username
-        else:
-            return super().render_column(miembro, column)
 
     def get_initial_queryset(self):
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        return p.miembroproyecto_set.all()
+        return p.userstory_set.all()
 
-    def filter_queryset(self, qs):
-        search = self.request.GET.get('search[value]', '')
-        qs_params = Q(user__username__icontains=search) | Q(user__first_name__icontains=search) | Q(user__last_name__icontains=search)
-        return qs.filter(qs_params)
+    #def filter_queryset(self, qs):
+        #search = self.request.GET.get('search[value]', '')
+        #qs_params = Q(user__username__icontains=search) | Q(user__first_name__icontains=search) | Q(user__last_name__icontains=search)
+        #return qs.filter(qs)
 
-    def ordering(self, qs): return qs.order_by('user__username')
+    #def ordering(self, qs):
+        #return qs.order_by('user__username')
 
 
-class MiembroProyectoPerfilView(PermisosEsMiembroMixin, LoginRequiredMixin, DetailView):
+class USPerfilView(PermisosEsMiembroMixin, LoginRequiredMixin, DetailView):
     """
     Vista para el perfil de un miembro de un proyecto. Cualquier usuario que sea miembro del proyecto
     tiene acceso a esta vista
     """
-    model = MiembroProyecto
-    context_object_name = 'miembro'
-    template_name = 'proyecto/miembro/miembro_perfil.html'
-    pk_url_kwarg = 'miembro_id'
+    model = UserStory
+    context_object_name = 'us'
+    template_name = 'proyecto/us/us_perfil.html'
+    pk_url_kwarg = 'us_id'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        m = context['object']
+        us = context['object']
 
-        context['titulo'] = 'Perfil del Miembro'
+        context['titulo'] = 'Ver US'
 
         # Breadcrumbs
         context['breadcrumb'] = [
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', args=(p.id,))},
-            {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list', args=(p.id,))},
-            {'nombre': m.user.username, 'url': '#'},
+            {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', args=(p.id,))},
+            {'nombre': us.nombre, 'url': '#'},
         ]
 
-        context['puedeEditar'] = self.request.user.has_perm('proyecto.change_miembroproyecto', p)
-        context['puedeEliminar'] = self.request.user.has_perm('proyecto.delete_miembroproyecto', p)
-        # True si el usuario logueado es el miembro que se esta viendo y ademas es scrum master en el proyecto
-        context['pasarSM'] = self.request.user == m.user and m.roles.filter(nombre='Scrum Master').count() == 1
+        context['puedeEditar'] = self.request.user.has_perm('proyecto.change_us', p)
 
         return context
 
 
-class MiembroProyectoUpdateView(SuccessMessageMixin, PermisosPorProyectoMixin, LoginRequiredMixin, UpdateView):
+class USUpdateView(SuccessMessageMixin, PermisosPorProyectoMixin, LoginRequiredMixin, UpdateView):
     """
     Vista que permite modificar los roles de un miembro de proyecto
     """
-    model = MiembroProyecto
-    form_class = EditarMiembroForm
+    model = UserStory
+    form_class = USForm
     template_name = 'change_form.html'
-    pk_url_kwarg = 'miembro_id'
-    permission_required = 'proyecto.change_miembroproyecto'
+    pk_url_kwarg = 'us_id'
+    permission_required = 'proyecto.change_us'
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
-        return "Roles del miembro editado exitosamente"
+        return "US editado exitosamente"
 
     def get_success_url(self):
         pid = self.kwargs['proyecto_id']
-        mid = self.kwargs['miembro_id']
-        return reverse('proyecto_miembro_perfil', args=(pid, mid))
+        mid = self.kwargs['us_id']
+        return reverse('proyecto_us_ver', args=(pid, mid))
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'success_url': self.get_success_url(),
             'proyecto_id': self.kwargs['proyecto_id'],
+            'creando': False,
         })
         return kwargs
 
@@ -191,19 +182,19 @@ class MiembroProyectoUpdateView(SuccessMessageMixin, PermisosPorProyectoMixin, L
         context = super().get_context_data(**kwargs)
 
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        m = context['object']
+        us = context['object']
 
-        context['titulo'] = 'Editar Roles del Miembro'
-        context['titulo_form_editar'] = 'Miembro de Proyecto'
-        context['titulo_form_editar_nombre'] = m.user.username
+        context['titulo'] = 'Editar Datos del US'
+        context['titulo_form_editar'] = 'US'
+        context['titulo_form_editar_nombre'] = us.nombre
 
         # Breadcrumbs
         context['breadcrumb'] = [
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', args=(p.id,))},
-            {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list', args=(p.id,))},
-            {'nombre': m.user.username, 'url': reverse('proyecto_miembro_perfil', args=(p.id, m.id))},
+            {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', args=(p.id,))},
+            {'nombre': us.nombre, 'url': reverse('proyecto_us_ver', args=(p.id, us.id))},
             {'nombre': 'Editar Roles', 'url': '#'}
         ]
 
@@ -224,8 +215,8 @@ class MiembroProyectoDeleteView(PermisosPorProyectoMixin, DeleteView):
     context_object_name = 'miembro'
     permission_required = 'proyecto.delete_miembroproyecto'
     template_name = 'proyecto/miembro/miembro_confirm_delete.html'
-    proyecto = None # proyecto en cuestion
-    miembro = None # miembro en cuestion
+    proyecto = None  # proyecto en cuestion
+    miembro = None  # miembro en cuestion
 
     def dispatch(self, *args, **kwargs):
         try:
@@ -245,7 +236,8 @@ class MiembroProyectoDeleteView(PermisosPorProyectoMixin, DeleteView):
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': self.proyecto.nombre, 'url': reverse('perfil_proyecto', args=(self.proyecto.id,))},
             {'nombre': 'Miembros', 'url': reverse('proyecto_miembro_list', args=(self.proyecto.id,))},
-            {'nombre': self.miembro.user.username, 'url': reverse('proyecto_miembro_perfil', args=(self.proyecto.id, self.miembro.id))},
+            {'nombre': self.miembro.user.username,
+             'url': reverse('proyecto_miembro_perfil', args=(self.proyecto.id, self.miembro.id))},
             {'nombre': 'Excluir del Proyecto', 'url': '#'}
         ]
 
@@ -255,7 +247,7 @@ class MiembroProyectoDeleteView(PermisosPorProyectoMixin, DeleteView):
         else:
             context['eliminable'] = False
             context['motivo'] = eliminable
-        
+
         return context
 
     def delete(self, request, *args, **kwargs):

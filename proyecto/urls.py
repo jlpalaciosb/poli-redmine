@@ -4,7 +4,8 @@ from proyecto.views import \
     ProyectoListView, ProyectoCreateView, ProyectoUpdateView, ProyectoPerfilView, ProyectoListJson, \
     RolListView, RolListJson, RolProyectoCreateView, RolProyectoUpdateView, RolPerfilView, RolEliminarView, \
     MiembroProyectoCreateView, MiembroProyectoListJsonView, MiembroProyectoListView, MiembroProyectoUpdateView, MiembroProyectoPerfilView, MiembroProyectoDeleteView, \
-    TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView
+    TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView, \
+    USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView
 
 urlpatterns = [
     url(r'^$', ProyectoListView.as_view(), name='proyectos'),
@@ -30,4 +31,9 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/tiposus/list$', TipoUsListJson.as_view(), name='proyecto_tipous_list_json'),
     url(r'^(?P<proyecto_id>\d+)/tipous/(?P<tipous_id>\d+)/ver$', TipoUSPerfilView.as_view(), name='proyecto_tipous_ver'),
     url(r'^(?P<proyecto_id>\d+)/tipous/(?P<tipous_id>\d+)/eliminar$', TipoUsEliminarView.as_view(), name='proyecto_tipous_eliminar'),
+    url(r'^(?P<proyecto_id>\d+)/userstories/crear$', USCreateView.as_view(), name='proyecto_us_crear'),
+    url(r'^(?P<proyecto_id>\d+)/userstories/$', USListView.as_view(), name='proyecto_us_list'),
+    url(r'^(?P<proyecto_id>\d+)/userstories/list$', USListJsonView.as_view(), name='proyecto_us_list_json'),
+    url(r'^(?P<proyecto_id>\d+)/userstories/(?P<us_id>\d+)/ver$', USPerfilView.as_view(), name='proyecto_us_ver'),
+    url(r'^(?P<proyecto_id>\d+)/userstories/(?P<us_id>\d+)/editar$', USUpdateView.as_view(), name='proyecto_us_editar'),
 ]

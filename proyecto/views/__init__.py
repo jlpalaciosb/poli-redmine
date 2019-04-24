@@ -9,3 +9,5 @@ from .miembro_views import \
     MiembroProyectoPerfilView, MiembroProyectoUpdateView, MiembroProyectoDeleteView
 
 from .tipoUS_views import TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView
+
+from .us_views import USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView
