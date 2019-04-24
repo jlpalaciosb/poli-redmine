@@ -155,18 +155,16 @@ class CampoPersonalizado(models.Model):
 ESTADOS_US_FASE = (('TODO', 'To Do'), ('DOING', 'Doing'), ('DONE', 'Done'))
 ESTADOS_US_PROYECTO = (
     ('PENDIENTE', 'Pendiente'),
-    ('INICIADO', 'Iniciado'),
+    ('EN_SPRINT', 'En Sprint'),
     ('CANCELADO', 'Cancelado'),
     ('TERMINADO', 'Terminado'),
 )
 PRIORIDADES_US = (
-    (0, 'No Importante'),
-    (1, 'Muy Baja'),
-    (2, 'Baja'),
-    (3, 'Media'),
-    (4, 'Alta'),
-    (5, 'Muy Alta'),
-    (6, 'Super Importante'),
+    (1, 'Muy Bajo'),
+    (2, 'Bajo'),
+    (3, 'Normal'),
+    (4, 'Alto'),
+    (5, 'Muy Alto'),
 )
 class UserStory(models.Model):
     """
@@ -195,8 +193,9 @@ class UserStory(models.Model):
     )
 
     prioridad = models.IntegerField(choices=PRIORIDADES_US, default=3)
-    valorNegocio = models.IntegerField(verbose_name='valor de negocio', default=1)
-    valorTecnico = models.IntegerField(verbose_name='valor técnico', default=1)
+    valorNegocio = models.IntegerField(verbose_name='valor de negocio', choices=PRIORIDADES_US, default=3)
+    valorTecnico = models.IntegerField(verbose_name='valor técnico', choices=PRIORIDADES_US, default=3)
+    priorizacion = models.FloatField(default=1)
 
     tiempoPlanificado = models.IntegerField(
         verbose_name='tiempo planificado (en horas)',
