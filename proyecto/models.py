@@ -130,6 +130,9 @@ class TipoUS(models.Model):
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
     proyecto = models.ForeignKey(Proyecto)
 
+    def __str__(self):
+        return self.nombre
+
     class Meta:
         default_permissions =  ()
         unique_together = ('nombre', 'proyecto')
@@ -203,6 +206,7 @@ class UserStory(models.Model):
 
     class Meta:
         default_permissions =  ()
+        unique_together = ('proyecto', 'nombre')
 
 
 class ValorCampoPersonalizado(models.Model):
