@@ -94,7 +94,7 @@ class MiembroProyectoListView(PermisosEsMiembroMixin, LoginRequiredMixin, Templa
         return context
 
 
-class MiembroProyectoListJson(PermisosEsMiembroMixin, LoginRequiredMixin, BaseDatatableView):
+class MiembroProyectoListJsonView(PermisosEsMiembroMixin, LoginRequiredMixin, BaseDatatableView):
     """
     Vista que retorna en json la lista de miembros para el datatable
     """

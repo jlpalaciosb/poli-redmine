@@ -3,7 +3,7 @@ from django.conf.urls import url
 from proyecto.views import \
     ProyectoListView, ProyectoCreateView, ProyectoUpdateView, ProyectoPerfilView, ProyectoListJson, \
     RolListView, RolListJson, RolProyectoCreateView, RolProyectoUpdateView, RolPerfilView, RolEliminarView, \
-    MiembroProyectoCreateView, MiembroProyectoListJson, MiembroProyectoListView, MiembroProyectoUpdateView, MiembroProyectoPerfilView, MiembroProyectoDeleteView, \
+    MiembroProyectoCreateView, MiembroProyectoListJsonView, MiembroProyectoListView, MiembroProyectoUpdateView, MiembroProyectoPerfilView, MiembroProyectoDeleteView, \
     TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView
 
 urlpatterns = [
@@ -20,7 +20,7 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/roles/(?P<rol_id>\d+)/eliminar$', RolEliminarView.as_view(), name='proyecto_rol_eliminar'),
     url(r'^(?P<proyecto_id>\d+)/miembros/crear$', MiembroProyectoCreateView.as_view(), name='proyecto_miembro_crear'),
     url(r'^(?P<proyecto_id>\d+)/miembros/$', MiembroProyectoListView.as_view(), name='proyecto_miembro_list'),
-    url(r'^(?P<proyecto_id>\d+)/miembros/list$', MiembroProyectoListJson.as_view(), name='proyecto_miembro_list_json'),
+    url(r'^(?P<proyecto_id>\d+)/miembros/list$', MiembroProyectoListJsonView.as_view(), name='proyecto_miembro_list_json'),
     url(r'^(?P<proyecto_id>\d+)/miembros/(?P<miembro_id>\d+)/perfil$', MiembroProyectoPerfilView.as_view(), name='proyecto_miembro_perfil'),
     url(r'^(?P<proyecto_id>\d+)/miembros/(?P<miembro_id>\d+)/editar$', MiembroProyectoUpdateView.as_view(), name='proyecto_miembro_editar'),
     url(r'^(?P<proyecto_id>\d+)/miembros/(?P<miembro_id>\d+)/excluir$', MiembroProyectoDeleteView.as_view(), name='proyecto_miembro_excluir'),
@@ -30,5 +30,4 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/tiposus/list$', TipoUsListJson.as_view(), name='proyecto_tipous_list_json'),
     url(r'^(?P<proyecto_id>\d+)/tipous/(?P<tipous_id>\d+)/ver$', TipoUSPerfilView.as_view(), name='proyecto_tipous_ver'),
     url(r'^(?P<proyecto_id>\d+)/tipous/(?P<tipous_id>\d+)/eliminar$', TipoUsEliminarView.as_view(), name='proyecto_tipous_eliminar'),
-
 ]
