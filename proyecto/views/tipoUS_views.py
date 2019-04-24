@@ -1,4 +1,4 @@
-from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, SuccessMessageOnDeleteMixin
+from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, SuccessMessageOnDeleteMixin, ProyectoSoloSePuedeVerMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
 from proyecto.models import TipoUS, Proyecto
@@ -12,7 +12,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.http import HttpResponseRedirect
 
 
-class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, CreateView):
+class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin,ProyectoSoloSePuedeVerMixin , SuccessMessageMixin, CreateView):
     """
     Vista para creacion de tipo de us. Se permiten hasta 5 campos personalizados
     """
