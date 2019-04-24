@@ -75,7 +75,7 @@ class USListView(PermisosEsMiembroMixin, LoginRequiredMixin, TemplateView):
         context['crear_button_text'] = 'Crear US'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'Nombre', 'Prioridad']
+        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización']
         context['order'] = [2, "desc"]
         ver_kwargs = self.kwargs.copy()
         ver_kwargs['us_id'] = 7836271  # pasamos inicialmente un id aleatorio
@@ -99,8 +99,8 @@ class USListJsonView(PermisosEsMiembroMixin, LoginRequiredMixin, BaseDatatableVi
     Vista que retorna en json la lista de user stories del product backlog
     """
     model = MiembroProyecto
-    columns = ['id', 'nombre', 'prioridad']
-    order_columns = ['', 'nombre', 'prioridad']
+    columns = ['id', 'nombre', 'priorizacion']
+    order_columns = ['id', 'nombre', 'priorizacion']
     max_display_length = 100
 
     def get_initial_queryset(self):
