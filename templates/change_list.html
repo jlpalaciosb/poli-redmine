@@ -39,6 +39,7 @@
             <div class="col-xs-12 col-md-12 col-lg-12">
                 <div class="panel">
                     <div class="panel-body table-responsive">
+                        {% block extra_filter %}{% endblock %}
                         {% block results %}
                             <div class="row">
                                 <table class="table table-hover table-responsive datatable" style="width: 100%">

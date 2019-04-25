@@ -295,7 +295,7 @@ class UserStorySprint(models.Model):
     """
     us = models.ForeignKey(UserStory)
     sprint = models.ForeignKey(Sprint)
-    asignee = models.ForeignKey(MiembroSprint)
+    asignee = models.ForeignKey(MiembroSprint, null=True)
 
     class Meta:
         default_permissions = ()
