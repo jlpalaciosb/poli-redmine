@@ -26,15 +26,14 @@
                     <br>
                     <div>
                         <strong>Tipo: </strong> {{ us.tipo.nombre }} <br>
-                        {% for nombre_campo, valor_campo in camposPersonalizados.items %}
+                        <!--{% for nombre_campo, valor_campo in us.get_campos_personalizados.items %}
                             {% if forloop.first %}
                                 <i>Campos Personalizados</i> <br>
                             {% endif %}
-                            <strong>{{ nombre_campo }}: </strong>
-                            {{ valor_campo | default_if_none:"" }} <br>
+                            <strong>{{ nombre_campo }}: </strong> {{ valor_campo | default_if_none:"" }} <br>
                         {% empty %}
                             <i>Sin Campos Personalizados</i> <br>
-                        {% endfor %}
+                        {% endfor %}-->
                     </div>
                     <br>
                     <div>
