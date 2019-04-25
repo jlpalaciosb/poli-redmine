@@ -63,7 +63,12 @@ class USListView(PermisosEsMiembroMixin, LoginRequiredMixin, TemplateView):
     """
     Vista para ver el product backlog del proyecto
     """
-    template_name = 'change_list.html'
+    template_name = 'proyecto/us/us_list.html'
+    estado = '*' # estado de los USs a listar (* significa todos los estados)
+
+    def dispatch(self, request, *args, **kwargs):
+        self.estado = request.GET.get('estado', '*')
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -75,13 +80,14 @@ class USListView(PermisosEsMiembroMixin, LoginRequiredMixin, TemplateView):
         context['crear_button_text'] = 'Crear US'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización']
+        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización', 'Estado']
         context['order'] = [2, "desc"]
         ver_kwargs = self.kwargs.copy()
         ver_kwargs['us_id'] = 7836271  # pasamos inicialmente un id aleatorio
         context['datatable_row_link'] = reverse('proyecto_us_ver', kwargs=ver_kwargs)
-        context['list_json'] = reverse('proyecto_us_list_json', kwargs=kwargs)
+        context['list_json'] = reverse('proyecto_us_list_json', kwargs=kwargs) + '?estado=' + self.estado
         context['user_story'] = True
+        context['selected'] = self.estado
 
         # Breadcrumbs
         context['breadcrumb'] = [
@@ -99,13 +105,16 @@ class USListJsonView(PermisosEsMiembroMixin, LoginRequiredMixin, BaseDatatableVi
     Vista que retorna en json la lista de user stories del product backlog
     """
     model = MiembroProyecto
-    columns = ['id', 'nombre', 'priorizacion']
-    order_columns = ['id', 'nombre', 'priorizacion']
+    columns = ['id', 'nombre', 'priorizacion', 'estadoProyecto']
+    order_columns = ['id', 'nombre', 'priorizacion', 'estadoProyecto']
     max_display_length = 100
 
     def get_initial_queryset(self):
-        p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        return p.userstory_set.all()
+        iqs = Proyecto.objects.get(pk=self.kwargs['proyecto_id']).userstory_set.all()
+        st = self.request.GET.get('estado', '*')
+        if st == '1' or st == '2' or st == '3' or st == '4' or st == '5':
+            iqs = iqs.filter(estadoProyecto=int(st))
+        return iqs
 
     #def filter_queryset(self, qs):
         #search = self.request.GET.get('search[value]', '')
@@ -195,7 +204,7 @@ class USUpdateView(SuccessMessageMixin, PermisosPorProyectoMixin, LoginRequiredM
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', args=(p.id,))},
             {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', args=(p.id,))},
             {'nombre': us.nombre, 'url': reverse('proyecto_us_ver', args=(p.id, us.id))},
-            {'nombre': 'Editar Roles', 'url': '#'}
+            {'nombre': 'Editar', 'url': '#'}
         ]
 
         return context
