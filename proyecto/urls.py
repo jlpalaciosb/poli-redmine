@@ -4,6 +4,8 @@ from proyecto.views import \
     ProyectoListView, ProyectoCreateView, ProyectoUpdateView, ProyectoPerfilView, ProyectoListJson, \
     RolListView, RolListJson, RolProyectoCreateView, RolProyectoUpdateView, RolPerfilView, RolEliminarView, \
     MiembroProyectoCreateView, MiembroProyectoListJson, MiembroProyectoListView, MiembroProyectoUpdateView, MiembroProyectoPerfilView, MiembroProyectoDeleteView
+from proyecto.views.flujo_views import FlujoCreateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoUpdateView, \
+    FlujoEliminarView
 
 urlpatterns = [
     url(r'^$', ProyectoListView.as_view(), name='proyectos'),
@@ -23,4 +25,10 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/miembros/(?P<miembro_id>\d+)/perfil$', MiembroProyectoPerfilView.as_view(), name='proyecto_miembro_perfil'),
     url(r'^(?P<proyecto_id>\d+)/miembros/(?P<miembro_id>\d+)/editar$', MiembroProyectoUpdateView.as_view(), name='proyecto_miembro_editar'),
     url(r'^(?P<proyecto_id>\d+)/miembros/(?P<miembro_id>\d+)/excluir$', MiembroProyectoDeleteView.as_view(), name='proyecto_miembro_excluir'),
+    url(r'^(?P<proyecto_id>\d+)/flujos/crear$', FlujoCreateView.as_view(), name='proyecto_flujo_crear'),
+    url(r'^(?P<proyecto_id>\d+)/flujos/$', FlujoListView.as_view(), name='proyecto_flujo_list'),
+    url(r'^(?P<proyecto_id>\d+)/flujos/list$', FlujoListJson.as_view(), name='proyecto_flujo_list_json'),
+    url(r'^(?P<proyecto_id>\d+)/flujos/(?P<flujo_id>\d+)/perfil$', FlujoPerfilView.as_view(), name='proyecto_flujo_ver'),
+    url(r'^(?P<proyecto_id>\d+)/flujos/(?P<flujo_id>\d+)/editar$', FlujoUpdateView.as_view(), name='proyecto_flujo_editar'),
+    url(r'^(?P<proyecto_id>\d+)/flujos/(?P<flujo_id>\d+)/excluir$', FlujoEliminarView.as_view(), name='proyecto_flujo_eliminar'),
 ]

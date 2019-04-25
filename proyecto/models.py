@@ -117,10 +117,25 @@ class Fase(models.Model):
     flujo = models.ForeignKey(Flujo)
     nombre = models.CharField(max_length=25)
     orden = models.IntegerField()
-    
+
+    class Meta:
+        default_permissions = ()
+        unique_together = (('flujo', 'nombre'), ('flujo', 'orden'))
+
+
+class FaseDeFlujoProyecto(models.Model):
+    """
+    La clase FaseDeFlujoProyecto es la representacion del valor asignado
+    a una Fase de un Flujo especifico
+    en un Proyecto especifico
+    """
+    proyecto = models.ForeignKey(Proyecto)
+    fase = models.ForeignKey(Fase)
+
     class Meta:
         default_permissions =  ()
-        unique_together = (('flujo', 'nombre'), ('flujo', 'orden'))
+        unique_together = ("proyecto", "fase")
+
 
 
 class TipoUS(models.Model):
