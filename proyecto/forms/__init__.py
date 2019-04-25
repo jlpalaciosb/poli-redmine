@@ -8,4 +8,4 @@ from .tipoUS_forms import TipoUsForm, CampoPersonalizadoForm, CampoPersonalizado
 
 from .us_forms import USForm
 
-from .sprint_forms import MiembroSprintForm
+from .miembroSprint_forms import MiembroSprintForm
