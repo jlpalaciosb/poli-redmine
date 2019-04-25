@@ -124,11 +124,24 @@ class Fase(models.Model):
     """
     flujo = models.ForeignKey(Flujo)
     nombre = models.CharField(max_length=25)
-    orden = models.PositiveIntegerField()
+    orden = models.PositiveIntegerField(default=1)
     
+
     class Meta:
-        default_permissions =  ()
+        default_permissions = ()
         unique_together = (('flujo', 'nombre'), ('flujo', 'orden'))
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        cantidadFases  = self.flujo.fase_set.all().count()
+        self.orden = cantidadFases + 1
+        super().save(force_insert, force_update, using, update_fields)
+
+
+
+
+
+
 
 
 class TipoUS(models.Model):

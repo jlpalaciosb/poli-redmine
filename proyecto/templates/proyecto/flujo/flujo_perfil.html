@@ -1,0 +1,53 @@
+{% extends 'layout/layout.html' %}
+{% load static %}
+{% load guardian_tags %}
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            <div class="row">
+
+                <div class="col-xs-6">
+                    <h4><strong>Flujo: </strong>{{ flujo.nombre }}</h4>
+                    <p>
+                        <strong>Fases: </strong>  <br>
+                        <ul>
+                            {% for fase in flujo.fase_set.all %}
+
+                                <li><strong>Nombre:</strong> {{ fase.nombre }}. <strong>Orden de la Fase:</strong> {{ fase.orden }}</li>
+                            {% endfor %}
+                        </ul>
+                        <br>
+                    </p>
+                </div>
+                {% get_obj_perms request.user for flujo.proyecto as "permisosGuardian" %}
+                <!-- Se comprueba que tenga el permiso para el proyecto en particular y no tenga ningun us asociado-->
+                {% if 'change_flujo' in permisosGuardian and not flujo.proyecto_set.all%}
+                    <a href="{% url 'proyecto_flujo_editar' flujo.proyecto.id flujo.id %}">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                        <i class="fa fa-pencil"></i>
+                        Editar
+                      </button>
+                    </a>
+                {% endif %}
+
+                {% if 'delete_flujo' in permisosGuardian and not flujo.userstory_set.all%}
+                    <a href="{% url 'proyecto_flujo_eliminar' flujo.proyecto.id flujo.id %}">
+                      <button class="btn m-b-xs btn-danger btn-addon ">
+                        <i class="fa fa-trash-o"></i>
+                        Eliminar
+                      </button>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
