@@ -11,6 +11,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from guardian.decorators import permission_required
+from proyecto.forms import MiembroSprintForm
 
 class SprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
     """
@@ -36,7 +37,7 @@ class SprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
         context['crear_button_text'] = 'Nuevo Sprint'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'orden','estado']
+        context['nombres_columnas'] = ['id', 'Sprint Nro','Estado']
         context['order'] = [1, "des"]
         context['datatable_row_link'] = reverse('proyecto_sprint_administrar', args=(self.kwargs['proyecto_id'],99999))  # pasamos inicialmente el id 1
         context['list_json'] = reverse('proyecto_sprint_list_json', kwargs=self.kwargs) + '?estado=' + self.estado
@@ -150,7 +151,7 @@ class MiembroSprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, Template
         context['titulo'] = 'Lista de Miembros de Sprints de '+ proyecto.nombre
         context['crear_button'] = 'administrar_sprint' in get_perms(self.request.user, proyecto)
         # TODO: Cambiar a agregar miembro sprint
-        context['crear_url'] = '#'
+        context['crear_url'] = reverse('proyecto_sprint_miembros_agregar', kwargs=self.kwargs)
         context['crear_button_text'] = 'Agregar miembro'
 
         # datatables
@@ -198,3 +199,54 @@ class MiembroSprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseData
             return sprint.miembrosprint_set.all()
         except Sprint.DoesNotExist:
             return MiembroSprint.objects.none()
+
+class MiembroSprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, CreateView):
+    """
+    Vista para creacion de un rol de proyecto. Se crean roles que no sean por defecto
+    """
+    model = MiembroSprint
+    template_name = "change_form.html"
+    form_class = MiembroSprintForm
+    permission_required = 'proyecto.administrar_sprint'
+    permission_denied_message = 'No tiene permiso para administrar sprint.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_success_message(self, cleaned_data):
+        return "Miembro de Sprint agregado exitosamente."
+
+    def get_success_url(self):
+        return reverse('proyecto_sprint_miembros',kwargs=self.kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super(MiembroSprintCreateView, self).get_form_kwargs()
+        kwargs.update({
+            'success_url': reverse('proyecto_sprint_miembros',kwargs=self.kwargs),
+            'proyecto_id': self.kwargs['proyecto_id'],
+            'sprint_id': self.kwargs['sprint_id'],
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(MiembroSprintCreateView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        context['titulo'] = 'Miembros de Sprint'
+        context['titulo_form_crear'] = 'Agregar Miembro al sprint'
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre,
+                                  'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Sprints',
+                                  'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Administrar Sprint',
+                                  'url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs)},
+                                 {'nombre': 'Miembros Sprint', 'url': reverse('proyecto_sprint_miembros',kwargs=self.kwargs)},
+                                 {'nombre': 'Crear', 'url':'#'}
+                                 ]
+
+        return context
+
+

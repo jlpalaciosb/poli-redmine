@@ -4,17 +4,19 @@ from crispy_forms.bootstrap import FormActions, AppendedText
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, HTML, Layout
 
-class SprintForm(forms.ModelForm):
+
+class MiembroSprintForm(forms.ModelForm):
 
     class Meta:
         model = MiembroSprint
         fields = ['miembro', 'horasAsignadas']
 
+
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
         sprint_id = kwargs.pop('sprint_id')
         proyecto_id = kwargs.pop('proyecto_id')
-        super(SprintForm, self).__init__(*args, **kwargs)
+        super(MiembroSprintForm, self).__init__(*args, **kwargs)
         #Se traen todos los miembros del proyecto que tengan el permiso como desarrollador del proyecto y se excluyen aquellos que ya estan asignados en este sprint
         self.fields['miembro'].queryset = MiembroProyecto.objects.filter(
             proyecto=proyecto_id,roles__permissions__codename='desarrollador_proyecto')\
