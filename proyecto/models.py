@@ -168,6 +168,7 @@ PRIORIDADES_US = (
     (4, 'Alto'),
     (5, 'Muy Alto'),
 )
+def default_vals(): return {'c1': 'v1', 'c2': 2}
 class UserStory(models.Model):
     """
     La clase UserStory representa a un User Story de un proyecto específico
@@ -180,6 +181,7 @@ class UserStory(models.Model):
     )
 
     tipo = models.ForeignKey(TipoUS)
+    valoresCPs = JSONField(default=default_vals) # Será un diccionario donde la clave de los items es el nombre del campo pers. y el valor es el valor del campo pers.
 
     proyecto = models.ForeignKey(Proyecto)
     estadoProyecto = models.IntegerField(
@@ -214,31 +216,6 @@ class UserStory(models.Model):
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.priorizacion = (4 * self.prioridad + self.valorTecnico + self.valorNegocio) / 6
         super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
-
-    def get_campos_personalizados(self):
-        res = {}
-        for cp in self.tipo.campopersonalizado_set.all():
-            valor_campo = None
-            try:
-                valor_campo = ValorCampoPersonalizado.objects.get(us=self, campoPersonalizado=cp).valor
-            except ValorCampoPersonalizado.DoesNotExist:
-                pass
-            res[cp.nombre_campo] = valor_campo
-        return res
-
-class ValorCampoPersonalizado(models.Model):
-    """
-    La clase ValorCampoPersonalizado es la representacion del valor asignado
-    a un campo personalizado de un Tipo de User Story especifico
-    en un User Story especifico
-    """
-    us = models.ForeignKey(UserStory)
-    campoPersonalizado = models.ForeignKey(CampoPersonalizado)
-    valor = models.CharField(verbose_name='Valor del Campo Personalizado', max_length=100)
-
-    class Meta:
-        default_permissions =  ()
-        unique_together = ("us", "campoPersonalizado")
 
 
 class RolProyecto(Group):
