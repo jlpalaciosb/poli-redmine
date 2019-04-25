@@ -18,8 +18,8 @@
                   <h2>Sprint Nro. {{ sprint.orden }}</h2>
                   <p>
                       <strong>Estado:</strong>   {{ sprint.estado|default_if_none:"" }}<br>
-                      <strong>Duracion:</strong>   {{ sprint.duracion|default_if_none:"" }}<br>
-                      <strong>Capacidad:</strong>   {{ sprint.capacidad|default_if_none:"" }}<br>
+                      <strong>Duracion(en semanas):</strong>   {{ sprint.duracion|default_if_none:"" }}<br>
+                      <strong>Capacidad(en horas):</strong>   {{ sprint.capacidad|default_if_none:"" }}<br>
                       {% if sprint.estado == 'Planificado' %}<strong>Fecha de Inicio:</strong>   {{ sprint.fechaInicio|default:"" }}<br>{% endif %}
 
                   </p>
