@@ -214,6 +214,16 @@ class UserStory(models.Model):
         self.priorizacion = (4 * self.prioridad + self.valorTecnico + self.valorNegocio) / 6
         super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
+    def get_campos_personalizados(self):
+        res = []
+        for cp in self.tipo.campopersonalizado_set.all():
+            valor_campo = None
+            try:
+                valor_campo = ValorCampoPersonalizado.objects.get(us=self, campoPersonalizado=cp).valor
+            except ValorCampoPersonalizado.DoesNotExist:
+                pass
+            res.append({cp.nombre_campo, valor_campo})
+        return res
 
 class ValorCampoPersonalizado(models.Model):
     """

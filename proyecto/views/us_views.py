@@ -80,7 +80,7 @@ class USListView(PermisosEsMiembroMixin, LoginRequiredMixin, TemplateView):
         context['crear_button_text'] = 'Crear US'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización', 'Estado']
+        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización', 'Estado General']
         context['order'] = [2, "desc"]
         ver_kwargs = self.kwargs.copy()
         ver_kwargs['us_id'] = 7836271  # pasamos inicialmente un id aleatorio
@@ -151,6 +151,9 @@ class USPerfilView(PermisosEsMiembroMixin, LoginRequiredMixin, DetailView):
             {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', args=(p.id,))},
             {'nombre': us.nombre, 'url': '#'},
         ]
+
+        # Pasar valores de los campos personalizados
+        context['camposPersonalizados'] = us.get_campos_personalizados()
 
         context['puedeEditar'] = self.request.user.has_perm('proyecto.change_us', p)
 

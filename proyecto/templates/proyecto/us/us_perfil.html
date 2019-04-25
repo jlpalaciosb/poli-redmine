@@ -13,40 +13,64 @@
     {% endblock %}
 
     <div class="wrapper-md">
-    <div class="well m-t bg-light lt">
-      <div class="row">
+        <div class="well m-t bg-light lt">
+            <div class="row">
 
-        <div class="col-xs-4">
-            <h4>{{ us.nombre }}</h4>
-            <p>
-              <strong>Tipo: </strong> {{ us.tipo.nombre }}
-            </p>
-            <p>
-              <strong>Prioridad: </strong> {{ us.get_prioridad_display }} <br>
-              <strong>Valor Técnico: </strong> {{ us.get_valorTecnico_display }} <br>
-              <strong>Valor de Negocio: </strong> {{ us.get_valorNegocio_display }} <br>
-            </p>
-        </div>
+                <div class="col-xs-4">
+                    <h4>{{ us.nombre }}</h4>
+                    <div>
+                        <strong>Prioridad: </strong> {{ us.get_prioridad_display }} <br>
+                        <strong>Valor Técnico: </strong> {{ us.get_valorTecnico_display }} <br>
+                        <strong>Valor de Negocio: </strong> {{ us.get_valorNegocio_display }} <br>
+                    </div>
+                    <br>
+                    <div>
+                        <strong>Tipo: </strong> {{ us.tipo.nombre }} <br>
+                        {% for nombre_campo, valor_campo in camposPersonalizados %}
+                            {% if forloop.first %}
+                                <i>Campos Personalizados</i> <br>
+                            {% endif %}
+                            <strong>{{ nombre_campo }}: </strong>
+                            {{ valor_campo | default_if_none:"" }} <br>
+                        {% empty %}
+                            <i>Sin Campos Personalizados</i> <br>
+                        {% endfor %}
+                    </div>
+                    <br>
+                    <div>
+                        <strong>Estado General: </strong> {{ us.get_estadoProyecto_display }} <br>
+                        {% if us.estadoProyecto == 2 or us.estadoProyecto == 3 %}
+                            <strong>Flujo: </strong> {{ us.flujo.nombre | default_if_none:"" }} <br>
+                            <strong>Fase: </strong> {{ us.fase.nombre | default_if_none:"" }} <br>
+                            <strong>Estado en la Fase: </strong> {{ us.get_estadoFase_display | default_if_none:"" }} <br>
+                        {% endif %}
+                    </div>
+                </div>
 
-        <div class="col-xs-6">
-            <h4>&nbsp;</h4>
-            <p>
-              <strong>Estado en el Proyecto: </strong> {{ us.get_estadoProyecto_display }}
-            </p>
+                <div class="col-xs-6">
+                    <h4>&nbsp;</h4>
+                    <div class="form-group">
+                        <label><strong>Descripción</strong></label>
+                        <textarea readonly class="form-control" rows="4">{{ us.descripcion }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label><strong>Criterios de Aceptación</strong></label>
+                        <textarea readonly class="form-control" rows="4">{{ us.criteriosAceptacion }}</textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    {% if puedeEditar %}
+                        <a href="{% url 'proyecto_us_editar' us.proyecto.id us.id %}">
+                            <button class="btn m-b-xs btn-default btn-addon ">
+                                <i class="fa fa-pencil"></i>
+                                Editar
+                            </button>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="col-xs-12">
-            {% if puedeEditar %}
-                <a href="{% url 'proyecto_us_editar' us.proyecto.id us.id %}">
-                  <button class="btn m-b-xs btn-default btn-addon ">
-                    <i class="fa fa-pencil"></i>
-                    Editar
-                  </button>
-                </a>
-            {% endif %}
-        </div>
-      </div>
-    </div>
     </div>
 {% endblock %}
