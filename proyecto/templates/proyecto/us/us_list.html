@@ -1,0 +1,19 @@
+{% extends 'change_list.html' %}
+
+{% block extra_filter %}
+    <div class="form-group" style="width: auto; display: inline-block; margin: 0; float: right">
+        <label for="estadoUS">Estado General:</label>
+        <select
+            id="estadoUS" class="form-control" style="width: auto; display: inline-block;"
+            onchange="document.location='?estado='+document.getElementById('estadoUS').value;"
+        >
+            <option value="*" {% if selected == '*' %}selected{% endif %}></option>
+            <option value="1" {% if selected == '1' %}selected{% endif %}>Pendiente</option>
+            <option value="2" {% if selected == '2' %}selected{% endif %}>En Sprint</option>
+            <option value="3" {% if selected == '3' %}selected{% endif %}>No Terminado</option>
+            <option value="4" {% if selected == '4' %}selected{% endif %}>Cancelado</option>
+            <option value="5" {% if selected == '5' %}selected{% endif %}>Terminado</option>
+        </select>
+    </div>
+    <div style="clear: both"></div>
+{% endblock %}
