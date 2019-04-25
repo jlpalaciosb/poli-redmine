@@ -209,7 +209,7 @@ class MiembroSprintUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succ
             sprint = Sprint.objects.get(pk = self.kwargs['sprint_id'])
             if sprint.estado != 'PLANIFICADO':
                 return HttpResponseForbidden()
-            return super(MiembroSprintCreateView, self).check_permissions(request)
+            return super(MiembroSprintUpdateView, self).check_permissions(request)
         except Sprint.DoesNotExist:
             return HttpResponseForbidden()
         except:

@@ -1,6 +1,13 @@
 from django.contrib.auth.models import User, Group
 from django.db import models
 from django.contrib.postgres.fields import JSONField
+from django.core.exceptions import ValidationError
+
+def validar_mayor_a_cero(value):
+    if value == 0:
+        raise ValidationError(
+            'No se permite el cero. Debe ser un numero mayor'
+        )
 
 ESTADOS_PROYECTO = (('PENDIENTE', 'Pendiente'),
                     ('EN EJECUCION', 'En Ejecucion'),
@@ -42,8 +49,8 @@ class Proyecto(models.Model):
     cliente = models.ForeignKey(Cliente)
     fechaInicioEstimada = models.DateField(verbose_name='inicio', help_text='fecha de inicio estimada', null=True, blank=True)
     fechaFinEstimada = models.DateField(verbose_name='finalización', help_text='fecha de finalización estimada', null=True, blank=True)
-    duracionSprint = models.PositiveIntegerField(verbose_name='duración del sprint', help_text='duración estimada para los sprints (en semanas)', default=4)
-    diasHabiles = models.PositiveIntegerField(verbose_name='días hábiles', help_text='cantidad de días hábiles en la semana', default=5)
+    duracionSprint = models.PositiveIntegerField(verbose_name='duración del sprint', help_text='duración estimada para los sprints (en semanas)', default=4, validators=[validar_mayor_a_cero])
+    diasHabiles = models.PositiveIntegerField(verbose_name='días hábiles', help_text='cantidad de días hábiles en la semana', default=5, validators=[validar_mayor_a_cero])
     estado = models.CharField(choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
     scrum_master = models.ForeignKey(User, verbose_name='scrum master')
 
@@ -83,8 +90,8 @@ class Sprint(models.Model):
     La clase Sprint representa a un Sprint de un proyecto específico
     """
     proyecto = models.ForeignKey(Proyecto)
-    orden = models.PositiveIntegerField()
-    duracion = models.PositiveIntegerField(verbose_name='duración del sprint (en semanas)')
+    orden = models.PositiveIntegerField(validators=[validar_mayor_a_cero])
+    duracion = models.PositiveIntegerField(verbose_name='duración del sprint (en semanas)', validators=[validar_mayor_a_cero])
     fechaInicio = models.DateField(verbose_name='fecha de inicio', null=True)
     estado = models.CharField(choices=ESTADOS_SPRINT, default='PLANIFICADO', max_length=15)
     capacidad = models.PositiveIntegerField(
@@ -274,7 +281,7 @@ class MiembroSprint(models.Model):
     """
     miembro = models.ForeignKey(MiembroProyecto, verbose_name='Miembro del Sprint')
     sprint = models.ForeignKey(Sprint, verbose_name='Sprint')
-    horasAsignadas = models.PositiveIntegerField(verbose_name='Horas por día asignadas al miembro')
+    horasAsignadas = models.PositiveIntegerField(verbose_name='Horas por día asignadas al miembro', validators=[validar_mayor_a_cero])
 
     class Meta:
         unique_together = ('miembro', 'sprint')
