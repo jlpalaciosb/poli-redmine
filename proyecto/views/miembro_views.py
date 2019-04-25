@@ -14,7 +14,7 @@ from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
 from proyecto.models import MiembroProyecto, Proyecto
 
 
-class MiembroProyectoCreateView(SuccessMessageMixin, PermisosPorProyectoMixin, LoginRequiredMixin, CreateView):
+class MiembroProyectoCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, CreateView):
     """
     Vista para incorporar un miembro a un proyecto
     """
@@ -59,7 +59,7 @@ class MiembroProyectoCreateView(SuccessMessageMixin, PermisosPorProyectoMixin, L
         return context
 
 
-class MiembroProyectoListView(PermisosEsMiembroMixin, LoginRequiredMixin, TemplateView):
+class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
     """
     Vista para listar los miembros de un proyecto. Cualquier usuario que sea miembro del proyecto
     tiene acceso a esta vista
@@ -94,7 +94,7 @@ class MiembroProyectoListView(PermisosEsMiembroMixin, LoginRequiredMixin, Templa
         return context
 
 
-class MiembroProyectoListJson(PermisosEsMiembroMixin, LoginRequiredMixin, BaseDatatableView):
+class MiembroProyectoListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView):
     """
     Vista que retorna en json la lista de miembros para el datatable
     """
@@ -123,7 +123,7 @@ class MiembroProyectoListJson(PermisosEsMiembroMixin, LoginRequiredMixin, BaseDa
     def ordering(self, qs): return qs.order_by('user__username')
 
 
-class MiembroProyectoPerfilView(PermisosEsMiembroMixin, LoginRequiredMixin, DetailView):
+class MiembroProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     """
     Vista para el perfil de un miembro de un proyecto. Cualquier usuario que sea miembro del proyecto
     tiene acceso a esta vista
@@ -158,13 +158,12 @@ class MiembroProyectoPerfilView(PermisosEsMiembroMixin, LoginRequiredMixin, Deta
         return context
 
 
-class MiembroProyectoUpdateView(SuccessMessageMixin, PermisosPorProyectoMixin, LoginRequiredMixin, UpdateView):
+class MiembroProyectoUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, UpdateView):
     """
     Vista que permite modificar los roles de un miembro de proyecto
     """
     model = MiembroProyecto
     form_class = EditarMiembroForm
-    context_object_name = 'miembro'
     template_name = 'change_form.html'
     pk_url_kwarg = 'miembro_id'
     permission_required = 'proyecto.change_miembroproyecto'

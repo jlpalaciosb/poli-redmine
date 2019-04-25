@@ -39,6 +39,7 @@
             <div class="col-xs-12 col-md-12 col-lg-12">
                 <div class="panel">
                     <div class="panel-body table-responsive">
+                        {% block extra_filter %}{% endblock %}
                         {% block results %}
                             <div class="row">
                                 <table class="table table-hover table-responsive datatable" style="width: 100%">
@@ -78,6 +79,8 @@
                         url = url.replace(99999, data[0]);
                     {% elif miembro_proyecto %}
                         url = url.replace(6436276, data[0]);
+                    {% elif user_story %}
+                        url = url.replace(7836271, data[0]);
                     {% else %}
                         url = url.replace(1, data[0]);
                     {% endif %}

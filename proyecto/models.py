@@ -1,5 +1,13 @@
 from django.contrib.auth.models import User, Group
 from django.db import models
+from django.contrib.postgres.fields import JSONField
+from django.core.exceptions import ValidationError
+
+def validar_mayor_a_cero(value):
+    if value == 0:
+        raise ValidationError(
+            'No se permite el cero. Debe ser un numero mayor'
+        )
 
 ESTADOS_PROYECTO = (('PENDIENTE', 'Pendiente'),
                     ('EN EJECUCION', 'En Ejecucion'),
@@ -41,8 +49,8 @@ class Proyecto(models.Model):
     cliente = models.ForeignKey(Cliente)
     fechaInicioEstimada = models.DateField(verbose_name='inicio', help_text='fecha de inicio estimada', null=True, blank=True)
     fechaFinEstimada = models.DateField(verbose_name='finalización', help_text='fecha de finalización estimada', null=True, blank=True)
-    duracionSprint = models.IntegerField(verbose_name='duración del sprint', help_text='duración estimada para los sprints (en semanas)', default=4)
-    diasHabiles = models.IntegerField(verbose_name='días hábiles', help_text='cantidad de días hábiles en la semana', default=5)
+    duracionSprint = models.PositiveIntegerField(verbose_name='duración del sprint', help_text='duración estimada para los sprints (en semanas)', default=4, validators=[validar_mayor_a_cero])
+    diasHabiles = models.PositiveIntegerField(verbose_name='días hábiles', help_text='cantidad de días hábiles en la semana', default=5, validators=[validar_mayor_a_cero])
     estado = models.CharField(choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
     scrum_master = models.ForeignKey(User, verbose_name='scrum master')
 
@@ -82,11 +90,11 @@ class Sprint(models.Model):
     La clase Sprint representa a un Sprint de un proyecto específico
     """
     proyecto = models.ForeignKey(Proyecto)
-    orden = models.IntegerField()
-    duracion = models.IntegerField(verbose_name='duración del sprint (en semanas)')
+    orden = models.PositiveIntegerField(validators=[validar_mayor_a_cero])
+    duracion = models.PositiveIntegerField(verbose_name='duración del sprint (en semanas)', validators=[validar_mayor_a_cero])
     fechaInicio = models.DateField(verbose_name='fecha de inicio', null=True)
     estado = models.CharField(choices=ESTADOS_SPRINT, default='PLANIFICADO', max_length=15)
-    capacidad = models.IntegerField(
+    capacidad = models.PositiveIntegerField(
         verbose_name='capacidad del sprint (en horas)', default=0,
         help_text='Este valor nos dice cuantas horas de trabajo disponible hay en el sprint'
     )
@@ -102,7 +110,7 @@ class Flujo(models.Model):
     """
     nombre = models.CharField(max_length=50)
     proyecto = models.ForeignKey(Proyecto)
-    cantidadFases = models.IntegerField(default=0)
+    cantidadFases = models.PositiveIntegerField(default=0)
 
     class Meta:
         default_permissions = ()
@@ -116,25 +124,23 @@ class Fase(models.Model):
     """
     flujo = models.ForeignKey(Flujo)
     nombre = models.CharField(max_length=25)
-    orden = models.IntegerField()
+    orden = models.PositiveIntegerField(default=1)
+    
 
     class Meta:
         default_permissions = ()
         unique_together = (('flujo', 'nombre'), ('flujo', 'orden'))
 
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        cantidadFases  = self.flujo.fase_set.all().count()
+        self.orden = cantidadFases + 1
+        super().save(force_insert, force_update, using, update_fields)
 
-class FaseDeFlujoProyecto(models.Model):
-    """
-    La clase FaseDeFlujoProyecto es la representacion del valor asignado
-    a una Fase de un Flujo especifico
-    en un Proyecto especifico
-    """
-    proyecto = models.ForeignKey(Proyecto)
-    fase = models.ForeignKey(Fase)
 
-    class Meta:
-        default_permissions =  ()
-        unique_together = ("proyecto", "fase")
+
+
+
 
 
 
@@ -145,8 +151,12 @@ class TipoUS(models.Model):
     nombre = models.CharField(verbose_name='Nombre', max_length=20)
     proyecto = models.ForeignKey(Proyecto)
 
+    def __str__(self):
+        return self.nombre
+
     class Meta:
         default_permissions =  ()
+        unique_together = ('nombre', 'proyecto')
 
 
 class CampoPersonalizado(models.Model):
@@ -155,50 +165,49 @@ class CampoPersonalizado(models.Model):
     Tipo de User Story especifico
     """
     tipoUS = models.ForeignKey(TipoUS)
-    estado = models.CharField(verbose_name='Estado', choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
-    campo = models.CharField(verbose_name='Campo Personalizado', choices=VALOR_CAMPO, max_length=20, default='STRING')
-    tipoDeDato = models.CharField(verbose_name='Tipo de Dato', max_length=7)
+    tipo_dato = models.CharField(verbose_name='Tipo de dato del Campo', choices=VALOR_CAMPO, max_length=7, default='STRING')
+    nombre_campo = models.CharField(verbose_name='Nombre del campo', max_length=20)
 
     class Meta:
         default_permissions =  ()
-        unique_together = ("tipoUS", "campo")
+        unique_together = ("tipoUS", "nombre_campo")
 
 
 ESTADOS_US_FASE = (('TODO', 'To Do'), ('DOING', 'Doing'), ('DONE', 'Done'))
 ESTADOS_US_PROYECTO = (
-    ('PENDIENTE', 'Pendiente'),
-    ('INICIADO', 'Iniciado'),
-    ('CANCELADO', 'Cancelado'),
-    ('TERMINADO', 'Terminado'),
+    (1, 'Pendiente'),
+    (2, 'En Sprint'),
+    (3, 'No Terminado'), # estado cuando el us fue parte del sprint anterior pero no se termino
+    (4, 'Cancelado'),
+    (5, 'Terminado'),
 )
 PRIORIDADES_US = (
-    (0, 'No Importante'),
-    (1, 'Muy Baja'),
-    (2, 'Baja'),
-    (3, 'Media'),
-    (4, 'Alta'),
-    (5, 'Muy Alta'),
-    (6, 'Super Importante'),
+    (1, 'Muy Bajo'),
+    (2, 'Bajo'),
+    (3, 'Normal'),
+    (4, 'Alto'),
+    (5, 'Muy Alto'),
 )
+def default_vals(): return {'c1': 'v1', 'c2': 2}
 class UserStory(models.Model):
     """
     La clase UserStory representa a un User Story de un proyecto específico
     """
     nombre = models.CharField(max_length=50)
-    descripcion = models.CharField(verbose_name='descripción', max_length=500)
-    tipo = models.ForeignKey(TipoUS)
-    criterioAceptacion = models.CharField(
-        verbose_name='criterio de aceptación',
-        max_length=500,
-        help_text='Aquí podría especificar las características del producto resultado de las actividades '
-                  'de un US, para que el US sea aceptado'
+    descripcion = models.TextField(verbose_name='descripción')
+    criteriosAceptacion = models.TextField(
+        verbose_name='criterios de aceptación',
+        help_text='condiciones para que el US sea aceptado como terminado'
     )
 
+    tipo = models.ForeignKey(TipoUS)
+    valoresCPs = JSONField(default=default_vals) # Será un diccionario donde la clave de los items es el nombre del campo pers. y el valor es el valor del campo pers.
+
     proyecto = models.ForeignKey(Proyecto)
-    estadoProyecto = models.CharField(
-        verbose_name='estado del US en el proyecto', max_length=15,
-        choices=ESTADOS_US_PROYECTO, default='PENDIENTE',
+    estadoProyecto = models.IntegerField(
+        verbose_name='estado del US en el proyecto', choices=ESTADOS_US_PROYECTO, default=1,
     )
+
     flujo = models.ForeignKey(Flujo, verbose_name='flujo que debe seguir el US', null=True)
     fase = models.ForeignKey(Fase, verbose_name='fase en la que se encuentra el US', null=True)
     estadoFase = models.CharField(
@@ -206,32 +215,27 @@ class UserStory(models.Model):
         choices=ESTADOS_US_FASE, null=True,
     )
 
-    prioridad = models.IntegerField(choices=PRIORIDADES_US, default=3)
-    valorNegocio = models.IntegerField(verbose_name='valor de negocio', default=1)
-    valorTecnico = models.IntegerField(verbose_name='valor técnico', default=1)
-    tiempoPlanificado = models.IntegerField(
+    prioridad = models.PositiveIntegerField(choices=PRIORIDADES_US, default=3)
+    valorNegocio = models.PositiveIntegerField(verbose_name='valor de negocio', choices=PRIORIDADES_US, default=3)
+    valorTecnico = models.PositiveIntegerField(verbose_name='valor técnico', choices=PRIORIDADES_US, default=3)
+    priorizacion = models.FloatField(default=1)
+
+    tiempoPlanificado = models.PositiveIntegerField(
         verbose_name='tiempo planificado (en horas)',
-        help_text='Especifique cuántas horas cree que le llevará a una persona terminar este US',
+        help_text='cuántas horas cree que le llevará a una persona terminar este US',
     )
-    tiempoEjecutado = models.IntegerField(verbose_name='tiempo ejecutado (en horas)')
+    tiempoEjecutado = models.FloatField(verbose_name='tiempo ejecutado (en horas)', default=0)
 
     class Meta:
         default_permissions =  ()
+        unique_together = ('proyecto', 'nombre')
 
+    def __str__(self):
+        return self.nombre
 
-class ValorCampoPersonalizado(models.Model):
-    """
-    La clase ValorCampoPersonalizado es la representacion del valor asignado
-    a un campo personalizado de un Tipo de User Story especifico
-    en un User Story especifico
-    """
-    us = models.ForeignKey(UserStory)
-    campoPersonalizado = models.ForeignKey(CampoPersonalizado)
-    valor = models.CharField(verbose_name='Valor del Campo Personalizado', max_length=100)
-
-    class Meta:
-        default_permissions =  ()
-        unique_together = ("us", "campoPersonalizado")
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.priorizacion = (4 * self.prioridad + self.valorTecnico + self.valorNegocio) / 6
+        super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
 
 class RolProyecto(Group):
@@ -270,6 +274,9 @@ class MiembroProyecto(models.Model):
         default_permissions = ()
         unique_together = (("user","proyecto"),)
 
+    def __str__(self):
+        return self.user.__str__()
+
 
 class Usuario(models.Model):
 
@@ -287,7 +294,7 @@ class MiembroSprint(models.Model):
     """
     miembro = models.ForeignKey(MiembroProyecto, verbose_name='Miembro del Sprint')
     sprint = models.ForeignKey(Sprint, verbose_name='Sprint')
-    horasAsignadas = models.IntegerField(verbose_name='Horas por día asignadas al miembro')
+    horasAsignadas = models.PositiveIntegerField(verbose_name='Horas por día asignadas al miembro', validators=[validar_mayor_a_cero])
 
     class Meta:
         unique_together = ('miembro', 'sprint')
@@ -299,7 +306,7 @@ class UserStorySprint(models.Model):
     """
     us = models.ForeignKey(UserStory)
     sprint = models.ForeignKey(Sprint)
-    asignee = models.ForeignKey(MiembroSprint)
+    asignee = models.ForeignKey(MiembroSprint, null=True)
 
     class Meta:
         default_permissions = ()
@@ -322,7 +329,7 @@ class Actividad(models.Model):
     # por ahora todavía no tenemos una clase para archivos adjuntos, en dicha clase se deberá
     # especificar el ForeignKey a Actividad
 
-    horasTrabajadas = models.IntegerField(verbose_name='horas trabajadas', default=0)
+    horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=0)
     fase = models.ForeignKey(Fase)
 
     # especifica en que estado estaba el US cuando la actividad fue agregada

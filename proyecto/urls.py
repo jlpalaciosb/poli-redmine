@@ -3,9 +3,12 @@ from django.conf.urls import url
 from proyecto.views import \
     ProyectoListView, ProyectoCreateView, ProyectoUpdateView, ProyectoPerfilView, ProyectoListJson, \
     RolListView, RolListJson, RolProyectoCreateView, RolProyectoUpdateView, RolPerfilView, RolEliminarView, \
-    MiembroProyectoCreateView, MiembroProyectoListJson, MiembroProyectoListView, MiembroProyectoUpdateView, MiembroProyectoPerfilView, MiembroProyectoDeleteView
-from proyecto.views.flujo_views import FlujoCreateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoUpdateView, \
-    FlujoEliminarView
+    MiembroProyectoCreateView, MiembroProyectoListJsonView, MiembroProyectoListView, MiembroProyectoUpdateView, MiembroProyectoPerfilView, MiembroProyectoDeleteView, \
+    TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView, \
+    USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView,\
+    SprintListView, SprintListJson, crear_sprint, SprintPerfilView, MiembroSprintListJson, MiembroSprintListView, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint,\
+    FlujoCreateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoUpdateView, FlujoEliminarView
+
 
 urlpatterns = [
     url(r'^$', ProyectoListView.as_view(), name='proyectos'),
@@ -21,7 +24,7 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/roles/(?P<rol_id>\d+)/eliminar$', RolEliminarView.as_view(), name='proyecto_rol_eliminar'),
     url(r'^(?P<proyecto_id>\d+)/miembros/crear$', MiembroProyectoCreateView.as_view(), name='proyecto_miembro_crear'),
     url(r'^(?P<proyecto_id>\d+)/miembros/$', MiembroProyectoListView.as_view(), name='proyecto_miembro_list'),
-    url(r'^(?P<proyecto_id>\d+)/miembros/list$', MiembroProyectoListJson.as_view(), name='proyecto_miembro_list_json'),
+    url(r'^(?P<proyecto_id>\d+)/miembros/list$', MiembroProyectoListJsonView.as_view(), name='proyecto_miembro_list_json'),
     url(r'^(?P<proyecto_id>\d+)/miembros/(?P<miembro_id>\d+)/perfil$', MiembroProyectoPerfilView.as_view(), name='proyecto_miembro_perfil'),
     url(r'^(?P<proyecto_id>\d+)/miembros/(?P<miembro_id>\d+)/editar$', MiembroProyectoUpdateView.as_view(), name='proyecto_miembro_editar'),
     url(r'^(?P<proyecto_id>\d+)/miembros/(?P<miembro_id>\d+)/excluir$', MiembroProyectoDeleteView.as_view(), name='proyecto_miembro_excluir'),
@@ -31,4 +34,25 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/flujos/(?P<flujo_id>\d+)/perfil$', FlujoPerfilView.as_view(), name='proyecto_flujo_ver'),
     url(r'^(?P<proyecto_id>\d+)/flujos/(?P<flujo_id>\d+)/editar$', FlujoUpdateView.as_view(), name='proyecto_flujo_editar'),
     url(r'^(?P<proyecto_id>\d+)/flujos/(?P<flujo_id>\d+)/excluir$', FlujoEliminarView.as_view(), name='proyecto_flujo_eliminar'),
+    url(r'^(?P<proyecto_id>\d+)/tipous/crear$', TipoUsCreateView.as_view(), name='proyecto_tipous_crear'),
+    url(r'^(?P<proyecto_id>\d+)/tipous/(?P<tipous_id>\d+)/editar$', TipoUsUpdateView.as_view(), name='proyecto_tipous_editar'),
+    url(r'^(?P<proyecto_id>\d+)/tiposus/$', TipoUsListView.as_view(), name='proyecto_tipous_list'),
+    url(r'^(?P<proyecto_id>\d+)/tiposus/list$', TipoUsListJson.as_view(), name='proyecto_tipous_list_json'),
+    url(r'^(?P<proyecto_id>\d+)/tipous/(?P<tipous_id>\d+)/ver$', TipoUSPerfilView.as_view(), name='proyecto_tipous_ver'),
+    url(r'^(?P<proyecto_id>\d+)/tipous/(?P<tipous_id>\d+)/eliminar$', TipoUsEliminarView.as_view(), name='proyecto_tipous_eliminar'),
+    url(r'^(?P<proyecto_id>\d+)/userstories/crear$', USCreateView.as_view(), name='proyecto_us_crear'),
+    url(r'^(?P<proyecto_id>\d+)/userstories/$', USListView.as_view(), name='proyecto_us_list'),
+    url(r'^(?P<proyecto_id>\d+)/userstories/list$', USListJsonView.as_view(), name='proyecto_us_list_json'),
+    url(r'^(?P<proyecto_id>\d+)/userstories/(?P<us_id>\d+)/ver$', USPerfilView.as_view(), name='proyecto_us_ver'),
+    url(r'^(?P<proyecto_id>\d+)/userstories/(?P<us_id>\d+)/editar$', USUpdateView.as_view(), name='proyecto_us_editar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/$', SprintListView.as_view(), name='proyecto_sprint_list'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/list$', SprintListJson.as_view(), name='proyecto_sprint_list_json'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/crear$', crear_sprint, name='proyecto_sprint_crear'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/administrar$', SprintPerfilView.as_view(), name='proyecto_sprint_administrar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros$', MiembroSprintListView.as_view(), name='proyecto_sprint_miembros'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/list$', MiembroSprintListJson.as_view(), name='proyecto_sprint_miembros_json'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/agregar$', MiembroSprintCreateView.as_view(), name='proyecto_sprint_miembros_agregar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/(?P<miembroSprint_id>\d+)/ver$', MiembroSprintPerfilView.as_view(), name='proyecto_sprint_miembros_ver'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/(?P<miembroSprint_id>\d+)/editar$', MiembroSprintUpdateView.as_view(), name='proyecto_sprint_miembros_editar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/(?P<miembroSprint_id>\d+)/excluir$', excluir_miembro_sprint, name='proyecto_sprint_miembros_excluir')
 ]

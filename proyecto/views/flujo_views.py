@@ -1,4 +1,4 @@
-from proyecto.forms.flujo_form import FlujoForm, FaseFormSet
+from proyecto.forms import FlujoForm, FaseFormSet
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, SuccessMessageOnDeleteMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
@@ -82,11 +82,15 @@ class FlujoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessa
 
     def check_permissions(self, request):
         """
-        Se sobreescribe el metodo para no permitir la modificacion de un flujo si algun proyecto ya tiene asociado el flujo
+        Se sobreescribe el metodo para no permitir la modificacion de un flujo si algun user story ya tiene asociado el flujo
         :param request:
         :return:
         """
         try:
+            flujo = Flujo.objects.get(pk=self.kwargs['flujo_id'])
+            cantidadUserStoryAsociados = flujo.userstory_set.all().count()
+            if cantidadUserStoryAsociados > 0 :
+                return HttpResponseForbidden()
             return super(FlujoUpdateView, self).check_permissions(request)
         except Flujo.DoesNotExist:
             raise Http404('no existe flujo con el id en la url')
@@ -274,6 +278,10 @@ class FlujoEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMes
         Si un flujo esta asociado con al menos un user story entonces no se puede eliminar.
         :return:
         """
+        flujo = Flujo.objects.get(pk=self.kwargs['flujo_id'])
+        cantidadUserStoryAsociados = flujo.userstory_set.all().count()
+        if cantidadUserStoryAsociados > 0:
+            return False
         return True
 
     def post(self, request, *args, **kwargs):

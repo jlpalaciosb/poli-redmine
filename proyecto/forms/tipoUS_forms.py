@@ -1,4 +1,4 @@
-from proyecto.models import Flujo, Fase
+from proyecto.models import TipoUS, CampoPersonalizado
 from django import forms
 from crispy_forms.bootstrap import FormActions,Accordion,AccordionGroup
 from crispy_forms.helper import FormHelper
@@ -6,28 +6,28 @@ from crispy_forms.layout import Submit, HTML, Layout, Field
 from .custom_layout_object import Formset
 
 
-class FaseForm(forms.ModelForm):
+class CampoPersonalizadoForm(forms.ModelForm):
 
     class Meta:
-        model = Fase
+        model = CampoPersonalizado
         exclude = ()
 
 #Este es la declaracion del subform. EL form que se va a repetir
-FaseFormSet = forms.inlineformset_factory(
-    Flujo, Fase, form=FaseForm,max_num=5,
-    fields=['nombre'], extra=1, can_delete=True, labels = {'nombre':'Nombre de la Fase', 'orden':'Orden'},
-    help_texts={'nombre':'Se omitiran aquellos campos que sean duplicados o vacios'}
+CampoPersonalizadoFormSet = forms.inlineformset_factory(
+    TipoUS, CampoPersonalizado, form=CampoPersonalizadoForm,max_num=5,
+    fields=['nombre_campo', 'tipo_dato'], extra=1, can_delete=True, labels = {'nombre_campo':'Nombre del Campo', 'tipo_dato':'Tipo de Dato'},
+    help_texts={'nombre_campo':'Se omitiran aquellos campos que sean duplicados o vacios'}
     )
 
-class FlujoForm(forms.ModelForm):
+class TipoUsForm(forms.ModelForm):
 
     class Meta:
-        model = Flujo
+        model = TipoUS
         fields = ['nombre', 'proyecto' ]
 
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
-        super(FlujoForm, self).__init__(*args, **kwargs)
+        super(TipoUsForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = True
         self.helper.form_class = 'form-horizontal'
@@ -37,8 +37,8 @@ class FlujoForm(forms.ModelForm):
 
                 Field('nombre'),
                 Field('proyecto', type='hidden'),
-                Accordion(AccordionGroup('Fase(El orden de las fases sera determinado de acuerdo al orden que se cargan)',
-                    Formset('fases'))),
+                Accordion(AccordionGroup('Campos Personalizados',
+                    Formset('campospersonalizados'))),
                 HTML("<br>"),
                 FormActions(
                     Submit('guardar', 'Guardar'),
