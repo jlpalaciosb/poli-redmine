@@ -11,9 +11,12 @@
         <div class="col-xs-4">
           <h4>{{ proyecto.nombre }}</h4>
           <p>
-              <strong>Descripción:</strong>   {{ proyecto.descripcion|default_if_none:"" }}<br><br>
               <strong>Cliente:</strong>   {{ proyecto.cliente.nombre|default_if_none:"" }}<br>
           </p>
+            <div class="form-group">
+                <label><strong>Descripción</strong></label>
+                <textarea readonly class="form-control" rows="4">{{ proyecto.descripcion }}</textarea>
+            </div>
         </div>
 
         <div class="col-xs-4">
