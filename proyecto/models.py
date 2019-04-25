@@ -42,8 +42,8 @@ class Proyecto(models.Model):
     cliente = models.ForeignKey(Cliente)
     fechaInicioEstimada = models.DateField(verbose_name='inicio', help_text='fecha de inicio estimada', null=True, blank=True)
     fechaFinEstimada = models.DateField(verbose_name='finalización', help_text='fecha de finalización estimada', null=True, blank=True)
-    duracionSprint = models.IntegerField(verbose_name='duración del sprint', help_text='duración estimada para los sprints (en semanas)', default=4)
-    diasHabiles = models.IntegerField(verbose_name='días hábiles', help_text='cantidad de días hábiles en la semana', default=5)
+    duracionSprint = models.PositiveIntegerField(verbose_name='duración del sprint', help_text='duración estimada para los sprints (en semanas)', default=4)
+    diasHabiles = models.PositiveIntegerField(verbose_name='días hábiles', help_text='cantidad de días hábiles en la semana', default=5)
     estado = models.CharField(choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
     scrum_master = models.ForeignKey(User, verbose_name='scrum master')
 
@@ -83,11 +83,11 @@ class Sprint(models.Model):
     La clase Sprint representa a un Sprint de un proyecto específico
     """
     proyecto = models.ForeignKey(Proyecto)
-    orden = models.IntegerField()
-    duracion = models.IntegerField(verbose_name='duración del sprint (en semanas)')
+    orden = models.PositiveIntegerField()
+    duracion = models.PositiveIntegerField(verbose_name='duración del sprint (en semanas)')
     fechaInicio = models.DateField(verbose_name='fecha de inicio', null=True)
     estado = models.CharField(choices=ESTADOS_SPRINT, default='PLANIFICADO', max_length=15)
-    capacidad = models.IntegerField(
+    capacidad = models.PositiveIntegerField(
         verbose_name='capacidad del sprint (en horas)', default=0,
         help_text='Este valor nos dice cuantas horas de trabajo disponible hay en el sprint'
     )
@@ -103,7 +103,7 @@ class Flujo(models.Model):
     """
     nombre = models.CharField(max_length=50)
     proyecto = models.ForeignKey(Proyecto)
-    cantidadFases = models.IntegerField(default=0)
+    cantidadFases = models.PositiveIntegerField(default=0)
 
     class Meta:
         default_permissions = ()
@@ -117,7 +117,7 @@ class Fase(models.Model):
     """
     flujo = models.ForeignKey(Flujo)
     nombre = models.CharField(max_length=25)
-    orden = models.IntegerField()
+    orden = models.PositiveIntegerField()
     
     class Meta:
         default_permissions =  ()
@@ -195,12 +195,12 @@ class UserStory(models.Model):
         choices=ESTADOS_US_FASE, null=True,
     )
 
-    prioridad = models.IntegerField(choices=PRIORIDADES_US, default=3)
-    valorNegocio = models.IntegerField(verbose_name='valor de negocio', choices=PRIORIDADES_US, default=3)
-    valorTecnico = models.IntegerField(verbose_name='valor técnico', choices=PRIORIDADES_US, default=3)
+    prioridad = models.PositiveIntegerField(choices=PRIORIDADES_US, default=3)
+    valorNegocio = models.PositiveIntegerField(verbose_name='valor de negocio', choices=PRIORIDADES_US, default=3)
+    valorTecnico = models.PositiveIntegerField(verbose_name='valor técnico', choices=PRIORIDADES_US, default=3)
     priorizacion = models.FloatField(default=1)
 
-    tiempoPlanificado = models.IntegerField(
+    tiempoPlanificado = models.PositiveIntegerField(
         verbose_name='tiempo planificado (en horas)',
         help_text='cuántas horas cree que le llevará a una persona terminar este US',
     )
@@ -254,6 +254,9 @@ class MiembroProyecto(models.Model):
         default_permissions = ()
         unique_together = (("user","proyecto"),)
 
+    def __str__(self):
+        return self.user.__str__()
+
 
 class Usuario(models.Model):
 
@@ -271,7 +274,7 @@ class MiembroSprint(models.Model):
     """
     miembro = models.ForeignKey(MiembroProyecto, verbose_name='Miembro del Sprint')
     sprint = models.ForeignKey(Sprint, verbose_name='Sprint')
-    horasAsignadas = models.IntegerField(verbose_name='Horas por día asignadas al miembro')
+    horasAsignadas = models.PositiveIntegerField(verbose_name='Horas por día asignadas al miembro')
 
     class Meta:
         unique_together = ('miembro', 'sprint')
@@ -283,7 +286,7 @@ class UserStorySprint(models.Model):
     """
     us = models.ForeignKey(UserStory)
     sprint = models.ForeignKey(Sprint)
-    asignee = models.ForeignKey(MiembroSprint)
+    asignee = models.ForeignKey(MiembroSprint, null=True)
 
     class Meta:
         default_permissions = ()
@@ -306,7 +309,7 @@ class Actividad(models.Model):
     # por ahora todavía no tenemos una clase para archivos adjuntos, en dicha clase se deberá
     # especificar el ForeignKey a Actividad
 
-    horasTrabajadas = models.IntegerField(verbose_name='horas trabajadas', default=0)
+    horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=0)
     fase = models.ForeignKey(Fase)
 
     # especifica en que estado estaba el US cuando la actividad fue agregada
