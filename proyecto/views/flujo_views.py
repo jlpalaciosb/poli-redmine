@@ -1,4 +1,4 @@
-from proyecto.forms.flujo_form import FlujoForm
+from proyecto.forms.flujo_form import FlujoForm, FaseFormSet
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, SuccessMessageOnDeleteMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
@@ -52,6 +52,11 @@ class FlujoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessa
                                  {'nombre': 'Flujo', 'url': reverse('proyecto_flujo_list', kwargs=self.kwargs)},
                                  {'nombre': 'Crear', 'url': '#'}
                                  ]
+        if self.request.POST:
+            context['fases'] = FaseFormSet(self.request.POST)
+        else:
+            context['fases'] = FaseFormSet()
+        return context
 
     def form_valid(self, form):
         context = self.get_context_data()
@@ -82,9 +87,6 @@ class FlujoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessa
         :return:
         """
         try:
-            flujo = Flujo.objects.get(pk=self.kwargs['flujo_id'])
-            if flujo.proyecto_set.all():
-                return self.handle_no_permission()
             return super(FlujoUpdateView, self).check_permissions(request)
         except Flujo.DoesNotExist:
             raise Http404('no existe flujo con el id en la url')
@@ -112,6 +114,11 @@ class FlujoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessa
                                  {'nombre': 'Ver flujo', 'url': reverse('proyecto_flujo_ver', kwargs=self.kwargs)},
                                  {'nombre': 'Editar', 'url': '#'}
                                  ]
+        if self.request.POST:
+            context['fases'] = FaseFormSet(self.request.POST, instance=self.object)
+        else:
+            context['fases'] = FaseFormSet(instance=self.object)
+        return context
 
     def form_valid(self, form):
 
@@ -267,7 +274,7 @@ class FlujoEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMes
         Si un flujo esta asociado con al menos un user story entonces no se puede eliminar.
         :return:
         """
-        return not self.get_object().proyecto_set.all()
+        return True
 
     def post(self, request, *args, **kwargs):
         if self.eliminable():
