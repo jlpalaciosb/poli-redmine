@@ -56,7 +56,3 @@ class USForm(ModelForm):
             if self.instance.nombre != self.cleaned_data['nombre'] and c == 1:
                 raise forms.ValidationError('Existe otro US con este nombre para este proyecto')
         return self.cleaned_data['nombre']
-
-    def clean(self):
-        self.instance.priorizacion = (4 * self.instance.prioridad + self.instance.valorTecnico + self.instance.valorNegocio) / 6
-        super().clean()
