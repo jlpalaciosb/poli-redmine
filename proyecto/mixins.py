@@ -80,3 +80,23 @@ class SuccessMessageOnDeleteMixin():
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, self.success_message)
         return super(DeleteView, self).delete(request, *args, **kwargs)
+
+class ProyectoSoloSePuedeVerMixin(object):
+    """
+    Mixin para prohibir acceso a una vista. Si el proyecto esta TERMINADO, CANCELADO o SUSPENDIDO.
+    """
+    proyecto_id_kwargs = 'proyecto_id'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.sePuedeModificar(kwargs[self.proyecto_id_kwargs]):
+            return HttpResponseForbidden()
+        return super(ProyectoSoloSePuedeVerMixin, self).dispatch(request, *args, **kwargs)
+
+    def sePuedeModificar(self, id):
+        try:
+            proyecto = Proyecto.objects.get(pk=id)
+            if(proyecto.estado in ['TERMINADO','CANCELADO','SUSPENDIDO']):
+                return False
+            return True
+        except Proyecto.DoesNotExist:
+            raise Http404('no existe proyecto con el id en la url')
