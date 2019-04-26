@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from guardian.decorators import permission_required
 from proyecto.forms import MiembroSprintForm
+from django.contrib.auth.decorators import login_required
 
 class SprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
     """
@@ -78,6 +79,7 @@ class SprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
 
         return proyecto.sprint_set.all()
 
+@login_required
 @permission_required('proyecto.administrar_sprint',(Proyecto, 'id', 'proyecto_id'), return_403=True)
 def crear_sprint(request, proyecto_id):
     """
