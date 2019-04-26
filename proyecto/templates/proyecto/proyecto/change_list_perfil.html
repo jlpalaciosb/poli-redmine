@@ -1,0 +1,122 @@
+{% extends 'change_list.html' %}
+{% load static %}
+{% load guardian_tags %}
+{% block content %}
+    {{ block.super }}
+{% endblock %}
+
+{% block detail %}
+    <div class="well m-t bg-light lt">
+      <div class="row">
+        <div class="col-xs-4">
+          <h4>{{ proyecto.nombre }}</h4>
+          <p>
+              <strong>Cliente:</strong>   {{ proyecto.cliente.nombre|default_if_none:"" }}<br>
+          </p>
+            <div class="form-group">
+                <label><strong>Descripción</strong></label>
+                <textarea readonly class="form-control" rows="4">{{ proyecto.descripcion }}</textarea>
+            </div>
+        </div>
+
+        <div class="col-xs-4">
+          <h4>&nbsp;</h4>
+          <p>
+            <strong>Fecha de Inicio Estimada:</strong>   {{ proyecto.fechaInicioEstimada|default_if_none:"" }}<br><br>
+            <strong>Fecha de Finalización Estimada:</strong>   {{ proyecto.fechaFinEstimada|default_if_none:"" }}<br>
+          </p>
+        </div>
+          <div class="col-xs-4">
+              <h4>&nbsp;</h4>
+              <p>
+                <strong>Duración del Sprint:</strong>   {{ proyecto.duracionSprint|default_if_none:"" }} semanas <br><br>
+                <strong>Cantidad de Días Hábiles:</strong>   {{ proyecto.diasHabiles|default_if_none:"" }} por semana<br><br>
+                <strong>Estado:</strong>   {{ proyecto.estado|default_if_none:"" }}<br><br>
+              </p>
+          </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+        <!-- Se trae todos los permisos asociados con el usuario y el proyecto actual -->
+        {% get_obj_perms request.user for proyecto as "permisosGuardian" %}
+            {% if 'change_proyecto' in permisosGuardian %}
+                <a href="{% url 'editar_proyecto' proyecto.id %}">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Editar
+                  </button>
+                </a>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+{% endblock %}
+{% block results %}
+    <div class="row">
+        <div class="col-xs-12">
+                <a href="{% url 'proyecto_us_list' proyecto.id %}">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    User Stories
+                  </button>
+                </a>
+        </div>
+      </div>
+    <div class="row">
+        <div class="col-xs-12">
+                <a href="{% url 'proyecto_rol_list' proyecto.id %}">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Roles
+                  </button>
+                </a>
+        </div>
+      </div>
+    <div class="row">
+        <div class="col-xs-12">
+                <a href="{% url 'proyecto_miembro_list' proyecto.id %}">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Miembros
+                  </button>
+                </a>
+        </div>
+      </div>
+    <div class="row">
+        <div class="col-xs-12">
+                <a href="{% url 'proyecto_flujo_list' proyecto.id %}">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Flujos
+                  </button>
+                </a>
+        </div>
+      </div>
+    <div class="row">
+        <div class="col-xs-12">
+                <a href="{% url 'proyecto_sprint_list' proyecto.id %}">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Sprint
+                  </button>
+                </a>
+        </div>
+      </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <a href="{% url 'proyecto_tipous_list' proyecto.id %}">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-pencil"></i>
+                    Tipos de USs
+                  </button>
+            </a>
+        </div>
+      </div>
+{% endblock %}
+{% block extrajs %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static 'js/jquery.query-object.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/tabs.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/importar_error.js' %}"></script>
+
+{% endblock %}

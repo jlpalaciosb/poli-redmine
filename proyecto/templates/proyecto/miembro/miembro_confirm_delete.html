@@ -1,0 +1,60 @@
+{% extends 'layout/layout.html' %}
+
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            {% if eliminable %}
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <p>¿Seguro que quiere excluir al miembro {{ miembro.user.username }} del proyecto?</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <button type="submit" class="btn m-b-xs btn-danger btn-addon">
+                                <i class="fa fa-check"></i>
+                                Confirmar
+                            </button>
+                            <a href="{% url 'proyecto_miembro_perfil' miembro.proyecto.id miembro.id %}">
+                                <button type="button" class="btn m-b-xs btn-default btn-addon">
+                                    <i class="fa fa-close"></i>
+                                    Cancelar
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            {% else %}
+                <div class="row">
+                    <div class="col-xs-12">
+                        <p>
+                            No se puede excluir al miembro {{ miembro.user.username }} porque {{ motivo }}
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <a href="{% url 'proyecto_miembro_perfil' miembro.proyecto.id miembro.id %}">
+                            <button type="button" class="btn m-b-xs btn-default btn-addon">
+                                <i class="fa fa-check"></i>
+                                Volver
+                            </button>
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

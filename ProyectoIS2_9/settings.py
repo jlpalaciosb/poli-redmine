@@ -45,6 +45,10 @@ INSTALLED_APPS = [
     'guardian',
     'proyecto',
     'django.contrib.admindocs',
+    'roles_sistema',
+    'usuario',
+    'cliente',
+
 ]
 
 MIDDLEWARE = [
@@ -89,7 +93,7 @@ WSGI_APPLICATION = 'ProyectoIS2_9.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'is2db',
+        'NAME': 'is2db_produccion',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
         'HOST': 'localhost',
@@ -120,9 +124,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-py'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Asuncion'
 
 USE_I18N = True
 
