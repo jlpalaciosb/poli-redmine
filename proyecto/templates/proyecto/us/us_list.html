@@ -7,7 +7,7 @@
             id="estadoUS" class="form-control" style="width: auto; display: inline-block;"
             onchange="document.location='?estado='+document.getElementById('estadoUS').value;"
         >
-            <option value="*" {% if selected == '*' %}selected{% endif %}></option>
+            <option value="*" {% if selected == '*' %}selected{% endif %}>Todos</option>
             <option value="1" {% if selected == '1' %}selected{% endif %}>Pendiente</option>
             <option value="2" {% if selected == '2' %}selected{% endif %}>En Sprint</option>
             <option value="3" {% if selected == '3' %}selected{% endif %}>No Terminado</option>
