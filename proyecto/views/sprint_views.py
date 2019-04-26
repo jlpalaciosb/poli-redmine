@@ -98,7 +98,7 @@ def crear_sprint(request, proyecto_id):
         messages.add_message(request, messages.SUCCESS, 'Se creo el sprint Nro '+str(orden+1))
         return HttpResponseRedirect(reverse('proyecto_sprint_list', args=proyecto_id))
     except:
-        messages.add_message(request, messages.ERROR, 'Ha ocurrido un erro!')
+        messages.add_message(request, messages.ERROR, 'Ha ocurrido un error!')
         return HttpResponseRedirect(reverse('proyecto_sprint_list', args=proyecto_id))
 
 class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):

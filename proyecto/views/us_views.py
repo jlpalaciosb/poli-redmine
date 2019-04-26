@@ -113,6 +113,12 @@ class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
             iqs = iqs.filter(estadoProyecto=int(st))
         return iqs
 
+    def render_column(self, row, column):
+        if column == 'priorizacion':
+            return "{0:.2f}".format(row.priorizacion)
+        else:
+            return super().render_column(row, column)
+
 
 class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     """

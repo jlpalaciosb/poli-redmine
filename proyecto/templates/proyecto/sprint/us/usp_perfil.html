@@ -19,7 +19,13 @@
                 <div class="col-xs-4">
                     <h4>{{ usp.us.nombre }}</h4>
                     <div>
-                        <strong>Priorización: </strong> {{ usp.us.priorizacion }} <br>
+                        <strong>Priorización: </strong> {{ usp.us.priorizacion | floatformat:2 }} <br>
+                    </div>
+                    <br>
+                    <div>
+                        <strong>Flujo: </strong> {{ usp.us.flujo.nombre | default_if_none:"" }} <br>
+                        <strong>Fase: </strong> {{ usp.us.fase.nombre | default_if_none:"" }} <br>
+                        <strong>Estado en la Fase: </strong> {{ usp.us.get_estadoFase_display | default_if_none:"" }} <br>
                     </div>
                     <br>
                 </div>
