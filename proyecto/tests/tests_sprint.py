@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.urls import reverse
-from guardian.shortcuts import assign_perm
 
 from proyecto.models import Proyecto, Cliente, MiembroProyecto, RolProyecto, Sprint
 
@@ -23,7 +22,7 @@ class SprintTestBase(TestCase):
 
 
         ca = Cliente.objects.create(ruc='1234567-1', nombre='cliente_a', correo='a'+EMAIL, telefono=TELEF+'4', pais='px', direccion='dx')
-        cb = Cliente.objects.create(ruc='4839274-2', nombre='cliente_b', correo='b'+EMAIL, telefono=TELEF+'3', pais='px', direccion='dx')
+
 
         self.proyecto = Proyecto.objects.create(nombre='proyecto_1', cliente=ca, scrum_master=self.user_scrum_master)
 
@@ -105,7 +104,7 @@ class SprintPerfilViewTest(PermisosEsMiembroTest):
 
 class SprintCreateViewTest(SprintTestBase):
     """
-    Test para la vista SprintUsCreateView
+    Test para la vista SprintCreateView
     """
     def setUp(self):
         super().setUp()
