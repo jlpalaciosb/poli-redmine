@@ -1,5 +1,5 @@
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, SuccessMessageOnDeleteMixin, ProyectoEstadoInvalidoMixin
-from django.contrib.auth.mixins import LoginRequiredMixin
+from guardian.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
 from proyecto.models import TipoUS, Proyecto
 from proyecto.forms import TipoUsForm, CampoPersonalizadoFormSet

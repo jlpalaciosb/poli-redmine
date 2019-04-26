@@ -1,5 +1,5 @@
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
-from django.contrib.auth.mixins import LoginRequiredMixin
+from guardian.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
 from proyecto.models import Sprint, Proyecto, ESTADOS_SPRINT, MiembroSprint, UserStorySprint
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect

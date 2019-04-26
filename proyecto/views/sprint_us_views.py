@@ -1,11 +1,11 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView
 from django.http import HttpResponseForbidden
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
-
+from guardian.mixins import LoginRequiredMixin
 from proyecto.forms import UserStorySprintCrearForm, UserStorySprintEditarForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEnEjecucionMixin
 from proyecto.models import Sprint, Proyecto, UserStorySprint

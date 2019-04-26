@@ -1,6 +1,6 @@
 from proyecto.forms import FlujoForm, FaseFormSet
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, SuccessMessageOnDeleteMixin, ProyectoEstadoInvalidoMixin
-from django.contrib.auth.mixins import LoginRequiredMixin
+from guardian.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
 from proyecto.models import Flujo, Proyecto
 from django.http import Http404, HttpResponseForbidden
