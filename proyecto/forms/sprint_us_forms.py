@@ -32,8 +32,8 @@ class UserStorySprintCrearForm(forms.ModelForm):
         self.fields['asignee'].queryset = MiembroSprint.objects.filter(sprint=self.sprint)
 
         self.fields['us'].label_from_instance = lambda us :\
-            us.nombre + ' (Priorización = ' + str(us.priorizacion) + ') ' + \
-            '(Estado General = ' + us.get_estadoProyecto_display() + ')'
+            '{} (Priorización = {:.2f}) (Estado General = {}) (Trabajo Restante = {:.2f} horas)'.\
+                format(us.nombre, us.priorizacion, us.get_estadoProyecto_display(), us.tiempoPlanificado - us.tiempoEjecutado)
 
         if self.instance.id is None:
             self.instance.sprint = self.sprint
@@ -58,7 +58,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
         us = self.cleaned_data['us']
         flujo = self.cleaned_data['flujo']
         if us.flujo is None and flujo is None:
-            raise forms.ValidationError('Se necesitá especificar el flujo que seguirá el US seleccionado')
+            raise forms.ValidationError('Se necesita especificar el flujo que seguirá el US seleccionado')
         return flujo
 
 

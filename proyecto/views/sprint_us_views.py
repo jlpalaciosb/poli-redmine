@@ -1,14 +1,14 @@
-from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoSoloSePuedeVerMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
-from proyecto.models import Sprint, Proyecto, MiembroSprint, UserStorySprint, Fase
-from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
+from django.views.generic import CreateView, UpdateView, TemplateView, DetailView
+from django.http import HttpResponseForbidden
 from django.urls import reverse
-from django.db import transaction
-from guardian.shortcuts import  get_perms
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib import messages
+
 from proyecto.forms import UserStorySprintCrearForm, UserStorySprintEditarForm
+from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
+from proyecto.models import Sprint, Proyecto, UserStorySprint
 
 
 class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, CreateView):
@@ -40,6 +40,8 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Su
 
     def form_valid(self, form):
         # TODO : transaction
+
+        # establecer estado del us seleccionado y su flujo
         us = form.cleaned_data['us']
         flujo = form.cleaned_data['flujo']
         us.estadoProyecto = 2
@@ -48,6 +50,18 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Su
             us.fase = flujo.fase_set.get(orden=1)
             us.estadoFase = 'TODO'
         us.save()
+
+        # calcular cantidad de horas disponibles en el sprint (recordar que sprint tiene un atributo llamado capacidad)
+        sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
+        suma = 0 # cantidad de horas de trabajo por hacer
+        for usp in UserStorySprint.objects.filter(sprint=sprint):
+            restante = usp.us.tiempoPlanificado - usp.us.tiempoEjecutado
+            suma += restante
+        suma += us.tiempoPlanificado - us.tiempoEjecutado # sumar trabajo restante del US que se está agregando
+        disponible = sprint.capacidad - suma
+        if disponible > 0: messages.add_message(self.request, messages.INFO, 'Quedan ' + str(disponible) + ' horas disponibles en el sprint')
+        else: messages.add_message(self.request, messages.WARNING, 'Capacidad del sprint superada por ' + str(-disponible) + ' horas')
+
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -119,6 +133,12 @@ class UserStorySprintListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, Ba
     def get_initial_queryset(self):
         return UserStorySprint.objects.filter(sprint__id=self.kwargs['sprint_id'])
 
+    def render_column(self, row, column):
+        if column == 'us.priorizacion':
+            return "{0:.2f}".format(row.us.priorizacion)
+        else:
+            return super().render_column(row, column)
+
 
 class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     """
@@ -136,7 +156,7 @@ class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
         usp = context['object']
 
-        context['titulo'] = 'Ver US de Sprint'
+        context['titulo'] = 'Ver US en Sprint'
 
         # Breadcrumbs
         context['breadcrumb'] = [
@@ -149,7 +169,7 @@ class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
             {'nombre': usp.us.nombre, 'url': '#'},
         ]
 
-        context['puedeEditar'] = self.request.user.has_perm('proyecto.administrar_sprint', proyecto)
+        context['puedeEditar'] = self.request.user.has_perm('proyecto.administrar_sprint', proyecto) and sprint.estado == 'PLANIFICADO'
 
         return context
 
