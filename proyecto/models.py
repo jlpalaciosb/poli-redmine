@@ -279,6 +279,9 @@ class MiembroSprint(models.Model):
     class Meta:
         unique_together = ('miembro', 'sprint')
 
+    def __str__(self):
+        return self.miembro.user.username
+
 
 class UserStorySprint(models.Model):
     """

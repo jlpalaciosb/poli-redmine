@@ -15,3 +15,5 @@ from .us_views import USCreateView, USListView, USListJsonView, USPerfilView, US
 from .sprint_views import SprintListView, SprintListJson, crear_sprint, SprintPerfilView
 
 from .miembroSprint_views import MiembroSprintListView, MiembroSprintListJson, MiembroSprintCreateView
+
+from .sprint_us_views import UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView

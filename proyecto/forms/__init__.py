@@ -9,3 +9,5 @@ from .tipoUS_forms import TipoUsForm, CampoPersonalizadoForm, CampoPersonalizado
 from .us_forms import USForm
 
 from .miembroSprint_forms import MiembroSprintForm
+
+from .sprint_us_forms import UserStorySprintForm, UserStorySprintEditarForm
