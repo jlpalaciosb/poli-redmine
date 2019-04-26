@@ -1,4 +1,4 @@
-from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoSoloSePuedeVerMixin
+from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
 from proyecto.models import Sprint, Proyecto, ESTADOS_SPRINT, MiembroSprint, UserStorySprint
@@ -13,6 +13,7 @@ from django.http import HttpResponseRedirect
 from guardian.decorators import permission_required
 from proyecto.forms import MiembroSprintForm
 from django.contrib.auth.decorators import login_required
+from proyecto.decorators import proyecto_en_ejecucion
 
 class SprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
     """
@@ -81,6 +82,7 @@ class SprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
 
 @login_required
 @permission_required('proyecto.administrar_sprint',(Proyecto, 'id', 'proyecto_id'), return_403=True)
+@proyecto_en_ejecucion
 def crear_sprint(request, proyecto_id):
     """
     Vista para crear un sprint en caso de que se cumpla que a lo sumo exista un sprint planificado en el proyecto.

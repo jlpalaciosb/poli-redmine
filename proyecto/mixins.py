@@ -1,8 +1,8 @@
 from django.core.exceptions import PermissionDenied
-from django.http import Http404, HttpResponseForbidden
+from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from guardian.mixins import PermissionRequiredMixin as GuardianPermissionRequiredMixin
-
+from django.urls import reverse
 from ProyectoIS2_9.utils import get_40x_or_None_ANY
 from proyecto.models import Proyecto, MiembroProyecto
 from django.contrib import messages
@@ -81,22 +81,43 @@ class SuccessMessageOnDeleteMixin():
         messages.success(self.request, self.success_message)
         return super(DeleteView, self).delete(request, *args, **kwargs)
 
-class ProyectoSoloSePuedeVerMixin(object):
+class ProyectoEstadoInvalidoMixin(object):
     """
     Mixin para prohibir acceso a una vista. Si el proyecto esta TERMINADO, CANCELADO o SUSPENDIDO.
     """
     proyecto_id_kwargs = 'proyecto_id'
+    estados_inaceptables = ['TERMINADO', 'CANCELADO', 'SUSPENDIDO']
+
+    def donde_regresar(self):
+        """
+        Metodo que hace que se regrese al perfil del proyecto si el proyecto esta en un estado inaceptable.
+        Sobreescribir si se quiere redirigir a otro sitio.
+
+        :return:
+        """
+        return reverse('perfil_proyecto',args=(self.kwargs[self.proyecto_id_kwargs],))
+
 
     def dispatch(self, request, *args, **kwargs):
         if not self.sePuedeModificar(kwargs[self.proyecto_id_kwargs]):
-            return HttpResponseForbidden()
-        return super(ProyectoSoloSePuedeVerMixin, self).dispatch(request, *args, **kwargs)
+            messages.add_message(request,messages.WARNING,'El estado del proyecto no permite acceder a esta funcionalidad')
+            return HttpResponseRedirect(self.donde_regresar())
+        return super(ProyectoEstadoInvalidoMixin, self).dispatch(request, *args, **kwargs)
 
     def sePuedeModificar(self, id):
         try:
             proyecto = Proyecto.objects.get(pk=id)
-            if(proyecto.estado in ['TERMINADO','CANCELADO','SUSPENDIDO']):
+            if(proyecto.estado in self.estados_inaceptables):
                 return False
             return True
         except Proyecto.DoesNotExist:
             raise Http404('no existe proyecto con el id en la url')
+
+class ProyectoEnEjecucionMixin(ProyectoEstadoInvalidoMixin):
+    """
+    Mixin para prohibir acceso a una vista. Si el proyecto no esta EN EJECUCION
+    """
+
+    estados_inaceptables = ['TERMINADO', 'CANCELADO', 'SUSPENDIDO','PENDIENTE']
+
+

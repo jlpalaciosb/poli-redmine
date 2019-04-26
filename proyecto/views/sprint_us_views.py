@@ -7,11 +7,11 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
 
 from proyecto.forms import UserStorySprintCrearForm, UserStorySprintEditarForm
-from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
+from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEnEjecucionMixin
 from proyecto.models import Sprint, Proyecto, UserStorySprint
 
 
-class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, CreateView):
+class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, SuccessMessageMixin, CreateView):
     """
     Vista para agregar un user story a un sprint
     """
@@ -174,7 +174,7 @@ class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
         return context
 
 
-class UserStorySprintUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, UpdateView):
+class UserStorySprintUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, UpdateView):
     """
     Vista que permite modificar un User Story a nivel proyecto (hasta ahora solo se permite cambiar el asignee)
     """
