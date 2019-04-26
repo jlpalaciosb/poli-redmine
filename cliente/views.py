@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse, reverse_lazy
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from django.http import HttpResponseRedirect
+from django.contrib import messages
 
 from cliente.forms import ClienteForm
 from proyecto.models import Cliente
@@ -206,8 +206,8 @@ class ClienteDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
     def eliminable(self):
         return self.get_object().proyecto_set.all().count() == 0
 
-    def post(self, request, *args, **kwargs):
-        if self.eliminable():
-            return super(ClienteDeleteView, self).post(request, *args, **kwargs)
-        else:
-            return HttpResponseRedirect(self.success_url)
+    def delete(self, request, *args, **kwargs):
+        if not self.eliminable():
+            return HttpResponseForbidden()
+        messages.add_message(request, messages.SUCCESS, 'Cliente eliminado')
+        return super().delete(request, *args, **kwargs)
