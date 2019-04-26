@@ -116,8 +116,7 @@ class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
 
 class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     """
-    Vista para el perfil de un miembro de un proyecto. Cualquier usuario que sea miembro del proyecto
-    tiene acceso a esta vista
+    Vista para ver los datos básicos de un User Story a nivel de proyecto
     """
     model = UserStory
     context_object_name = 'us'
@@ -148,7 +147,7 @@ class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
 
 class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, UpdateView):
     """
-    Vista que permite modificar los roles de un miembro de proyecto
+    Vista que permite modificar los datos básicos de un User Story a nivel proyecto
     """
     model = UserStory
     form_class = USForm
@@ -164,8 +163,8 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
 
     def get_success_url(self):
         pid = self.kwargs['proyecto_id']
-        mid = self.kwargs['us_id']
-        return reverse('proyecto_us_ver', args=(pid, mid))
+        uid = self.kwargs['us_id']
+        return reverse('proyecto_us_ver', args=(pid, uid))
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

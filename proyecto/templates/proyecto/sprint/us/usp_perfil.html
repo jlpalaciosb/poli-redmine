@@ -1,0 +1,50 @@
+{% extends 'layout/layout.html' %}
+{% load static %}
+
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            <div class="row">
+
+                <div class="col-xs-4">
+                    <h4>{{ usp.us.nombre }}</h4>
+                    <div>
+                        <strong>Priorización: </strong> {{ usp.us.priorizacion }} <br>
+                    </div>
+                    <br>
+                </div>
+
+                <div class="col-xs-6">
+                    <h4>&nbsp;</h4>
+                    <div>
+                        <strong>Encargado: </strong>
+                        {{ usp.asignee.miembro.user.username }} ({{ usp.asignee.miembro.user.get_full_name }}) <br>
+                    </div>
+                    <br>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    {% if puedeEditar %}
+                        <a href="{% url 'sprint_us_editar' usp.us.proyecto.id usp.sprint.id usp.id %}">
+                            <button class="btn m-b-xs btn-default btn-addon ">
+                                <i class="fa fa-pencil"></i>
+                                Cambiar Encargado
+                            </button>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

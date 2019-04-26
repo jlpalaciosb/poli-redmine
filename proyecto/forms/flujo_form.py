@@ -16,7 +16,7 @@ class FaseForm(forms.ModelForm):
 FaseFormSet = forms.inlineformset_factory(
     Flujo, Fase, form=FaseForm,max_num=5,
     fields=['nombre'], extra=1, can_delete=True, labels = {'nombre':'Nombre de la Fase', 'orden':'Orden'},
-    help_texts={'nombre':'Se omitiran aquellos campos que sean duplicados o vacios'}
+    help_texts={'nombre':'Se omitirán aquellos campos que sean duplicados o vacíos'}
     )
 
 class FlujoForm(forms.ModelForm):
@@ -37,7 +37,7 @@ class FlujoForm(forms.ModelForm):
 
                 Field('nombre'),
                 Field('proyecto', type='hidden'),
-                Accordion(AccordionGroup('Fase(El orden de las fases sera determinado de acuerdo al orden que se cargan)',
+                Accordion(AccordionGroup('Fase (El orden de las fases será determinado de acuerdo al orden que se cargan)',
                     Formset('fases'))),
                 HTML("<br>"),
                 FormActions(
