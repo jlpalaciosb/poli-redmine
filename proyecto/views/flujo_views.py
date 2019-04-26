@@ -1,5 +1,5 @@
 from proyecto.forms import FlujoForm, FaseFormSet
-from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, SuccessMessageOnDeleteMixin
+from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, SuccessMessageOnDeleteMixin, ProyectoEstadoInvalidoMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
 from proyecto.models import Flujo, Proyecto
@@ -12,7 +12,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.http import HttpResponseRedirect
 
 
-class FlujoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, CreateView):
+class FlujoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEstadoInvalidoMixin, SuccessMessageMixin, CreateView):
     """
     Vista para creacion de flujo.
     """
@@ -69,7 +69,7 @@ class FlujoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessa
         return super(FlujoCreateView, self).form_valid(form)
 
 
-class FlujoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, UpdateView):
+class FlujoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEstadoInvalidoMixin, SuccessMessageMixin, UpdateView):
     """
     Vistas para modificar un flujo. No se permite acceder a esta vista si al menos un proyecto tengo asociado este flujo.
     """
@@ -234,7 +234,7 @@ class FlujoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         return context
 
 
-class FlujoEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageOnDeleteMixin, DeleteView):
+class FlujoEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEstadoInvalidoMixin, SuccessMessageOnDeleteMixin, DeleteView):
     """
     Vista que elimina un flujo en caso que tenga los permisos necesarios y que no este asociado con ningun user story
     """
