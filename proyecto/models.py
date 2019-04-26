@@ -116,6 +116,8 @@ class Flujo(models.Model):
         default_permissions = ()
         unique_together = ('proyecto', 'nombre')
 
+    def __str__(self): return self.nombre
+
 
 class Fase(models.Model):
     """
@@ -125,7 +127,6 @@ class Fase(models.Model):
     flujo = models.ForeignKey(Flujo)
     nombre = models.CharField(max_length=25)
     orden = models.PositiveIntegerField(default=1)
-    
 
     class Meta:
         default_permissions = ()
@@ -136,12 +137,6 @@ class Fase(models.Model):
         cantidadFases  = self.flujo.fase_set.all().count()
         self.orden = cantidadFases + 1
         super().save(force_insert, force_update, using, update_fields)
-
-
-
-
-
-
 
 
 class TipoUS(models.Model):
@@ -307,9 +302,9 @@ class UserStorySprint(models.Model):
     """
     La clase UserStorySprint sirve para asignar un US al Sprint Backlog de un sprint
     """
-    us = models.ForeignKey(UserStory)
+    us = models.ForeignKey(UserStory, verbose_name='User Story')
     sprint = models.ForeignKey(Sprint)
-    asignee = models.ForeignKey(MiembroSprint, null=True)
+    asignee = models.ForeignKey(MiembroSprint, null=True, verbose_name='Encargado')
 
     class Meta:
         default_permissions = ()

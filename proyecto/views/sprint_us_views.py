@@ -1,14 +1,14 @@
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoSoloSePuedeVerMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
-from proyecto.models import Sprint, Proyecto, MiembroSprint, UserStorySprint
+from proyecto.models import Sprint, Proyecto, MiembroSprint, UserStorySprint, Fase
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
 from django.urls import reverse
 from django.db import transaction
 from guardian.shortcuts import  get_perms
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.messages.views import SuccessMessageMixin
-from proyecto.forms import UserStorySprintForm, UserStorySprintEditarForm
+from proyecto.forms import UserStorySprintCrearForm, UserStorySprintEditarForm
 
 
 class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, CreateView):
@@ -17,7 +17,7 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Su
     """
     model = UserStorySprint
     template_name = "change_form.html"
-    form_class = UserStorySprintForm
+    form_class = UserStorySprintCrearForm
     permission_required = 'proyecto.administrar_sprint'
 
     def handle_no_permission(self):
@@ -39,12 +39,16 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Su
         return kwargs
 
     def form_valid(self, form):
-        with transaction.atomic():
-            response = super().form_valid(form)
-            us = form.instance.us
-            us.estadoProyecto = 2
-            us.save()
-            return response
+        # TODO : transaction
+        us = form.cleaned_data['us']
+        flujo = form.cleaned_data['flujo']
+        us.estadoProyecto = 2
+        if us.flujo is None:
+            us.flujo = flujo
+            us.fase = flujo.fase_set.get(orden=1)
+            us.estadoFase = 'TODO'
+        us.save()
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -164,7 +168,7 @@ class UserStorySprintUpdateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
-        return "Se estableció el asignee exitosamente"
+        return "Se estableció el encargado exitosamente"
 
     def get_success_url(self):
         pid = self.kwargs['proyecto_id']
@@ -188,7 +192,7 @@ class UserStorySprintUpdateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
         usp = context['object']
 
-        context['titulo'] = 'Cambiar Asignee del US en el Sprint'
+        context['titulo'] = 'Cambiar Encargado del US en el Sprint'
         context['titulo_form_editar'] = 'US'
         context['titulo_form_editar_nombre'] = usp.us.nombre
 
@@ -201,7 +205,7 @@ class UserStorySprintUpdateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
             {'nombre': 'Administrar Sprint', 'url': reverse('proyecto_sprint_administrar', args=(proyecto.id, sprint.id))},
             {'nombre': 'User Stories', 'url': reverse('sprint_us_list', args=(proyecto.id, sprint.id))},
             {'nombre': usp.us.nombre, 'url': reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))},
-            {'nombre': 'Cambiar Asignee', 'url': '#'},
+            {'nombre': 'Cambiar Encargado', 'url': '#'},
         ]
 
         return context
