@@ -49,6 +49,7 @@ class PermisosEsMiembroTest(FlujoTestsBase):
 
         self.client.login(username='user_b', password=PWD)
         response = self.client.get(self.url)
+        print("Testing Flujo Pueden ver Miembros")
         self.assertEqual(200, response.status_code)
 
     def test_no_miembros_no_pueden_ver(self):
@@ -56,6 +57,7 @@ class PermisosEsMiembroTest(FlujoTestsBase):
 
         self.client.login(username='user_d', password=PWD)
         response = self.client.get(self.url)
+        print("Testing Flujo no Pueden ver no Miembros")
         self.assertEqual(403, response.status_code)
 
 
@@ -81,6 +83,7 @@ class FlujoListJsonViewTest(PermisosEsMiembroTest):
     def test_retorna_todos_los_flujo(self):
         self.client.login(username='user_a', password=PWD)
         response = self.client.get(self.url)
+        print("Testing Retorna todos los flujos")
         self.assertContains(response, 'Flujo 1')
         self.assertContains(response, 'Flujo 2')
 
@@ -99,6 +102,7 @@ class FlujoPerfilViewTest(PermisosEsMiembroTest):
     def test_muestra_que_es_flujo_1(self):
         self.client.login(username='user_b', password=PWD)
         response = self.client.get(self.url)
+        print("Testing muestra flujo")
         self.assertContains(response, 'Flujo 1')
 
 
@@ -115,12 +119,14 @@ class FlujoCreateViewTest(FlujoTestsBase):
     def test_con_permiso_puede_ver(self):
         self.client.login(username='user_a', password=PWD)
         response = self.client.get(self.url)
+        print("Testing Flujos con permisos de ver")
         self.assertEqual(response.status_code, 200)
 
 
     def test_sin_permiso_no_puede_ver(self):
         self.client.login(username='user_b', password=PWD) # es miembro pero no tiene permiso
         response = self.client.get(self.url)
+        print("Testing Flujos sin permisos de ver")
         self.assertEqual(response.status_code, 403)
 
 
@@ -132,6 +138,7 @@ class FlujoCreateViewTest(FlujoTestsBase):
         Flujo.objects.create(nombre='Flujo 3', proyecto=Proyecto.objects.get(nombre='proyecto_1'))
 
         c = Flujo.objects.filter(nombre='Flujo 3', proyecto__nombre='proyecto_1').count()
+        print("Testing Flujos Creacion")
         self.assertEqual(c, 1)
 
 
@@ -151,12 +158,14 @@ class FlujoUpdateViewTest(FlujoTestsBase):
     def test_con_permiso_puede_ver(self):
         self.client.login(username='user_a', password=PWD)
         response = self.client.get(self.url)
+        print("Testing Flujos con permisos de ver Update")
         self.assertEqual(response.status_code, 200)
 
 
     def test_sin_permiso_no_puede_ver(self):
         self.client.login(username='user_b', password=PWD) # es miembro pero no tiene permiso
         response = self.client.get(self.url)
+        print("Testing Flujos sin permisos de ver Update")
         self.assertEqual(response.status_code, 403)
 
     def test_cambiar_nombre(self):
@@ -173,6 +182,7 @@ class FlujoUpdateViewTest(FlujoTestsBase):
         #vemos si actualizo el tipo de us
         self.flujo_a_editar= Flujo.objects.get(pk=self.flujo_a_editar.pk)
         # verificamos que ahora su nombre es Flujo 2 editado
+        print("Testing Flujos Update")
         self.assertEqual(self.flujo_a_editar.nombre, 'Flujo 2 editado')
 
 
@@ -189,6 +199,7 @@ class FlujoDeleteViewTest(FlujoTestsBase):
     def test_con_permiso_puede_ver(self):
         self.client.login(username='user_a', password=PWD)
         response = self.client.get(self.url)
+        print("Testing Flujos con permisos de ver Update")
         self.assertEqual(response.status_code, 200)
 
 
@@ -196,6 +207,7 @@ class FlujoDeleteViewTest(FlujoTestsBase):
     def test_sin_permiso_no_puede_ver(self):
         self.client.login(username='user_b', password=PWD)  # es miembro pero no tiene permiso
         response = self.client.get(self.url)
+        print("Testing Flujos sin permisos de ver Update")
         self.assertEqual(response.status_code, 403)
 
 
@@ -208,4 +220,5 @@ class FlujoDeleteViewTest(FlujoTestsBase):
         self.client.post(self.url)
 
         c = Flujo.objects.filter(nombre='Flujo 2', proyecto__nombre='proyecto_1').count()
+        print("Testing Flujos Delete")
         self.assertEqual(c, 0) # verificamos que ya no existe ese tipo de us en el proyecto
