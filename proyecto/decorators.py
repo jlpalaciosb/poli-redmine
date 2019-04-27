@@ -11,7 +11,7 @@ def proyecto_en_ejecucion(function):
     """
     def wrap(request, *args, **kwargs):
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
-        if proyecto.estado == 'EN_EJECUCION':
+        if proyecto.estado == 'EN EJECUCION':
             return function(request, *args, **kwargs)
         else:
             messages.add_message(request,messages.WARNING,'El proyecto debe estar EN EJECUCION para acceder a esta funcionalidad')

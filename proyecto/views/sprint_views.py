@@ -96,14 +96,14 @@ def crear_sprint(request, proyecto_id):
     orden = proyecto.sprint_set.all().count()
     if Sprint.objects.filter(proyecto=proyecto, estado='PLANIFICADO').count()!=0:
         messages.add_message(request, messages.WARNING, 'Ya hay un sprint en planificacion!')
-        return HttpResponseRedirect(reverse('proyecto_sprint_list', args=proyecto_id))
+        return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
     try:
         sprint = Sprint.objects.create(proyecto=proyecto, duracion=proyecto.duracionSprint, estado='PLANIFICADO', orden=orden+1)
         messages.add_message(request, messages.SUCCESS, 'Se creo el sprint Nro '+str(orden+1))
-        return HttpResponseRedirect(reverse('proyecto_sprint_list', args=proyecto_id))
+        return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
     except:
         messages.add_message(request, messages.ERROR, 'Ha ocurrido un error!')
-        return HttpResponseRedirect(reverse('proyecto_sprint_list', args=proyecto_id))
+        return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
 
 class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     """

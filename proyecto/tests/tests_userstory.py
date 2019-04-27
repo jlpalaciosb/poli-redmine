@@ -27,7 +27,7 @@ class UserStoryTestsBase(TestCase):
         ca = Cliente.objects.create(ruc='1234567-1', nombre='cliente_a', correo='a'+EMAIL, telefono=TELEF+'4', pais='px', direccion='dx')
         cb = Cliente.objects.create(ruc='4839274-2', nombre='cliente_b', correo='b'+EMAIL, telefono=TELEF+'3', pais='px', direccion='dx')
 
-        p1 = Proyecto.objects.create(nombre='proyecto_1', cliente=ca, scrum_master=ua)
+        p1 = Proyecto.objects.create(nombre='proyecto_1', cliente=ca, scrum_master=ua, estado='EN_EJECUCION')
 
         MiembroProyecto.objects.create(user=ub, proyecto=p1)
         MiembroProyecto.objects.create(user=uc, proyecto=p1)

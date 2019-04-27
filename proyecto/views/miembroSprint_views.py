@@ -287,6 +287,8 @@ def excluir_miembro_sprint(request, miembroSprint_id, sprint_id, proyecto_id):
         sprint = miembro.sprint
         if sprint.estado != 'PLANIFICADO':
             raise Exception('Sprint no esta planificado')
+        if miembro.userstorysprint_set.all().count() > 0:
+            raise Exception('El miembro tiene al menos un User Story asignado')
         sprint.capacidad = sprint.capacidad - sprint.duracion * sprint.proyecto.diasHabiles * miembro.horasAsignadas
         miembro.delete()
         sprint.save()
@@ -295,8 +297,8 @@ def excluir_miembro_sprint(request, miembroSprint_id, sprint_id, proyecto_id):
     except MiembroSprint.DoesNotExist:
         messages.add_message(request, messages.ERROR, 'No existe el miembro a excluir!')
 
-    except:
-        messages.add_message(request, messages.ERROR, 'Ha ocurrido un error')
+    except Exception as e:
+        messages.add_message(request, messages.ERROR, e.args[0])
     finally:
         return HttpResponseRedirect(reverse('proyecto_sprint_miembros', args=(proyecto_id, sprint_id)))
 
