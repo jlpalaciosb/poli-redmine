@@ -24,7 +24,7 @@ class SprintTestBase(TestCase):
         ca = Cliente.objects.create(ruc='1234567-1', nombre='cliente_a', correo='a'+EMAIL, telefono=TELEF+'4', pais='px', direccion='dx')
 
 
-        self.proyecto = Proyecto.objects.create(nombre='proyecto_1', cliente=ca, scrum_master=self.user_scrum_master, estado='EN_EJECUCION')
+        self.proyecto = Proyecto.objects.create(nombre='proyecto_1', cliente=ca, scrum_master=self.user_scrum_master, estado='EN EJECUCION')
 
         otroMiembro = MiembroProyecto.objects.create(user=self.user_developer_team, proyecto=self.proyecto)
         otroMiembro.roles.add(RolProyecto.objects.get(nombre='Developer Team', proyecto=self.proyecto))
