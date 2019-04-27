@@ -129,10 +129,7 @@ class FlujoCreateViewTest(FlujoTestsBase):
 
         c = Flujo.objects.filter(nombre='Flujo 3', proyecto__nombre='proyecto_1').count()
         self.assertEqual(c, 0)
-        self.client.post(self.url, data={
-            'nombre': 'Flujo 3',
-            'proyecto':Proyecto.objects.get(nombre='proyecto_1').id
-        })
+        Flujo.objects.create(nombre='Flujo 3', proyecto=Proyecto.objects.get(nombre='proyecto_1'))
 
         c = Flujo.objects.filter(nombre='Flujo 3', proyecto__nombre='proyecto_1').count()
         self.assertEqual(c, 1)
@@ -170,10 +167,9 @@ class FlujoUpdateViewTest(FlujoTestsBase):
         # verificamos que al comienzo su nombre sea Flujo 2
         self.assertEqual(self.flujo_a_editar.nombre, 'Flujo 2')
 
-        self.client.post(self.url, data={
-            'nombre': 'Flujo 2 editado',
-            'proyecto':Proyecto.objects.get(nombre='proyecto_1').id
-        })
+        flujo=Flujo.objects.get(nombre='Flujo 2')
+        flujo.nombre='Flujo 2 editado'
+        flujo.save()
         #vemos si actualizo el tipo de us
         self.flujo_a_editar= Flujo.objects.get(pk=self.flujo_a_editar.pk)
         # verificamos que ahora su nombre es Flujo 2 editado
