@@ -21,6 +21,7 @@ class ProyectoListViewTest(BasicTestSetup):
         self.user.user_permissions.add(Permission.objects.get(codename='add_proyecto'))
 
         response = self.client.get(reverse('proyectos'))
+        print("Testing Proyecto_List Template")
         self.assertTemplateUsed(response, 'change_list.html')
 
     def test_Proyecto_list_objects(self):
@@ -38,7 +39,7 @@ class ProyectoListViewTest(BasicTestSetup):
 
         response = self.client.get(reverse('proyecto_list_json'))
         data = json.loads(response.content.decode("utf-8"))
-
+        print("Testing Proyecto_List Objects")
         self.assertEqual(cantidad_proyectos, data['recordsTotal'])
 
 
@@ -48,6 +49,7 @@ class ProyectoCreateViewTest(BasicTestSetup):
         self.user.user_permissions.add(Permission.objects.get(codename='add_proyecto'))
 
         response = self.client.get(reverse('crear_proyecto'))
+        print("Testing Proyecto_Create Template")
         self.assertTemplateUsed(response, 'change_form.html')
 
     def test_Proyecto_create_success(self):
@@ -69,8 +71,7 @@ class ProyectoCreateViewTest(BasicTestSetup):
                                 estado='PENDIENTE')
 
         proyecto = Proyecto.objects.get(nombre= 'ProyectoPrueba')
-        print(proyecto)
-
+        print("Testing Proyecto_Create Success")
         self.assertEqual(proyecto.nombre, self.datos['nombre'])
 
     def test_Proyecto_create_error(self):
@@ -81,7 +82,7 @@ class ProyectoCreateViewTest(BasicTestSetup):
             'nombre': 'Proyecto Prueba'
         }
         response = self.client.post(reverse('crear_proyecto'), self.datos)
-
+        print("Testing Proyecto_Create Error")
         self.assertTrue(True if response.context['form'].errors else False)
 
 
@@ -96,7 +97,7 @@ class ProyectoUpdateViewTest(BasicTestSetup):
                             diasHabiles='4', estado='PENDIENTE',
                             scrum_master=self.user)
         proyecto.save()
-
+        print("Testing Proyecto_Update Template")
         response = self.client.get(reverse('editar_proyecto', args=(proyecto.id,)))
         self.assertTemplateUsed(response, 'change_form.html')
 
@@ -114,7 +115,7 @@ class ProyectoUpdateViewTest(BasicTestSetup):
         proyecto.nombre='Prueba'
         proyecto.save()
         proyecto = Proyecto.objects.get(nombre='Prueba')
-
+        print("Testing Proyecto_Update Success")
         self.assertEqual(proyecto.nombre, 'Prueba')
 
     def test_Proyecto_update_error(self):
@@ -133,6 +134,6 @@ class ProyectoUpdateViewTest(BasicTestSetup):
         }
         response = self.client.post(reverse('editar_proyecto', args=(proyecto.id,)),
                                     self.datos)
-
+        print("Testing Proyecto_Update Error")
         self.assertTrue(True if response.context['form'].errors else False)
 
