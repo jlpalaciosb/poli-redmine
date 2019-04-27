@@ -14,6 +14,10 @@ from .us_views import USCreateView, USListView, USListJsonView, USPerfilView, US
 
 from .sprint_views import SprintListView, SprintListJson, crear_sprint, SprintPerfilView
 
+from .miembroSprint_views import MiembroSprintListView, MiembroSprintListJson, MiembroSprintCreateView
+
 from .miembroSprint_views import MiembroSprintListView, MiembroSprintListJson, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint
 
 from .flujo_views import FlujoCreateView, FlujoUpdateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoEliminarView
+
+from .sprint_us_views import UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView

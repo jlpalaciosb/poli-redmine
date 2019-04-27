@@ -1,16 +1,16 @@
 from django.http import HttpResponseForbidden
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
-from django.contrib.auth.mixins import LoginRequiredMixin
+
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
-
+from guardian.mixins import LoginRequiredMixin
 from proyecto.forms import USForm
-from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
+from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
 from proyecto.models import MiembroProyecto, Proyecto, UserStory
 
 
-class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, CreateView):
+class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEstadoInvalidoMixin, CreateView):
     """
     Vista para crear un US para el proyecto
     """
@@ -18,6 +18,7 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     template_name = "change_form.html"
     form_class = USForm
     permission_required = 'proyecto.add_us'
+    estados_inaceptables = ['PENDIENTE','TERMINADO','SUSPENDIDO','CANCELADO']
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -113,11 +114,16 @@ class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
             iqs = iqs.filter(estadoProyecto=int(st))
         return iqs
 
+    def render_column(self, row, column):
+        if column == 'priorizacion':
+            return "{0:.2f}".format(row.priorizacion)
+        else:
+            return super().render_column(row, column)
+
 
 class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     """
-    Vista para el perfil de un miembro de un proyecto. Cualquier usuario que sea miembro del proyecto
-    tiene acceso a esta vista
+    Vista para ver los datos básicos de un User Story a nivel de proyecto
     """
     model = UserStory
     context_object_name = 'us'
@@ -146,15 +152,16 @@ class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         return context
 
 
-class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, UpdateView):
+class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEstadoInvalidoMixin, UpdateView):
     """
-    Vista que permite modificar los roles de un miembro de proyecto
+    Vista que permite modificar los datos básicos de un User Story a nivel proyecto
     """
     model = UserStory
     form_class = USForm
     template_name = 'change_form.html'
     pk_url_kwarg = 'us_id'
     permission_required = 'proyecto.change_us'
+    estados_inaceptables = ['PENDIENTE', 'TERMINADO', 'SUSPENDIDO', 'CANCELADO']
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -164,8 +171,8 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
 
     def get_success_url(self):
         pid = self.kwargs['proyecto_id']
-        mid = self.kwargs['us_id']
-        return reverse('proyecto_us_ver', args=(pid, mid))
+        uid = self.kwargs['us_id']
+        return reverse('proyecto_us_ver', args=(pid, uid))
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

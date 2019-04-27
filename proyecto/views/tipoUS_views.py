@@ -1,5 +1,5 @@
-from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, SuccessMessageOnDeleteMixin, ProyectoSoloSePuedeVerMixin
-from django.contrib.auth.mixins import LoginRequiredMixin
+from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, SuccessMessageOnDeleteMixin, ProyectoEstadoInvalidoMixin
+from guardian.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
 from proyecto.models import TipoUS, Proyecto
 from proyecto.forms import TipoUsForm, CampoPersonalizadoFormSet
@@ -12,7 +12,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.http import HttpResponseRedirect
 
 
-class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin,ProyectoSoloSePuedeVerMixin , SuccessMessageMixin, CreateView):
+class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin,ProyectoEstadoInvalidoMixin , SuccessMessageMixin, CreateView):
     """
     Vista para creacion de tipo de us. Se permiten hasta 5 campos personalizados
     """
@@ -69,7 +69,7 @@ class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin,ProyectoSolo
             context['campospersonalizados'] = CampoPersonalizadoFormSet()
         return context
 
-class TipoUsUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoSoloSePuedeVerMixin, SuccessMessageMixin, UpdateView):
+class TipoUsUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEstadoInvalidoMixin, SuccessMessageMixin, UpdateView):
     """
     Vistas para modificar un Tipo de US. No se permite acceder a esta vista si al menos un user story tiene asociado este tipo de us.
     """
@@ -230,7 +230,7 @@ class TipoUSPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
 
         return context
 
-class TipoUsEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoSoloSePuedeVerMixin, SuccessMessageOnDeleteMixin, DeleteView):
+class TipoUsEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEstadoInvalidoMixin, SuccessMessageOnDeleteMixin, DeleteView):
     """
     Vista que elimina un TIPO DE US en caso que tenga los permisos necesarios y que no este asociado con ningun user story
     """

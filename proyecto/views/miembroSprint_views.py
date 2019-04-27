@@ -1,5 +1,5 @@
-from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoSoloSePuedeVerMixin
-from django.contrib.auth.mixins import LoginRequiredMixin
+from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEnEjecucionMixin
+from guardian.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
 from proyecto.models import Sprint, Proyecto, MiembroSprint
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
@@ -11,6 +11,8 @@ from django.contrib.messages.views import SuccessMessageMixin
 from proyecto.forms import MiembroSprintForm
 from django.contrib import messages
 from guardian.decorators import permission_required
+from proyecto.decorators import proyecto_en_ejecucion
+from django.contrib.auth.decorators import login_required
 
 class MiembroSprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
     """
@@ -78,7 +80,7 @@ class MiembroSprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseData
         except Sprint.DoesNotExist:
             return MiembroSprint.objects.none()
 
-class MiembroSprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, CreateView):
+class MiembroSprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, SuccessMessageMixin, CreateView):
     """
     Vista para creacion de un miembro de sprint solo es valido si el sprint esta en estado pendiente
     """
@@ -187,7 +189,7 @@ class MiembroSprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Detail
 
         return context
 
-class MiembroSprintUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessageMixin, UpdateView):
+class MiembroSprintUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, SuccessMessageMixin, UpdateView):
     """
     Vista para cambiar horas de asignadas a un miembro de sprint. Solo es valido si el sprint esta pendiente. Se actualiza la capacidad del sprint
     """
@@ -268,7 +270,9 @@ class MiembroSprintUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succ
         sprint.save()
         return response
 
+@login_required
 @permission_required('proyecto.administrar_sprint',(Proyecto, 'id', 'proyecto_id'), return_403=True)
+@proyecto_en_ejecucion
 def excluir_miembro_sprint(request, miembroSprint_id, sprint_id, proyecto_id):
     """
     Vista para excluir a un miembro de un sprint que esta planficado
@@ -283,6 +287,8 @@ def excluir_miembro_sprint(request, miembroSprint_id, sprint_id, proyecto_id):
         sprint = miembro.sprint
         if sprint.estado != 'PLANIFICADO':
             raise Exception('Sprint no esta planificado')
+        if miembro.userstorysprint_set.all().count() > 0:
+            raise Exception('El miembro tiene al menos un User Story asignado')
         sprint.capacidad = sprint.capacidad - sprint.duracion * sprint.proyecto.diasHabiles * miembro.horasAsignadas
         miembro.delete()
         sprint.save()
@@ -291,8 +297,8 @@ def excluir_miembro_sprint(request, miembroSprint_id, sprint_id, proyecto_id):
     except MiembroSprint.DoesNotExist:
         messages.add_message(request, messages.ERROR, 'No existe el miembro a excluir!')
 
-    except:
-        messages.add_message(request, messages.ERROR, 'Ha ocurrido un error')
+    except Exception as e:
+        messages.add_message(request, messages.ERROR, e.args[0])
     finally:
         return HttpResponseRedirect(reverse('proyecto_sprint_miembros', args=(proyecto_id, sprint_id)))
 
