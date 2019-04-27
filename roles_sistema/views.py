@@ -2,6 +2,7 @@ from django.http import HttpResponseForbidden
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib import messages
 from django.urls import reverse,reverse_lazy
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.http import HttpResponseRedirect
@@ -65,6 +66,7 @@ class RolListJson(LoginRequiredMixin, PermissionRequiredMixin, BaseDatatableView
     def has_permission(self):
         return cualquier_permiso(self.request.user, self.get_permission_required())
 
+
 class RolCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = RolAdministrativo
     template_name = "change_form.html"
@@ -101,6 +103,7 @@ class RolCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageM
 
         return context
 
+
 class RolUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = RolAdministrativo
     form_class = RolSistemaForm
@@ -108,7 +111,8 @@ class RolUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageM
     template_name = 'change_form.html'
     pk_url_kwarg = 'rol_id'
     permission_required = 'proyecto.change_roladministrativo'
-    permission_denied_message = 'No tiene permiso para Editar Roles.'
+    permission_denied_code = None
+    permission_denied_message = 'No tiene permiso para Editar Roles'
 
     def has_permission(self):
         """
@@ -118,17 +122,31 @@ class RolUpdateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageM
         try:
             rol_a_editar = self.get_object()
             roles_usuario = RolAdministrativo.objects.filter(user=self.request.user)
-            if(rol_a_editar in roles_usuario or rol_a_editar.name == ROL_ADMINISTRADOR_NOMBRE):
+
+            if rol_a_editar.name == ROL_ADMINISTRADOR_NOMBRE:
+                self.permission_denied_code = 'ROL_ADMINISTRADOR'
+            elif rol_a_editar in roles_usuario:
+                self.permission_denied_code = 'PROPIO_ROL'
+
+            if self.permission_denied_code is not None:
                 return False
         except RolAdministrativo.DoesNotExist:
             return super(RolUpdateView, self).has_permission()
         except:
             return super(RolUpdateView, self).has_permission()
-        else:
-            return super(RolUpdateView, self).has_permission()
+
+        return super(RolUpdateView, self).has_permission()
 
     def handle_no_permission(self):
-        return HttpResponseForbidden()
+        if self.permission_denied_code == 'PROPIO_ROL':
+            messages.add_message(self.request, messages.WARNING, 'No puede editar este rol porque es su rol')
+        elif self.permission_denied_code == 'ROL_ADMINISTRADOR':
+            messages.add_message(self.request, messages.WARNING, 'No puede editar este rol porque es el rol por defecto Administrador')
+
+        if self.permission_denied_code is None:
+            return HttpResponseForbidden()
+        else:
+            return HttpResponseRedirect(reverse('rol_sistema:ver', kwargs=self.kwargs))
 
     def get_success_message(self, cleaned_data):
         return "Rol Administrativo '{}' editado exitosamente.".format(cleaned_data['name'])
@@ -192,6 +210,7 @@ class RolEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMessage
     template_name = 'roles_sistema/eliminar_rol.html'
     pk_url_kwarg = 'rol_id'
     permission_required = 'proyecto.delete_roladministrativo'
+    permission_denied_code = None
     permission_denied_message = 'No tiene permiso para eliminar el rol.'
     success_url = reverse_lazy('rol_sistema:lista')
 
@@ -202,7 +221,16 @@ class RolEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMessage
         """
         try:
             rol_a_eliminar = self.get_object()
-            if(not self.eliminable() or rol_a_eliminar.name == ROL_ADMINISTRADOR_NOMBRE):
+            roles_usuario = RolAdministrativo.objects.filter(user=self.request.user)
+
+            if rol_a_eliminar.name == ROL_ADMINISTRADOR_NOMBRE:
+                self.permission_denied_code = 'ROL_ADMINISTRADOR'
+            elif rol_a_eliminar in roles_usuario:
+                self.permission_denied_code = 'PROPIO_ROL'
+            elif rol_a_eliminar.user_set.all():
+                self.permission_denied_code = 'USADO'
+
+            if self.permission_denied_code is not None:
                 return False
         except RolAdministrativo.DoesNotExist:
             return super(RolEliminarView, self).has_permission()
@@ -212,7 +240,17 @@ class RolEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMessage
             return super(RolEliminarView, self).has_permission()
 
     def handle_no_permission(self):
-        return HttpResponseForbidden()
+        if self.permission_denied_code == 'PROPIO_ROL':
+            messages.add_message(self.request, messages.WARNING, 'No puede eliminar este rol porque es su rol')
+        elif self.permission_denied_code == 'USADO':
+            messages.add_message(self.request, messages.WARNING, 'No puede eliminar este rol porque hay al menos un usuario con el rol')
+        elif self.permission_denied_code == 'ROL_ADMINISTRADOR':
+            messages.add_message(self.request, messages.WARNING, 'No puede eliminar este rol porque es el rol por defecto Administrador')
+
+        if self.permission_denied_code is None:
+            return HttpResponseForbidden()
+        else:
+            return HttpResponseRedirect(reverse('rol_sistema:ver', kwargs=self.kwargs))
 
     def get_success_message(self, cleaned_data):
         return "Rol Administrativo  eliminado exitosamente."
@@ -225,14 +263,8 @@ class RolEliminarView(LoginRequiredMixin, PermissionRequiredMixin,SuccessMessage
                                  {'nombre': context['rol'].name,
                                   'url': reverse('rol_sistema:ver', kwargs=self.kwargs)},
                                  {'nombre': 'Eliminar', 'url': '#'}, ]
-        context['eliminable'] = self.eliminable()
         return context
 
-    def eliminable(self):
-        return not self.get_object().user_set.all()
-
-    def post(self, request, *args, **kwargs):
-        if self.eliminable():
-            return super(RolEliminarView, self).post(request, *args, **kwargs)
-        else:
-            return HttpResponseRedirect(self.success_url)
+    def delete(self, request, *args, **kwargs):
+        messages.add_message(self.request, messages.SUCCESS, 'Rol Administrativo Eliminado')
+        return super().delete(request, *args, **kwargs)
