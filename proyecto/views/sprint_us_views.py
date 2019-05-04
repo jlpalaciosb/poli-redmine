@@ -20,9 +20,6 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
     form_class = UserStorySprintCrearForm
     permission_required = 'proyecto.administrar_sprint'
 
-    def handle_no_permission(self):
-        return HttpResponseForbidden()
-
     def get_success_message(self, cleaned_data):
         return "User Story agregado exitosamente"
 
@@ -81,7 +78,7 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
             {'nombre': 'Sprints', 'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
-            {'nombre': 'Sprint {}'.format(sprint.orden), 'url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs)},
+            {'nombre': 'Sprint %d' % sprint.orden, 'url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs)},
             {'nombre': 'Sprint Backlog', 'url': self.get_success_url()},
             {'nombre': 'Agregar US', 'url':'#'}
         ]
@@ -118,7 +115,7 @@ class UserStorySprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
             {'nombre': 'Sprints', 'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
-            {'nombre': 'Sprint {}'.format(sprint.orden), 'url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs)},
+            {'nombre': 'Sprint %d' % sprint.orden, 'url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs)},
             {'nombre': 'Sprint Backlog', 'url': '#'},
         ]
 
@@ -168,7 +165,7 @@ class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', args=(proyecto.id,))},
             {'nombre': 'Sprints', 'url': reverse('proyecto_sprint_list', args=(proyecto.id,))},
-            {'nombre': 'Sprint {}'.format(sprint.orden), 'url': reverse('proyecto_sprint_administrar', args=(proyecto.id, sprint.id))},
+            {'nombre': 'Sprint %d' % sprint.orden, 'url': reverse('proyecto_sprint_administrar', args=(proyecto.id, sprint.id))},
             {'nombre': 'Sprint Backlog', 'url': reverse('sprint_us_list', args=(proyecto.id, sprint.id))},
             {'nombre': usp.us.nombre, 'url': '#'},
         ]
@@ -187,9 +184,6 @@ class UserStorySprintUpdateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
     template_name = 'change_form.html'
     pk_url_kwarg = 'usp_id'
     permission_required = 'proyecto.administrar_sprint'
-
-    def handle_no_permission(self):
-        return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
         return "Se estableció el encargado exitosamente"
@@ -226,7 +220,7 @@ class UserStorySprintUpdateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', args=(proyecto.id,))},
             {'nombre': 'Sprints', 'url': reverse('proyecto_sprint_list', args=(proyecto.id,))},
-            {'nombre': 'Sprint {}'.format(sprint.orden), 'url': reverse('proyecto_sprint_administrar', args=(proyecto.id, sprint.id))},
+            {'nombre': 'Sprint %d' % sprint.orden, 'url': reverse('proyecto_sprint_administrar', args=(proyecto.id, sprint.id))},
             {'nombre': 'Sprint Backlog', 'url': reverse('sprint_us_list', args=(proyecto.id, sprint.id))},
             {'nombre': usp.us.nombre, 'url': reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))},
             {'nombre': 'Cambiar Encargado', 'url': '#'},
@@ -258,4 +252,4 @@ class UserStorySprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, De
         us.save()
 
         messages.add_message(self.request, messages.SUCCESS, 'User Story quitado del sprint')
-        super().delete(request, *args, **kwargs)
+        return super().delete(request, *args, **kwargs)

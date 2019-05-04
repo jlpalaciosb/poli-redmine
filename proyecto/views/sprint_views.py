@@ -122,6 +122,7 @@ class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(SprintPerfilView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
         context['titulo'] = 'Administrar Sprint'
         context['titulo_form_editar'] = 'Datos del Sprint'
         context['titulo_form_editar_nombre'] = context[SprintPerfilView.context_object_name].orden
@@ -133,7 +134,7 @@ class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
                                   'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
                                  {'nombre': 'Sprints',
                                   'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
-                                 {'nombre': 'Administrar Sprint', 'url': '#'}
+                                 {'nombre': 'Sprint %d' % sprint.orden, 'url': '#'}
                                  ]
 
         return context
