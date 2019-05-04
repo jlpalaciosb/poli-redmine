@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
+from ProyectoIS2_9.utils import cambiable_estado_proyecto
 from proyecto.forms import ProyectoForm, ProyectoCambiarEstadoForm
 from proyecto.models import Proyecto, MiembroProyecto
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
@@ -280,7 +281,7 @@ class ProyectoCambiarEstadoEstadoView(LoginRequiredMixin, PermisosPorProyectoMix
             {'nombre': 'Cambiar Estado', 'url': '#'},
         ]
 
-        camb = self.cambiable(self.request.GET.get('estado', ''))
+        camb = cambiable_estado_proyecto(self.get_object(), self.request.GET.get('estado', ''))
         context['cambiable'] = camb == 'yes'
         context['motivo'] = camb
 
@@ -294,51 +295,9 @@ class ProyectoCambiarEstadoEstadoView(LoginRequiredMixin, PermisosPorProyectoMix
         kwargs.update({'estado': self.request.GET.get('estado', '')})
         return kwargs
 
-    def cambiable(self, newst):
-        """
-        Verificar si el proyecto puede pasar de su estado actual al estado especificado
-        :param newst: nuevo estado del proyecto (in ESTADOS_PROYECTO)
-        :return: 'yes' si se puede o <motivo> de por qué no se puede
-        """
-        proyecto = self.get_object()
-        currentst = proyecto.estado
-
-        if newst not in ['PENDIENTE', 'EN EJECUCION', 'TERMINADO', 'CANCELADO', 'SUSPENDIDO']:
-            return 'no es un estado válido'
-
-        if newst == currentst:
-            return 'es el mismo estado'
-
-        if newst == 'PENDIENTE':
-            return 'no se puede pasar al estado "PENDIENTE" una vez iniciado o cancelado'
-
-        if newst == 'EN EJECUCION':
-            if currentst not in ['PENDIENTE', 'SUSPENDIDO']:
-                return 'solo se puede pasar a "EN EJECUCION" si el proyecto está supendido o pendiente'
-            else:
-                return 'yes'
-
-        if newst == 'TERMINADO':
-            if currentst not in ['EN EJECUCION', 'SUSPENDIDO']:
-                return 'solo se puede pasar a "TERMINADO" si el proyecto está en ejecución o pendiente'
-            else:
-                return 'yes'
-
-        if newst == 'CANCELADO':
-            if currentst not in ['PENDIENTE', 'EN EJECUCION', 'SUSPENDIDO']:
-                return 'solo se puede pasar a "CANCELADO" si el proyecto está pendiente, en ejecución o suspendido'
-            else:
-                return 'yes'
-
-        if newst == 'SUSPENDIDO':
-            if currentst not in ['EN EJECUCION',]:
-                return 'solo se puede pasar a "SUSPENDIDO" si el proyecto está en ejecución'
-            else:
-                return 'yes'
-
     def form_valid(self, form):
         newst = form.cleaned_data['estado']
-        if self.cambiable(newst) == 'yes':
+        if cambiable_estado_proyecto(self.get_object(), newst) == 'yes':
             messages.add_message(self.request, messages.SUCCESS, 'Ahora el proyecto está {}'.format(newst))
             return super().form_valid(form)
         else:

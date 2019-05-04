@@ -82,3 +82,52 @@ def get_40x_or_None_ANY(request, perms, obj=None, login_url=None,
                                      login_url,
                                      redirect_field_name)
 
+def cambiable_estado_proyecto(proyecto, newst):
+    """
+    Verificar si el proyecto puede pasar de su estado actual al estado especificado
+    :param proyecto: el proyecto cuyo estado se quiere modificar
+    :param newst: nuevo estado del proyecto (in ESTADOS_PROYECTO)
+    :return: 'yes' si se puede o <motivo> de por qué no se puede
+    """
+    currentst = proyecto.estado
+
+    if newst not in ['PENDIENTE', 'EN EJECUCION', 'TERMINADO', 'CANCELADO', 'SUSPENDIDO']:
+        return 'no es un estado válido'
+
+    if newst == currentst:
+        return 'es el mismo estado'
+
+    if newst == 'PENDIENTE':
+        return 'no se puede pasar al estado "PENDIENTE" una vez iniciado o cancelado'
+
+    if newst == 'EN EJECUCION':
+        if currentst not in ['PENDIENTE', 'SUSPENDIDO']:
+            return 'solo se puede pasar a "EN EJECUCION" si el proyecto está supendido o pendiente'
+        elif currentst == 'PENDIENTE':
+            return 'yes'
+        elif currentst == 'SUSPENDIDO':
+            return 'yes'
+
+    if newst == 'TERMINADO':
+        if currentst not in ['EN EJECUCION', 'SUSPENDIDO']:
+            return 'solo se puede pasar a "TERMINADO" si el proyecto está en ejecución o pendiente'
+        elif currentst == 'EN EJECUCION':
+            return 'yes'
+        elif currentst == 'SUSPENDIDO':
+            return 'yes'
+
+    if newst == 'CANCELADO':
+        if currentst not in ['PENDIENTE', 'EN EJECUCION', 'SUSPENDIDO']:
+            return 'solo se puede pasar a "CANCELADO" si el proyecto está pendiente, en ejecución o suspendido'
+        elif currentst == 'PENDIENTE':
+            return 'yes'
+        elif currentst == 'EN EJECUCION':
+            return 'yes'
+        elif currentst == 'SUSPENDIDO':
+            return 'yes'
+
+    if newst == 'SUSPENDIDO':
+        if currentst not in ['EN EJECUCION',]:
+            return 'solo se puede pasar a "SUSPENDIDO" si el proyecto está en ejecución'
+        elif currentst == 'EN EJECUCION':
+            return 'yes'
