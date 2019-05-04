@@ -126,7 +126,7 @@ class Fase(models.Model):
     """
     flujo = models.ForeignKey(Flujo)
     nombre = models.CharField(max_length=25)
-    orden = models.PositiveIntegerField(default=1)
+    orden = models.PositiveIntegerField(default=1, help_text='El orden de la fase dentro de su flujo correspondiente. Comienza desde cero')
 
     class Meta:
         default_permissions = ()
@@ -175,6 +175,7 @@ ESTADOS_US_PROYECTO = (
     (3, 'No Terminado'), # estado cuando el us fue parte del sprint anterior pero no se termino
     (4, 'Cancelado'),
     (5, 'Terminado'),
+    (6, 'En Revision')
 )
 PRIORIDADES_US = (
     (1, 'Muy Bajo'),
@@ -306,6 +307,13 @@ class UserStorySprint(models.Model):
     sprint = models.ForeignKey(Sprint)
     asignee = models.ForeignKey(MiembroSprint, null=True, verbose_name='Encargado')
 
+    fase_sprint = models.ForeignKey(Fase, verbose_name='fase en la que se encuentra el US', null=True, help_text='Fase en la que se encuentra un user story en un sprint')
+
+    estado_fase_sprint = models.CharField(
+        verbose_name='estado en la fase', max_length=10,
+        choices=ESTADOS_US_FASE, null=True, help_text='Estado en el que se encuentra un user story en un sprint'
+    )
+
     class Meta:
         default_permissions = ()
         unique_together = ('us', 'sprint')
@@ -322,13 +330,15 @@ class Actividad(models.Model):
     # no sirve obtener quien fue el responsable de la actividad por medio de usSprint ya que un US
     # del Sprint Backlog se podría asignar a otro miembro durante el sprint, por eso es que se agrega
     # este atributo
-    responsable = models.ForeignKey(MiembroSprint)
+    responsable = models.ForeignKey(MiembroProyecto)
 
     # por ahora todavía no tenemos una clase para archivos adjuntos, en dicha clase se deberá
     # especificar el ForeignKey a Actividad
 
     horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=0)
     fase = models.ForeignKey(Fase)
+
+    archivos_adjuntos = models.FileField(upload_to='archivos_adjuntos/', help_text='El archivo adjunto de la actividad', null=True)
 
     # especifica en que estado estaba el US cuando la actividad fue agregada
     estado = models.CharField(choices=ESTADOS_US_FASE, default='DOING', max_length=10)

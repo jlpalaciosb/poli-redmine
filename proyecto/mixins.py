@@ -90,11 +90,14 @@ class ProyectoEstadoInvalidoMixin(object):
 
     def donde_regresar(self):
         """
-        Metodo que hace que se regrese al perfil del proyecto si el proyecto esta en un estado inaceptable.
+        Metodo que hace que se regrese a la pagina anterior si corresponde al sitio de la aplicacion o en caso contrario al perfil del proyecto, si el proyecto esta en un estado inaceptable.
         Sobreescribir si se quiere redirigir a otro sitio.
 
         :return:
         """
+        pagina_anterior = self.request.META.get('HTTP_REFERER')
+        if pagina_anterior is not None:
+            return pagina_anterior
         return reverse('perfil_proyecto',args=(self.kwargs[self.proyecto_id_kwargs],))
 
 
