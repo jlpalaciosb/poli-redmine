@@ -20,4 +20,4 @@ from .miembroSprint_views import MiembroSprintListView, MiembroSprintListJson, M
 
 from .flujo_views import FlujoCreateView, FlujoUpdateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoEliminarView
 
-from .sprint_us_views import UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView
+from .sprint_us_views import UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView, UserStorySprintDeleteView

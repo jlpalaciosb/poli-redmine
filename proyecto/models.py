@@ -96,7 +96,7 @@ class Sprint(models.Model):
     estado = models.CharField(choices=ESTADOS_SPRINT, default='PLANIFICADO', max_length=15)
     capacidad = models.PositiveIntegerField(
         verbose_name='capacidad del sprint (en horas)', default=0,
-        help_text='Este valor nos dice cuantas horas de trabajo disponible hay en el sprint'
+        help_text='Este valor nos dice cuántas horas de trabajo disponible hay en el sprint'
     )
 
     class Meta:

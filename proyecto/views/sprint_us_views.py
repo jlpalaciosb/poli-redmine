@@ -1,6 +1,6 @@
 
-from django.views.generic import CreateView, UpdateView, TemplateView, DetailView
-from django.http import HttpResponseForbidden
+from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
+from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.messages.views import SuccessMessageMixin
@@ -73,6 +73,7 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
         context['titulo_form_crear'] = 'Datos'
 
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
 
         # Breadcrumbs
         context['breadcrumb'] = [
@@ -80,9 +81,9 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
             {'nombre': 'Sprints', 'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
-            {'nombre': 'Administrar Sprint', 'url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs)},
-            {'nombre': 'User Stories', 'url': self.get_success_url()},
-            {'nombre': 'Crear', 'url':'#'}
+            {'nombre': 'Sprint {}'.format(sprint.orden), 'url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs)},
+            {'nombre': 'Sprint Backlog', 'url': self.get_success_url()},
+            {'nombre': 'Agregar US', 'url':'#'}
         ]
 
         return context
@@ -117,8 +118,8 @@ class UserStorySprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
             {'nombre': 'Sprints', 'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
-            {'nombre': 'Administrar Sprint', 'url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs)},
-            {'nombre': 'User Stories', 'url': '#'},
+            {'nombre': 'Sprint {}'.format(sprint.orden), 'url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs)},
+            {'nombre': 'Sprint Backlog', 'url': '#'},
         ]
 
         return context
@@ -159,7 +160,7 @@ class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
         usp = context['object']
 
-        context['titulo'] = 'Ver US en Sprint'
+        context['titulo'] = 'User Story en el Sprint'
 
         # Breadcrumbs
         context['breadcrumb'] = [
@@ -167,8 +168,8 @@ class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', args=(proyecto.id,))},
             {'nombre': 'Sprints', 'url': reverse('proyecto_sprint_list', args=(proyecto.id,))},
-            {'nombre': 'Administrar Sprint', 'url': reverse('proyecto_sprint_administrar', args=(proyecto.id, sprint.id))},
-            {'nombre': 'User Stories', 'url': reverse('sprint_us_list', args=(proyecto.id, sprint.id))},
+            {'nombre': 'Sprint {}'.format(sprint.orden), 'url': reverse('proyecto_sprint_administrar', args=(proyecto.id, sprint.id))},
+            {'nombre': 'Sprint Backlog', 'url': reverse('sprint_us_list', args=(proyecto.id, sprint.id))},
             {'nombre': usp.us.nombre, 'url': '#'},
         ]
 
@@ -225,10 +226,36 @@ class UserStorySprintUpdateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', args=(proyecto.id,))},
             {'nombre': 'Sprints', 'url': reverse('proyecto_sprint_list', args=(proyecto.id,))},
-            {'nombre': 'Administrar Sprint', 'url': reverse('proyecto_sprint_administrar', args=(proyecto.id, sprint.id))},
-            {'nombre': 'User Stories', 'url': reverse('sprint_us_list', args=(proyecto.id, sprint.id))},
+            {'nombre': 'Sprint {}'.format(sprint.orden), 'url': reverse('proyecto_sprint_administrar', args=(proyecto.id, sprint.id))},
+            {'nombre': 'Sprint Backlog', 'url': reverse('sprint_us_list', args=(proyecto.id, sprint.id))},
             {'nombre': usp.us.nombre, 'url': reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))},
             {'nombre': 'Cambiar Encargado', 'url': '#'},
         ]
 
         return context
+
+class UserStorySprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView):
+    model = UserStorySprint
+    pk_url_kwarg = 'usp_id'
+    permission_required = 'proyecto.administrar_sprint'
+
+    def get_success_url(self):
+        return reverse('sprint_us_list', args=(self.kwargs['proyecto_id'], self.kwargs['sprint_id']))
+
+    def delete(self, request, *args, **kwargs):
+        # TODO: transaction
+
+        sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
+        if sprint.estado != 'PLANIFICADO':
+            return HttpResponseForbidden()
+
+        us = self.get_object().us
+        if us.userstorysprint_set.count() > 1: # el US fue agregado a un sprint anterior
+            us.estadoProyecto = 3 # no terminado
+        else:
+            us.estadoProyecto = 1 # pendiente
+            us.flujo = us.fase = us.estadoFase = None
+        us.save()
+
+        messages.add_message(self.request, messages.SUCCESS, 'User Story quitado del sprint')
+        super().delete(request, *args, **kwargs)
