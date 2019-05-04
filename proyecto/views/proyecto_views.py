@@ -4,10 +4,11 @@ from guardian.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
 from django.contrib.auth.mixins import  PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib import messages
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
-from proyecto.forms import ProyectoForm
+from proyecto.forms import ProyectoForm, ProyectoCambiarEstadoForm
 from proyecto.models import Proyecto, MiembroProyecto
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
 
@@ -252,3 +253,93 @@ class ProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView)
                                  ]
 
         return context
+
+class ProyectoCambiarEstadoEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, UpdateView):
+    """
+    Vista Basada en Clases para la actualizacion de los proyectos
+    """
+    model = Proyecto
+    form_class = ProyectoCambiarEstadoForm
+    context_object_name = 'proyecto'
+    template_name = 'proyecto/proyecto/cambiarestado.html'
+    pk_url_kwarg = 'proyecto_id'
+    permission_required = 'proyecto.change_proyecto'
+
+    def get_success_url(self):
+        return reverse('perfil_proyecto', kwargs=self.kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = 'Cambiar Estado del Proyecto'
+
+        # Breadcrumbs
+        context['breadcrumb'] = [
+            {'nombre': 'Inicio', 'url': '/'},
+            {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+            {'nombre': context['proyecto'].nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
+            {'nombre': 'Cambiar Estado', 'url': '#'},
+        ]
+
+        camb = self.cambiable(self.request.GET.get('estado', ''))
+        context['cambiable'] = camb == 'yes'
+        context['motivo'] = camb
+
+        context['currentst'] = self.get_object().estado
+        context['newst'] = self.request.GET.get('estado', '')
+
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'estado': self.request.GET.get('estado', '')})
+        return kwargs
+
+    def cambiable(self, newst):
+        """
+        Verificar si el proyecto puede pasar de su estado actual al estado especificado
+        :param newst: nuevo estado del proyecto (in ESTADOS_PROYECTO)
+        :return: 'yes' si se puede o <motivo> de por qué no se puede
+        """
+        proyecto = self.get_object()
+        currentst = proyecto.estado
+
+        if newst not in ['PENDIENTE', 'EN EJECUCION', 'TERMINADO', 'CANCELADO', 'SUSPENDIDO']:
+            return 'no es un estado válido'
+
+        if newst == currentst:
+            return 'es el mismo estado'
+
+        if newst == 'PENDIENTE':
+            return 'no se puede pasar al estado "PENDIENTE" una vez iniciado o cancelado'
+
+        if newst == 'EN EJECUCION':
+            if currentst not in ['PENDIENTE', 'SUSPENDIDO']:
+                return 'solo se puede pasar a "EN EJECUCION" si el proyecto está supendido o pendiente'
+            else:
+                return 'yes'
+
+        if newst == 'TERMINADO':
+            if currentst not in ['EN EJECUCION', 'SUSPENDIDO']:
+                return 'solo se puede pasar a "TERMINADO" si el proyecto está en ejecución o pendiente'
+            else:
+                return 'yes'
+
+        if newst == 'CANCELADO':
+            if currentst not in ['PENDIENTE', 'EN EJECUCION', 'SUSPENDIDO']:
+                return 'solo se puede pasar a "CANCELADO" si el proyecto está pendiente, en ejecución o suspendido'
+            else:
+                return 'yes'
+
+        if newst == 'SUSPENDIDO':
+            if currentst not in ['EN EJECUCION',]:
+                return 'solo se puede pasar a "SUSPENDIDO" si el proyecto está en ejecución'
+            else:
+                return 'yes'
+
+    def form_valid(self, form):
+        newst = form.cleaned_data['estado']
+        if self.cambiable(newst) == 'yes':
+            messages.add_message(self.request, messages.SUCCESS, 'Ahora el proyecto está {}'.format(newst))
+            return super().form_valid(form)
+        else:
+            return HttpResponseForbidden()

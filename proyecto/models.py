@@ -10,7 +10,7 @@ def validar_mayor_a_cero(value):
         )
 
 ESTADOS_PROYECTO = (('PENDIENTE', 'Pendiente'),
-                    ('EN EJECUCION', 'En Ejecucion'),
+                    ('EN EJECUCION', 'En Ejecución'),
                     ('TERMINADO', 'Terminado'),
                     ('CANCELADO', 'Cancelado'),
                     ('SUSPENDIDO', 'Suspendido'),

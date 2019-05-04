@@ -47,3 +47,17 @@ class ProyectoForm(ModelForm):
             ),
         ]
         self.helper.layout = Layout(*layout)
+
+
+class ProyectoCambiarEstadoForm(ModelForm):
+    """
+    Form utilizada para cambiar el estado de un proyecto
+    """
+    class Meta:
+        model = Proyecto
+        fields = ['estado']
+        widgets = {'estado': forms.HiddenInput}
+
+    def __init__(self, *args, **kwargs):
+        kwargs.get('instance').estado = kwargs.pop('estado')
+        super().__init__(*args, **kwargs)
