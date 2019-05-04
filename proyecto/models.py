@@ -10,7 +10,7 @@ def validar_mayor_a_cero(value):
         )
 
 ESTADOS_PROYECTO = (('PENDIENTE', 'Pendiente'),
-                    ('EN EJECUCION', 'En Ejecucion'),
+                    ('EN EJECUCION', 'En Ejecución'),
                     ('TERMINADO', 'Terminado'),
                     ('CANCELADO', 'Cancelado'),
                     ('SUSPENDIDO', 'Suspendido'),
@@ -45,7 +45,7 @@ class Proyecto(models.Model):
     La clase Proyecto representa un proyecto
     """
     nombre = models.CharField(max_length=100, unique=True, default='My Awesome Project')
-    descripcion = models.TextField(help_text='describa en qué consistirá el proyecto', null=True, blank=True)
+    descripcion = models.TextField(verbose_name='descripción', help_text='describa en qué consistirá el proyecto', null=True, blank=True)
     cliente = models.ForeignKey(Cliente)
     fechaInicioEstimada = models.DateField(verbose_name='inicio', help_text='fecha de inicio estimada', null=True, blank=True)
     fechaFinEstimada = models.DateField(verbose_name='finalización', help_text='fecha de finalización estimada', null=True, blank=True)

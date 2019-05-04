@@ -15,7 +15,7 @@
           </p>
             <div class="form-group">
                 <label><strong>Descripción</strong></label>
-                <textarea readonly class="form-control" rows="4">{{ proyecto.descripcion }}</textarea>
+                <textarea style="resize: vertical" readonly class="form-control" rows="4">{{ proyecto.descripcion }}</textarea>
             </div>
         </div>
 
@@ -31,8 +31,44 @@
               <p>
                 <strong>Duración del Sprint:</strong>   {{ proyecto.duracionSprint|default_if_none:"" }} semanas <br><br>
                 <strong>Cantidad de Días Hábiles:</strong>   {{ proyecto.diasHabiles|default_if_none:"" }} por semana<br><br>
-                <strong>Estado:</strong>   {{ proyecto.estado|default_if_none:"" }}<br><br>
+                <strong>Estado:</strong>   {{ proyecto.get_estado_display | default_if_none:"" }}<br><br>
               </p>
+
+              <!-- cambio de estado -->
+              {% get_obj_perms request.user for proyecto as "permisos_proyecto" %}
+              {% if 'change_proyecto' in permisos_proyecto %}
+                  <div>
+                      {% if proyecto.estado == 'PENDIENTE' or proyecto.estado == 'SUSPENDIDO' %}
+                          <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=EN%20EJECUCION">
+                              <button class="btn m-b-xs btn-default btn-addon ">
+                                  <i class="fa fa-arrow-right"></i> Iniciar
+                              </button>
+                          </a>
+                      {% endif %}
+                      {% if proyecto.estado == 'PENDIENTE' or proyecto.estado == 'SUSPENDIDO' or proyecto.estado == 'EN EJECUCION' %}
+                          <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=CANCELADO">
+                              <button class="btn m-b-xs btn-default btn-addon ">
+                                  <i class="fa fa-arrow-right"></i> Cancelar
+                              </button>
+                          </a>
+                      {% endif %}
+                      {% if proyecto.estado == 'EN EJECUCION' %}
+                          <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=SUSPENDIDO">
+                              <button class="btn m-b-xs btn-default btn-addon ">
+                                  <i class="fa fa-arrow-right"></i> Suspender
+                              </button>
+                          </a>
+                      {% endif %}
+                      {% if proyecto.estado == 'EN EJECUCION' or proyecto.estado == 'SUSPENDIDO' %}
+                          <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=TERMINADO">
+                              <button class="btn m-b-xs btn-default btn-addon ">
+                                  <i class="fa fa-arrow-right"></i> Terminar
+                              </button>
+                          </a>
+                      {% endif %}
+                  </div>
+              {% endif %}
+
           </div>
       </div>
       <div class="row">
