@@ -49,6 +49,9 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
             us.flujo = flujo
             us.fase = flujo.fase_set.get(orden=1)
             us.estadoFase = 'TODO'
+            #se coloca la fase y el estado al user story sprint
+            form.instance.fase_sprint = us.fase
+            form.instance.estado_fase_sprint = us.estadoFase
         us.save()
 
         # calcular cantidad de horas disponibles en el sprint (recordar que sprint tiene un atributo llamado capacidad)

@@ -110,7 +110,7 @@ class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
     def get_initial_queryset(self):
         iqs = Proyecto.objects.get(pk=self.kwargs['proyecto_id']).userstory_set.all()
         st = self.request.GET.get('estado', '*')
-        if st == '1' or st == '2' or st == '3' or st == '4' or st == '5':
+        if st == '1' or st == '2' or st == '3' or st == '4' or st == '5' or st == '6':
             iqs = iqs.filter(estadoProyecto=int(st))
         return iqs
 
