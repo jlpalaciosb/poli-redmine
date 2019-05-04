@@ -95,11 +95,11 @@ def crear_sprint(request, proyecto_id):
     proyecto = Proyecto.objects.get(pk=proyecto_id)
     orden = proyecto.sprint_set.all().count()
     if Sprint.objects.filter(proyecto=proyecto, estado='PLANIFICADO').count()!=0:
-        messages.add_message(request, messages.WARNING, 'Ya hay un sprint en planificacion!')
+        messages.add_message(request, messages.WARNING, 'Ya hay un sprint en planificación!')
         return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
     try:
         sprint = Sprint.objects.create(proyecto=proyecto, duracion=proyecto.duracionSprint, estado='PLANIFICADO', orden=orden+1)
-        messages.add_message(request, messages.SUCCESS, 'Se creo el sprint Nro '+str(orden+1))
+        messages.add_message(request, messages.SUCCESS, 'Se creó el sprint Nro '+str(orden+1))
         return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
     except:
         messages.add_message(request, messages.ERROR, 'Ha ocurrido un error!')
@@ -122,6 +122,7 @@ class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(SprintPerfilView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
         context['titulo'] = 'Administrar Sprint'
         context['titulo_form_editar'] = 'Datos del Sprint'
         context['titulo_form_editar_nombre'] = context[SprintPerfilView.context_object_name].orden
@@ -133,7 +134,7 @@ class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
                                   'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
                                  {'nombre': 'Sprints',
                                   'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
-                                 {'nombre': 'Administrar Sprint', 'url': '#'}
+                                 {'nombre': 'Sprint %d' % sprint.orden, 'url': '#'}
                                  ]
 
         return context

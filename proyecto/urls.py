@@ -8,7 +8,7 @@ from proyecto.views import \
     USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView,\
     SprintListView, SprintListJson, crear_sprint, SprintPerfilView, MiembroSprintListJson, MiembroSprintListView, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint,\
     FlujoCreateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoUpdateView, FlujoEliminarView, \
-    UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView
+    UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView, UserStorySprintDeleteView
 
 urlpatterns = [
     url(r'^$', ProyectoListView.as_view(), name='proyectos'),
@@ -61,4 +61,5 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/list$', UserStorySprintListJsonView.as_view(), name='sprint_us_list_json'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/ver$', UserStorySprintPerfilView.as_view(), name='sprint_us_ver'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/editar$', UserStorySprintUpdateView.as_view(), name='sprint_us_editar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/eliminar$', UserStorySprintDeleteView.as_view(), name='sprint_us_eliminar'),
 ]
