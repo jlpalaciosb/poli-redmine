@@ -94,6 +94,7 @@ class Sprint(models.Model):
     duracion = models.PositiveIntegerField(verbose_name='duración del sprint (en semanas)', validators=[validar_mayor_a_cero])
     fechaInicio = models.DateField(verbose_name='fecha de inicio', null=True)
     estado = models.CharField(choices=ESTADOS_SPRINT, default='PLANIFICADO', max_length=15)
+    justificacion= models.CharField(verbose_name='Justificacion', null=True,blank=True,default="",max_length=300)
     capacidad = models.PositiveIntegerField(
         verbose_name='capacidad del sprint (en horas)', default=0,
         help_text='Este valor nos dice cuántas horas de trabajo disponible hay en el sprint'
@@ -221,6 +222,8 @@ class UserStory(models.Model):
         help_text='cuántas horas cree que le llevará a una persona terminar este US',
     )
     tiempoEjecutado = models.FloatField(verbose_name='tiempo ejecutado (en horas)', default=0)
+
+    justificacion = models.CharField(verbose_name='Justificacion', null=True, blank=True, default="", max_length=300)
 
     class Meta:
         default_permissions =  ()

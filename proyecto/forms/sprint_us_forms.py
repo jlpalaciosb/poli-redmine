@@ -89,3 +89,30 @@ class UserStorySprintEditarForm(forms.ModelForm):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-8'
         self.helper.layout = Layout(*self.layout)
+
+class SprintCambiarEstadoForm(forms.ModelForm):
+    """
+    Form utilizada para cambiar el estado de un proyecto
+    """
+    class Meta:
+        model = Sprint
+        fields = ['justificacion']
+        widgets = {'justificacion': forms.widgets.Textarea}
+
+    def __init__(self, *args, **kwargs):
+        self.success_url = kwargs.pop('success_url')
+        super().__init__(*args, **kwargs)
+        self.instance.estado='CERRADO'
+        self.layout = [
+            'justificacion',
+            FormActions(
+                Submit('guardar', 'Guardar'),
+                HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
+            ),
+        ]
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
+        self.helper.layout = Layout(*self.layout)

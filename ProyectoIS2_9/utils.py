@@ -10,6 +10,8 @@ from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render
 from guardian.conf import settings as guardian_settings
 
+from proyecto.models import UserStorySprint
+
 logger = logging.getLogger(__name__)
 abspath = lambda *p: os.path.abspath(os.path.join(*p))
 
@@ -131,3 +133,11 @@ def cambiable_estado_proyecto(proyecto, newst):
             return 'solo se puede pasar a "SUSPENDIDO" si el proyecto está en ejecución'
         elif currentst == 'EN EJECUCION':
             return 'yes'
+
+def cerrable_sprint(sprint_id):
+    user_stories = UserStorySprint.objects.filter(sprint=sprint_id)
+
+    for us in user_stories:
+        if us.us.estadoProyecto == 6:
+            return 'No se puede terminar el Sprint si un US esta EN_REVISION'
+    return True

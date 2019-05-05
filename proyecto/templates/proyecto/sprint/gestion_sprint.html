@@ -20,7 +20,13 @@
                       <strong>Estado:</strong>   {{ sprint.estado|default_if_none:"" }}<br>
                       <strong>Duración:</strong>   {{ sprint.duracion|default_if_none:"" }} semanas<br>
                       <strong>Capacidad:</strong>   {{ sprint.capacidad|default_if_none:"" }} horas<br>
-                      {% if sprint.estado == 'PLANIFICADO' %}<strong>Fecha de Inicio:</strong>   {{ sprint.fechaInicio|default:"" }}<br>{% endif %}
+                      {% if sprint.estado == 'CERRADO' %}
+                          <strong>Justificación :</strong>   {{ sprint.justificacion|default:"" }}<br>
+                      {% endif %}
+                      {% if not sprint.estado == 'PLANIFICADO' %}
+                          <strong>Fecha de Inicio:</strong>   {{ sprint.fechaInicio|default:"" }}<br>
+                          <strong>Tiempo Restante:</strong>   {{ tiempo_restante|default:"" }} dias<br>
+                      {% endif %}
 
                   </p>
                 </div>
@@ -54,6 +60,13 @@
                       </button>
                     </a>
                 </div>
+              {% if 'administrar_sprint' in permisosGuardian and sprint.estado == 'EN_EJECUCION' %}
+                  <a href="{% url 'proyecto_sprint_cerrar' sprint.proyecto.id sprint.id %}?estado=CERRADO">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                          <i class="fa fa-arrow-right"></i> Cerrar Sprint
+                      </button>
+                  </a>
+              {% endif %}
               </div>
         </div>
     </div>

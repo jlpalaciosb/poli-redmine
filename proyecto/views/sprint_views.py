@@ -1,3 +1,7 @@
+import datetime
+
+from ProyectoIS2_9.utils import cerrable_sprint
+from proyecto.forms.sprint_us_forms import SprintCambiarEstadoForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
 from guardian.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
@@ -66,7 +70,7 @@ def iniciar_sprint(request, proyecto_id, sprint_id):
     Se redirecciona a la lista de sprint
     :param request:
     :param proyecto_id: El id del proyecto
-    :param spring_orden: El orden del spring dentro del proyecto
+    :param sprint_orden: El orden del sprint dentro del proyecto
     :return:
     """
     proyecto = Proyecto.objects.get(pk=proyecto_id)
@@ -74,8 +78,12 @@ def iniciar_sprint(request, proyecto_id, sprint_id):
     if Sprint.objects.filter(proyecto=proyecto, estado='EN_EJECUCION').count()!=0:
         messages.add_message(request, messages.WARNING, 'Ya hay un sprint en ejecucion!')
         return HttpResponseRedirect(reverse('proyecto_sprint_administrar', args=(proyecto_id, sprint.id)))
+    elif UserStorySprint.objects.filter(sprint=sprint_id).count()==0:
+        messages.add_message(request, messages.WARNING, 'Se debe tener al menos un US en el Sprint!')
+        return HttpResponseRedirect(reverse('proyecto_sprint_administrar', args=(proyecto_id, sprint.id)))
     try:
         sprint.estado='EN_EJECUCION'
+        sprint.fechaInicio=datetime.date.today()
         sprint.save()
         messages.add_message(request, messages.SUCCESS, 'Se inicio el sprint Nro '+str(sprint.orden))
         return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
@@ -155,7 +163,8 @@ class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         context['titulo'] = 'Administrar Sprint'
         context['titulo_form_editar'] = 'Datos del Sprint'
         context['titulo_form_editar_nombre'] = context[SprintPerfilView.context_object_name].orden
-
+        if sprint.fechaInicio:
+            context['tiempo_restante']= sprint.duracion*7-(datetime.date.today()-sprint.fechaInicio).days
         # Breadcrumbs
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
                                  {'nombre': 'Proyectos', 'url': reverse('proyectos')},
@@ -168,5 +177,48 @@ class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
 
         return context
 
+class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, UpdateView):
+    """
+    Vista Basada en Clases para la actualizacion de los proyectos
+    """
+    model = Sprint
+    form_class = SprintCambiarEstadoForm
+    context_object_name = 'sprint'
+    template_name = 'change_form.html'
+    pk_url_kwarg = 'sprint_id'
+    permission_required = 'proyecto.administrar_sprint'
+
+    def get_success_url(self):
+        return reverse('proyecto_sprint_administrar', kwargs=self.kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super(SprintCambiarEstadoView, self).get_form_kwargs()
+        kwargs.update({
+            'success_url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs),
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(SprintCambiarEstadoView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
+        context['titulo'] = 'Cambiar Estado del Sprint'
+        context['tiempo_restante'] = sprint.duracion*7-(datetime.date.today()-sprint.fechaInicio).days
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre,
+                                  'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Sprints',
+                                  'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Sprint %d' % sprint.orden, 'url': '#'}
+                                 ]
+
+        camb = cerrable_sprint(sprint.id)
+        context['cambiable'] = camb
+        context['motivo'] = camb
+
+        return context
 
 
