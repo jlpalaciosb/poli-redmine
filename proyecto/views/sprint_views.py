@@ -1,10 +1,11 @@
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
 from guardian.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
-from proyecto.models import Sprint, Proyecto, ESTADOS_SPRINT, MiembroSprint, UserStorySprint
+from proyecto.models import Sprint, Proyecto, ESTADOS_SPRINT, Flujo, UserStorySprint, Fase
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
 from django.urls import reverse
 from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
 from guardian.shortcuts import  get_perms
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.messages.views import SuccessMessageMixin
@@ -138,5 +139,162 @@ class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
 
         return context
 
+
+class FlujoSprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView):
+    """
+    Vista para devolver todos los flujos de un sprint en un proyecto en formato JSON
+    """
+    model = Flujo
+    columns = ['id', 'nombre']
+    order_columns = ['id', 'nombre']
+    max_display_length = 100
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+    def get_initial_queryset(self):
+        try:
+            sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
+            return sprint.flujos_sprint()
+        except Sprint.DoesNotExist:
+            return
+
+class FlujoSprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
+    """
+    Vista para listar flujos de un sprint en un proyecto
+    """
+    template_name = 'change_list.html'
+    permission_denied_message = 'No tiene permiso para ver este proyecto.'
+
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        context = super(FlujoSprintListView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
+        context = super(FlujoSprintListView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        context['titulo'] = 'Seleccione un flujo para visualizar su tablero'
+        context['crear_button'] = False
+
+        # datatables
+        context['nombres_columnas'] = ['id', 'Nombre Flujo']
+        context['order'] = [1, "des"]
+        context['datatable_row_link'] = reverse('proyecto_sprint_tablero', args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id'],99999))
+        context['list_json'] = reverse('proyecto_sprint_flujos_json', kwargs=self.kwargs)
+        context['roles'] = True
+
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre,
+                                  'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Sprints',
+                                  'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Administrar Sprint', 'url': reverse('proyecto_sprint_administrar',kwargs=self.kwargs)},
+                                 {'nombre': 'Flujos', 'url':'#'}
+                                 ]
+
+
+        return context
+
+class TableroKanbanView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
+    """
+           Vista Basada en Clases para la visualizacion del tablero kanban
+    """
+    model = Sprint
+    context_object_name = 'sprint'
+    template_name = 'proyecto/sprint/tablera_kanban.html'
+    pk_url_kwarg = 'sprint_id'
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        context = super(TableroKanbanView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        try:
+            flujo = Flujo.objects.get(pk=self.kwargs['flujo_id'])
+            context['flujo'] = flujo
+            sprint = context['sprint']
+            context['user_stories_sprint'] = UserStorySprint.objects.filter(sprint=sprint, us__flujo=flujo)
+        except Flujo.DoesNotExist:
+            raise Http404('No existe dicho flujo')
+        context['titulo'] = 'Tablero Kanban'
+
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre,
+                                  'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Sprints',
+                                  'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Administrar Sprint',
+                                  'url': reverse('proyecto_sprint_administrar', args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id']))},
+                                 {'nombre': 'Flujos', 'url': reverse('proyecto_sprint_flujos', args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id']))},
+                                 {'nombre':'Tablero Kanban', 'url':'#'}
+                                 ]
+
+        return context
+
+@login_required
+@proyecto_en_ejecucion
+def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
+    """
+    Vista para mover un user story a un estado
+    :param request:
+    :param proyecto_id: El id del proyecto
+    :return:
+    """
+
+    try:
+        sprint = Sprint.objects.get(pk=sprint_id)
+        user_story_sprint = UserStorySprint.objects.get(sprint=sprint, us_id=us_id)
+        movimiento = int(request.GET.get('movimiento'))
+        if not request.user == user_story_sprint.asignee.miembro.user:
+            # Si no es el asignado entonces se le deniega el permiso
+            return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id,sprint_id,flujo_id)))
+        if movimiento is None and (movimiento != 1 or movimiento != -1):
+            #Si el moviemiento recibido como parametro no es valido
+            return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
+
+        if user_story_sprint.fase_sprint == user_story_sprint.us.flujo.cantidadFases and user_story_sprint.estado_fase_sprint=='DONE' and movimiento == 1:
+            #Si se encuentra en el DONE de la ultima fase y quiere moverse al siguiente estado entonces es incorrecto
+            return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
+        if user_story_sprint.fase_sprint == 1 and user_story_sprint.estado_fase_sprint=='TODO' and movimiento == -1:
+            #Si se encuentra en el TO DO  de la primera fase y quiere moverse al estado anterior entonces es incorrecto
+            return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
+        if movimiento == 1:
+            if user_story_sprint.estado_fase_sprint == 'TODO':
+                user_story_sprint.estado_fase_sprint = 'DOING'
+
+            elif user_story_sprint.estado_fase_sprint == 'DOING':
+                user_story_sprint.estado_fase_sprint = 'DONE'
+
+            elif user_story_sprint.estado_fase_sprint == 'DONE':
+                user_story_sprint.fase_sprint = Fase.objects.get(flujo = user_story_sprint.us.flujo, orden = user_story_sprint.fase_sprint.orden + 1)
+                user_story_sprint.estado_fase_sprint = 'TODO'
+
+        else:
+
+            if user_story_sprint.estado_fase_sprint == 'TODO':
+                user_story_sprint.fase_sprint = Fase.objects.get(flujo=user_story_sprint.us.flujo,
+                                                                 orden=user_story_sprint.fase_sprint.orden - 1)
+                user_story_sprint.estado_fase_sprint = 'DONE'
+
+            elif user_story_sprint.estado_fase_sprint == 'DOING':
+                user_story_sprint.estado_fase_sprint = 'TODO'
+
+            elif user_story_sprint.estado_fase_sprint == 'DONE':
+                user_story_sprint.estado_fase_sprint = 'DOING'
+        user_story_sprint.save()
+
+        return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
+
+    except ObjectDoesNotExist:
+        return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
 
 

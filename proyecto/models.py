@@ -103,6 +103,13 @@ class Sprint(models.Model):
         default_permissions =  ()
         unique_together = ('proyecto', 'orden')
 
+    def flujos_sprint(self):
+        """
+        Devuelve todos los flujos que corresponden a un sprint
+        :return:
+        """
+        return Flujo.objects.filter(userstory__proyecto__flujo__in=list(map(lambda x:x['us'],list(self.userstorysprint_set.all().values('us'))))).distinct()
+
 
 class Flujo(models.Model):
     """
@@ -131,12 +138,11 @@ class Fase(models.Model):
     class Meta:
         default_permissions = ()
         unique_together = (('flujo', 'nombre'), ('flujo', 'orden'))
+        ordering = ['orden']
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        cantidadFases  = self.flujo.fase_set.all().count()
-        self.orden = cantidadFases + 1
-        super().save(force_insert, force_update, using, update_fields)
+
+
+
 
 
 class TipoUS(models.Model):
@@ -287,6 +293,7 @@ class MiembroSprint(models.Model):
     """
     Representa la relacion entre un Sprint y un Miembro, cuando es asignado como desarrollador.
     Almacena la cantidad de horas de trabajo asignadas a ese miembro para ese Sprint especifico.
+    Cada vez que se agregue una instancia de esta clase, la capacidad del sprint con quien este asociado dicha instancia sera actualizada
     """
     miembro = models.ForeignKey(MiembroProyecto, verbose_name='Miembro del Sprint')
     sprint = models.ForeignKey(Sprint, verbose_name='Sprint')
@@ -317,6 +324,21 @@ class UserStorySprint(models.Model):
     class Meta:
         default_permissions = ()
         unique_together = ('us', 'sprint')
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        """
+        Se actualiza el metodo para que al guardar/actualizar un user story en un sprint, si el sprint esta planificado o en ejecucion se sincronize los campos del user story
+        :param force_insert:
+        :param force_update:
+        :param using:
+        :param update_fields:
+        :return:
+        """
+        super(UserStorySprint, self).save(force_insert, force_update, using, update_fields)
+        if self.sprint.estado == 'EN_EJECUCION' or self.sprint.estado == 'PLANIFICADO' :
+            self.us.fase = self.fase_sprint
+            self.us.estadoFase = self.estado_fase_sprint
+            self.us.save()
 
 
 class Actividad(models.Model):

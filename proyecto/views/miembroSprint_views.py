@@ -62,8 +62,8 @@ class MiembroSprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseData
     Vista para devolver todos los miembros de un sprint del proyecto en formato JSON
     """
     model = MiembroSprint
-    columns = ['id', 'miembro.user','horasAsignadas']
-    order_columns = ['id', 'miembro.user','horasAsignadas']
+    columns = ['id', 'miembro.user.username','horasAsignadas']
+    order_columns = ['id', 'miembro.user.username','horasAsignadas']
     max_display_length = 100
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
 

@@ -8,7 +8,7 @@ from proyecto.views import \
     USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView,\
     SprintListView, SprintListJson, crear_sprint, SprintPerfilView, MiembroSprintListJson, MiembroSprintListView, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint,\
     FlujoCreateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoUpdateView, FlujoEliminarView, \
-    UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView
+    UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView, FlujoSprintListJson, FlujoSprintListView, TableroKanbanView, mover_us_kanban
 
 urlpatterns = [
     url(r'^$', ProyectoListView.as_view(), name='proyectos'),
@@ -49,6 +49,10 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/sprints/list$', SprintListJson.as_view(), name='proyecto_sprint_list_json'),
     url(r'^(?P<proyecto_id>\d+)/sprints/crear$', crear_sprint, name='proyecto_sprint_crear'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/administrar$', SprintPerfilView.as_view(), name='proyecto_sprint_administrar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/flujos$', FlujoSprintListView.as_view(), name='proyecto_sprint_flujos'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/tablero/(?P<flujo_id>\d+)$', TableroKanbanView.as_view(), name='proyecto_sprint_tablero'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/tablero/(?P<flujo_id>\d+)/mover/(?P<us_id>\d+)$', mover_us_kanban, name='proyecto_sprint_mover_us'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/flujos/list$', FlujoSprintListJson.as_view(), name='proyecto_sprint_flujos_json'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros$', MiembroSprintListView.as_view(), name='proyecto_sprint_miembros'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/list$', MiembroSprintListJson.as_view(), name='proyecto_sprint_miembros_json'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/agregar$', MiembroSprintCreateView.as_view(), name='proyecto_sprint_miembros_agregar'),
