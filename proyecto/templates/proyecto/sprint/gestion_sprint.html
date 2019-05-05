@@ -30,7 +30,7 @@
                 <!-- Se trae todos los permisos asociados con el usuario y el proyecto actual -->
                 {% get_obj_perms request.user for sprint.proyecto as "permisosGuardian" %}
                     {% if 'administrar_sprint' in permisosGuardian and sprint.estado == 'PLANIFICADO'%}
-                        <a href="#">
+                        <a href="{% url 'proyecto_sprint_iniciar' sprint.proyecto.id sprint.id %}">
                           <button class="btn m-b-xs btn-default btn-addon ">
                             <i class="fa fa-pencil"></i>
                             Iniciar Sprint

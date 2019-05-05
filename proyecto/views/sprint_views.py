@@ -56,6 +56,34 @@ class SprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
 
         return context
 
+@login_required
+@permission_required('proyecto.administrar_sprint',(Proyecto, 'id', 'proyecto_id'), return_403=True)
+@proyecto_en_ejecucion
+def iniciar_sprint(request, proyecto_id, sprint_id):
+    """
+    Vista para iniciar un sprint en caso de que se cumpla que a lo sumo exista un US en el sprint.
+    El sprint solo podra ser iniciado si no existe otro sprint en ejecucion en el proyecto
+    Se redirecciona a la lista de sprint
+    :param request:
+    :param proyecto_id: El id del proyecto
+    :param spring_orden: El orden del spring dentro del proyecto
+    :return:
+    """
+    proyecto = Proyecto.objects.get(pk=proyecto_id)
+    sprint = Sprint.objects.get(pk=sprint_id)
+    if Sprint.objects.filter(proyecto=proyecto, estado='EN_EJECUCION').count()!=0:
+        messages.add_message(request, messages.WARNING, 'Ya hay un sprint en ejecucion!')
+        return HttpResponseRedirect(reverse('proyecto_sprint_administrar', args=(proyecto_id, sprint.id)))
+    try:
+        sprint.estado='EN_EJECUCION'
+        sprint.save()
+        messages.add_message(request, messages.SUCCESS, 'Se inicio el sprint Nro '+str(sprint.orden))
+        return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
+    except:
+        messages.add_message(request, messages.ERROR, 'Ha ocurrido un error!')
+        return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
+
+
 class SprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView):
     """
     Vista para devolver todos los sprint de un proyecto en formato JSON
@@ -104,6 +132,7 @@ def crear_sprint(request, proyecto_id):
     except:
         messages.add_message(request, messages.ERROR, 'Ha ocurrido un error!')
         return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
+
 
 class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     """
