@@ -110,6 +110,14 @@ class Sprint(models.Model):
         """
         return Flujo.objects.filter(userstory__proyecto__flujo__in=list(map(lambda x:x['us'],list(self.userstorysprint_set.all().values('us'))))).distinct()
 
+    def save(self, *args, **kwargs):
+        super(Sprint, self).save( *args, **kwargs)
+        for user_story_sprint in self.userstorysprint_set:
+            user_story_sprint.us.estadoProyecto = 6 # Se coloca en el estado de No Terminado
+            user_story_sprint.us.save()
+
+
+
 
 class Flujo(models.Model):
     """

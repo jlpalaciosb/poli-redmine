@@ -60,6 +60,7 @@
                         </td>
                         <td style="text-align: center">
                             {% if us_sprint.fase_sprint == fase and us_sprint.estado_fase_sprint == 'DOING'%}
+                                <div class="row">
                                 {% if us_sprint.asignee.miembro.user == user %}
                                     <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=-1' }}' class="fa fa-arrow-left" aria-hidden="true"></a>
                                 {% endif %}
@@ -69,6 +70,10 @@
                                 {% if us_sprint.asignee.miembro.user == user %}
                                     <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=1' }}' class="fa fa-arrow-right" aria-hidden="true"></a>
                                 {% endif %}
+                                </div>
+                                <div class="row">
+                                Cargar Actividad
+                                </div>
                             {% endif %}
                         </td>
                         <td style="text-align: center">

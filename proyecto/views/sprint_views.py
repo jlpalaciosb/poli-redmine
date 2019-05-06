@@ -244,7 +244,7 @@ class TableroKanbanView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
 @proyecto_en_ejecucion
 def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
     """
-    Vista para mover un user story a un estado
+    Vista para mover un user story a un estado. Recibe como parametro de GET, movimiento que puede tener valor 1 o -1.Que signfica avanzar o retroceder respectivamente
     :param request:
     :param proyecto_id: El id del proyecto
     :return:
@@ -256,17 +256,34 @@ def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
         movimiento = int(request.GET.get('movimiento'))
         if not request.user == user_story_sprint.asignee.miembro.user:
             # Si no es el asignado entonces se le deniega el permiso
+            messages.add_message(request, 'No puede realizar la accion debido a que usted no es el encargado del user story!',messages.WARNING)
             return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id,sprint_id,flujo_id)))
-        if movimiento is None and (movimiento != 1 or movimiento != -1):
+        if movimiento is None or (movimiento != 1 and movimiento != -1):
             #Si el moviemiento recibido como parametro no es valido
+            messages.add_message(request,messages.WARNING,
+                                 'Movimiento no permitido!'
+                                 )
             return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
 
         if user_story_sprint.fase_sprint == user_story_sprint.us.flujo.cantidadFases and user_story_sprint.estado_fase_sprint=='DONE' and movimiento == 1:
             #Si se encuentra en el DONE de la ultima fase y quiere moverse al siguiente estado entonces es incorrecto
+            messages.add_message(request,messages.WARNING,
+                                 'Movimiento no permitido!'
+                                 )
             return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
         if user_story_sprint.fase_sprint == 1 and user_story_sprint.estado_fase_sprint=='TODO' and movimiento == -1:
             #Si se encuentra en el TO DO  de la primera fase y quiere moverse al estado anterior entonces es incorrecto
+            messages.add_message(request,messages.WARNING,
+                                 'Movimiento no permitido!'
+                                 )
             return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
+        if sprint.estado != 'EN_EJECUCION':
+            #Si el SPRINT NO ESTA EN EJECUCION NO SE PUEDE MOVER DE ESTADO
+            messages.add_message(request,messages.WARNING,
+                                 'El sprint aun no inicio!'
+                                 )
+            return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
+
         if movimiento == 1:
             if user_story_sprint.estado_fase_sprint == 'TODO':
                 user_story_sprint.estado_fase_sprint = 'DOING'
@@ -291,6 +308,10 @@ def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
             elif user_story_sprint.estado_fase_sprint == 'DONE':
                 user_story_sprint.estado_fase_sprint = 'DOING'
         user_story_sprint.save()
+
+        messages.add_message(request, messages.SUCCESS,
+                             'User Story {} actualizado correctamente!'.format(user_story_sprint.us.nombre)
+                             )
 
         return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
 
