@@ -41,7 +41,7 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
         # establecer estado del us seleccionado y su flujo
         us = form.cleaned_data['us']
         flujo = form.cleaned_data['flujo']
-        us.estadoProyecto = 2
+
         if us.flujo is None:
             us.flujo = flujo
             us.fase = flujo.fase_set.get(orden=1)
@@ -49,6 +49,10 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
             #se coloca la fase y el estado al user story sprint
             form.instance.fase_sprint = us.fase
             form.instance.estado_fase_sprint = us.estadoFase
+        if us.estadoProyecto == 3 :#SI el estado del US a asignar es NO TERMINADO entonces se copia las fases y estados al User Story Sprint actual
+            form.instance.fase_sprint = us.fase
+            form.instance.estado_fase_sprint = us.estadoFase
+        us.estadoProyecto = 2
         us.save()
 
         # calcular cantidad de horas disponibles en el sprint (recordar que sprint tiene un atributo llamado capacidad)

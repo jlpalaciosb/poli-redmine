@@ -102,12 +102,18 @@ class SprintCambiarEstadoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
         super().__init__(*args, **kwargs)
-        self.instance.estado='CERRADO' #Se cambia el estado a CERRADO
-        self.instance.fecha_fin = datetime.date.today()#Y LA FECHA DE FINALIZACION VA A SER LA FECHA ACTUAL
+        sprint = self.instance
+        es_requerido = False
+        tiempo_restante = sprint.tiempo_restante()
+        if tiempo_restante is not None and tiempo_restante != 0:
+            es_requerido = True
+        self.fields['justificacion'] = forms.CharField(widget=forms.widgets.Textarea, required=es_requerido)
+        sprint.estado = 'CERRADO'  # Se cambia el estado a CERRADO
+        sprint.fecha_fin = datetime.date.today()  # Y LA FECHA DE FINALIZACION VA A SER LA FECHA ACTUAL
         self.layout = [
             'justificacion',
             FormActions(
-                Submit('guardar', 'Guardar'),
+                Submit('guardar', 'CONFIRMAR',css_class='btn-danger'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
             ),
         ]
