@@ -30,7 +30,7 @@ class MiembroSprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, Template
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
         context['titulo'] = 'Lista de Miembros de Sprints de '+ proyecto.nombre
-        context['crear_button'] = 'administrar_sprint' in get_perms(self.request.user, proyecto)
+        context['crear_button'] = 'administrar_sprint' in get_perms(self.request.user, proyecto) and sprint.estado == 'PLANIFICADO'
         # TODO: Cambiar a agregar miembro sprint
         context['crear_url'] = reverse('proyecto_sprint_miembros_agregar', kwargs=self.kwargs)
         context['crear_button_text'] = 'Agregar miembro'

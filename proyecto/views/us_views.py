@@ -78,7 +78,7 @@ class USListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
         context['crear_button_text'] = 'Crear US'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización', 'Estado General']
+        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización', 'Estado General', 'Comentarios Adicionales']
         context['order'] = [2, "desc"]
         ver_kwargs = self.kwargs.copy()
         ver_kwargs['us_id'] = 7836271  # pasamos inicialmente un id aleatorio
@@ -103,7 +103,7 @@ class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
     Vista que retorna en json la lista de user stories del product backlog
     """
     model = MiembroProyecto
-    columns = ['id', 'nombre', 'priorizacion', 'estadoProyecto']
+    columns = ['id', 'nombre', 'priorizacion', 'estadoProyecto','comentarios']
     order_columns = ['id', 'nombre', 'priorizacion', 'estadoProyecto']
     max_display_length = 100
 
@@ -117,6 +117,12 @@ class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
     def render_column(self, row, column):
         if column == 'priorizacion':
             return "{0:.2f}".format(row.priorizacion)
+        if column == 'comentarios':
+            #SI EL US NO TERMINO EN UN SPRINT Y SU TIEMPO PLANIFICADO EXCEDE AL TIEMPO EJECUTADO ENTONCES ADVERTIR AL USUARIO
+            if row.tiene_tiempo_excedido() and row.estadoProyecto==3:
+                return 'Falta ajustar las horas planificadas'
+            else:
+                return ''
         else:
             return super().render_column(row, column)
 

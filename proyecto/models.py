@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 import datetime
-
+from django.core.validators import MinValueValidator
 def validar_mayor_a_cero(value):
     if value == 0:
         raise ValidationError(
@@ -258,7 +258,7 @@ class UserStory(models.Model):
         verbose_name='tiempo planificado (en horas)',
         help_text='cuántas horas cree que le llevará a una persona terminar este US',
     )
-    tiempoEjecutado = models.FloatField(verbose_name='tiempo ejecutado (en horas)', default=0)
+    tiempoEjecutado = models.FloatField(verbose_name='tiempo ejecutado (en horas)', default=0, validators=[MinValueValidator(0)])
 
     justificacion = models.CharField(verbose_name='Justificacion', null=True, blank=True, default="", max_length=300)
 
@@ -278,6 +278,13 @@ class UserStory(models.Model):
         # Si llego al DONE de su ultima fase entonces su estado general pasa a ser EN REVISION
         if self.fase is not None and self.fase.orden == self.flujo.cantidadFases and self.estadoFase == 'DONE':
             self.estadoProyecto = 6
+
+    def tiene_tiempo_excedido(self):
+        """
+        Metodo en el que se comprueba si el tiempo ejecutado excedio
+        :return:
+        """
+        return not self.tiempoPlanificado>self.tiempoEjecutado
 
 
 class RolProyecto(Group):

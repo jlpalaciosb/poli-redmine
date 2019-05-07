@@ -56,3 +56,14 @@ class USForm(ModelForm):
             if self.instance.nombre != self.cleaned_data['nombre'] and c == 1:
                 raise forms.ValidationError('Existe otro US con este nombre para este proyecto')
         return self.cleaned_data['nombre']
+
+    def clean_tiempoPlanificado(self):
+        """
+        Asegurarse de que el tiempo planificado no sea menor que el tiempo ejecutado. Solo para actualizacion de US
+        """
+        us = self.instance
+        us.tiempoPlanificado = self.cleaned_data['tiempoPlanificado']
+        if us.id is not None:
+            if us.tiene_tiempo_excedido():
+                raise forms.ValidationError('El tiempo planficicado debe ser superior al tiempo ejecutado')
+        return self.cleaned_data['tiempoPlanificado']
