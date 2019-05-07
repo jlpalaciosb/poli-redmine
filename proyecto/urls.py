@@ -9,7 +9,8 @@ from proyecto.views import \
     SprintListView, SprintListJson, crear_sprint, SprintPerfilView, MiembroSprintListJson, MiembroSprintListView, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint,\
     FlujoCreateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoUpdateView, FlujoEliminarView, \
     UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView, UserStorySprintDeleteView,\
-    FlujoSprintListJson, FlujoSprintListView, TableroKanbanView, mover_us_kanban
+    FlujoSprintListJson, FlujoSprintListView, TableroKanbanView, mover_us_kanban, \
+    ActividadCreateView, ActividadListView, ActividadListJsonView
 
 from proyecto.views.sprint_views import iniciar_sprint, SprintCambiarEstadoView
 
@@ -72,4 +73,7 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/ver$', UserStorySprintPerfilView.as_view(), name='sprint_us_ver'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/editar$', UserStorySprintUpdateView.as_view(), name='sprint_us_editar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/eliminar$', UserStorySprintDeleteView.as_view(), name='sprint_us_eliminar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/actividades/agregar$', ActividadCreateView.as_view(), name='actividad_agregar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/actividades$', ActividadListView.as_view(), name='actividad_list'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/actividades/list$', ActividadListJsonView.as_view(), name='actividad_list_json'),
 ]

@@ -1,124 +1,124 @@
 from django.http import HttpResponseForbidden
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
-
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from guardian.mixins import LoginRequiredMixin
-from proyecto.forms import USForm
+from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
+
+from proyecto.forms import USForm, ActividadForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
-from proyecto.models import MiembroProyecto, Proyecto, UserStory
+from proyecto.models import Proyecto, Sprint, UserStory, UserStorySprint, Actividad
 
 
-class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEstadoInvalidoMixin, CreateView):
+class ActividadBaseView(LoginRequiredMixin):
+    proyecto = None
+    sprint = None
+    usp = None
+    actividad = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
+        self.sprint = Sprint.objects.get(pk=kwargs['sprint_id'])
+        self.usp = UserStorySprint.objects.get(pk=kwargs['usp_id'])
+        return super().dispatch(request, *args, **kwargs)
+
+
+class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequiredMixin, CreateView):
     """
-    Vista para crear un US para el proyecto
+    Vista para agregar una Actividad a un User Story en un Sprint
     """
-    model = UserStory
+    model = Actividad
     template_name = "change_form.html"
-    form_class = USForm
-    permission_required = 'proyecto.add_us'
-    estados_inaceptables = ['PENDIENTE','TERMINADO','SUSPENDIDO','CANCELADO']
+    form_class = ActividadForm
+
+    def has_permission(self):
+        return self.usp.asignee.miembro.user == self.request.user
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
-        return "US creado exitosamente"
+        return "Actividad agregada exitosamente"
 
     def get_success_url(self):
-        return reverse('proyecto_us_list', kwargs=self.kwargs)
+        return reverse('actividad_list', kwargs=self.kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs.update({
-            'success_url': reverse('proyecto_us_list', kwargs=self.kwargs),
-            'proyecto_id': self.kwargs['proyecto_id'],
-            'creando': True,
+            'success_url': reverse('actividad_list', kwargs=self.kwargs),
+            'usp': self.usp,
         })
         return kwargs
 
     def get_context_data(self, **kwargs):
-        p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-
         context = super().get_context_data(**kwargs)
-        context['titulo'] = 'Crear US'
-        context['titulo_form_crear'] = 'Insertar Datos del US'
-
-        # Breadcrumbs
+        context['titulo'] = 'Agregar Actividad'
+        context['titulo_form_crear'] = 'Insertar Datos de la Actividad'
         context['breadcrumb'] = [
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
-            {'nombre': p.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
-            {'nombre': 'Product Backlog', 'url': reverse('proyecto_us_list', kwargs=self.kwargs)},
-            {'nombre': 'Crear US', 'url': '#'}
+            {'nombre': self.proyecto.nombre, 'url': reverse('perfil_proyecto', args=(self.proyecto.id,))},
+            {'nombre': 'Sprints', 'url': reverse('proyecto_sprint_list', args=(self.proyecto.id,))},
+            {'nombre': 'Sprint %d' % self.sprint.orden, 'url': reverse('proyecto_sprint_administrar', args=(self.proyecto.id, self.sprint.id))},
+            {'nombre': 'Sprint Backlog', 'url': reverse('sprint_us_list', args=(self.proyecto.id, self.sprint.id))},
+            {'nombre': self.usp.us.nombre, 'url': reverse('sprint_us_ver', args=(self.proyecto.id, self.sprint.id, self.usp.id))},
+            {'nombre': 'Actividades', 'url': reverse('actividad_list', args=(self.proyecto.id, self.sprint.id, self.usp.id))},
+            {'nombre': 'Agregar', 'url': '#'},
         ]
-
         return context
 
 
-class USListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
+class ActividadListView(ActividadBaseView, PermisosEsMiembroMixin, TemplateView):
     """
-    Vista para ver el product backlog del proyecto
+    Vista para ver las actividades de un User Story en un Sprint
     """
-    template_name = 'proyecto/us/us_list.html'
-    estado = '*' # estado de los USs a listar (* significa todos los estados)
-
-    def dispatch(self, request, *args, **kwargs):
-        self.estado = request.GET.get('estado', '*')
-        return super().dispatch(request, *args, **kwargs)
+    template_name = 'change_list.html'
 
     def get_context_data(self, **kwargs):
-        p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-
         context = super().get_context_data(**kwargs)
-        context['titulo'] = 'Product Backlog'
-        context['crear_button'] = self.request.user.has_perm('proyecto.add_us', p)
-        context['crear_url'] = reverse('proyecto_us_crear', kwargs=self.kwargs)
-        context['crear_button_text'] = 'Crear US'
 
-        # datatables
-        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización', 'Estado General']
+        context['titulo'] = 'Actividades'
+
+        if self.usp.asignee.miembro.user == self.request.user:
+            context['crear_button'] = True
+            context['crear_url'] = reverse('actividad_agregar', kwargs=self.kwargs)
+            context['crear_button_text'] = 'Agregar Actividad'
+
+        # datatable
+        context['nombres_columnas'] = ['id', 'Nombre', 'Fecha']
         context['order'] = [2, "desc"]
+        context['actividad'] = True
         ver_kwargs = self.kwargs.copy()
-        ver_kwargs['us_id'] = 7836271  # pasamos inicialmente un id aleatorio
-        context['datatable_row_link'] = reverse('proyecto_us_ver', kwargs=ver_kwargs)
-        context['list_json'] = reverse('proyecto_us_list_json', kwargs=kwargs) + '?estado=' + self.estado
-        context['user_story'] = True
-        context['selected'] = self.estado
+        ver_kwargs['actividad_id'] = 7495261  # pasamos inicialmente un id aleatorio
+        context['datatable_row_link'] = reverse('index') # reverse('actividad_ver', kwargs=ver_kwargs)
+        context['list_json'] = reverse('actividad_list_json', kwargs=kwargs)
 
-        # Breadcrumbs
         context['breadcrumb'] = [
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
-            {'nombre': p.nombre, 'url': reverse('perfil_proyecto', kwargs=kwargs)},
-            {'nombre': 'Product Backlog', 'url': '#'},
+            {'nombre': self.proyecto.nombre, 'url': reverse('perfil_proyecto', args=(self.proyecto.id,))},
+            {'nombre': 'Sprints', 'url': reverse('proyecto_sprint_list', args=(self.proyecto.id,))},
+            {'nombre': 'Sprint %d' % self.sprint.orden, 'url': reverse('proyecto_sprint_administrar', args=(self.proyecto.id, self.sprint.id))},
+            {'nombre': 'Sprint Backlog', 'url': reverse('sprint_us_list', args=(self.proyecto.id, self.sprint.id))},
+            {'nombre': self.usp.us.nombre, 'url': reverse('sprint_us_ver', args=(self.proyecto.id, self.sprint.id, self.usp.id))},
+            {'nombre': 'Actividades', 'url': '#'},
         ]
 
         return context
 
 
-class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView):
+class ActividadListJsonView(ActividadBaseView, PermisosEsMiembroMixin, BaseDatatableView):
     """
-    Vista que retorna en json la lista de user stories del product backlog
+    Vista que retorna en json la lista de las actividades de un user story en un sprint
     """
-    model = MiembroProyecto
-    columns = ['id', 'nombre', 'priorizacion', 'estadoProyecto']
-    order_columns = ['id', 'nombre', 'priorizacion', 'estadoProyecto']
+    model = Actividad
+    columns = ['id', 'nombre', 'fechaHora']
+    order_columns = ['', '', 'fechaHora']
     max_display_length = 100
 
     def get_initial_queryset(self):
-        iqs = Proyecto.objects.get(pk=self.kwargs['proyecto_id']).userstory_set.all()
-        st = self.request.GET.get('estado', '*')
-        if st == '1' or st == '2' or st == '3' or st == '4' or st == '5' or st == '6':
-            iqs = iqs.filter(estadoProyecto=int(st))
-        return iqs
-
-    def render_column(self, row, column):
-        if column == 'priorizacion':
-            return "{0:.2f}".format(row.priorizacion)
-        else:
-            return super().render_column(row, column)
+        return Actividad.objects.filter(usSprint=self.usp)
 
 
 class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):

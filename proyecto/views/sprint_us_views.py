@@ -147,7 +147,7 @@ class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
     """
     model = UserStorySprint
     context_object_name = 'usp'
-    template_name = 'proyecto/sprint/us/usp_perfil.html'
+    template_name = 'proyecto/usp/usp_perfil.html'
     pk_url_kwarg = 'usp_id'
 
     def get_context_data(self, **kwargs):
@@ -157,7 +157,7 @@ class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
         usp = context['object']
 
-        context['titulo'] = 'User Story en el Sprint'
+        context['titulo'] = 'User Story (en sprint)'
 
         # Breadcrumbs
         context['breadcrumb'] = [
