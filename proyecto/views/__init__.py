@@ -1,5 +1,5 @@
 from .proyecto_views import \
-    ProyectoListView, ProyectoCreateView, ProyectoUpdateView, ProyectoPerfilView, ProyectoListJson
+    ProyectoListView, ProyectoCreateView, ProyectoUpdateView, ProyectoPerfilView, ProyectoListJson, ProyectoCambiarEstadoEstadoView
 
 from .rol_views import \
     RolListView, RolListJson, RolProyectoCreateView, RolProyectoUpdateView, RolPerfilView, RolEliminarView
@@ -20,4 +20,4 @@ from .miembroSprint_views import MiembroSprintListView, MiembroSprintListJson, M
 
 from .flujo_views import FlujoCreateView, FlujoUpdateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoEliminarView
 
-from .sprint_us_views import UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView
+from .sprint_us_views import UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView, UserStorySprintDeleteView

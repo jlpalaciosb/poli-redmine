@@ -1,4 +1,4 @@
-from .proyecto_forms import ProyectoForm
+from .proyecto_forms import ProyectoForm, ProyectoCambiarEstadoForm
 
 from .rol_forms import RolProyectoForm
 
