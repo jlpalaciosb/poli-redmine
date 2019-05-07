@@ -1,0 +1,43 @@
+{% extends 'layout/layout.html' %}
+
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            {% if cambiable %}
+                <form action="" method="post">
+                    {% csrf_token %}
+                    {{ form }}
+                    <p>¿Está seguro de que desea pasar el estado del proyecto de "{{ currentst }}" a "{{ newst }}"?</p>
+                    <button type="submit" class="btn m-b-xs btn-warning btn-addon">
+                        <i class="fa fa-check"></i>
+                        Confirmar
+                    </button>
+                    <a href="{% url 'perfil_proyecto' proyecto.id %}">
+                        <button type="button" class="btn m-b-xs btn-default btn-addon">
+                            <i class="fa fa-close"></i> Cancelar
+                        </button>
+                    </a>
+                </form>
+            {% else %}
+                <p>
+                    No se puede pasar el estado del proyecto de "{{ currentst }}" a "{{ newst }}" porque {{ motivo }}
+                </p>
+                <a href="{% url 'perfil_proyecto' proyecto.id %}">
+                    <button type="button" class="btn m-b-xs btn-default btn-addon">
+                        <i class="fa fa-check"></i> Volver
+                    </button>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

@@ -123,4 +123,17 @@ class ProyectoEnEjecucionMixin(ProyectoEstadoInvalidoMixin):
 
     estados_inaceptables = ['TERMINADO', 'CANCELADO', 'SUSPENDIDO','PENDIENTE']
 
+class Nose(object):
+
+    clases_dependientes = [Proyecto]#, Sprint, US]
+    kwargs_dependientes = ['proyecto_id', 'sprint_id', 'us_id']
+    field_dependientes = ['proyecto','sprint']
+
+    def dispatch(self, request, *args, **kwargs):
+        for i in range(1,self.clases_dependientes.count()):
+            busqueda = { self.field_dependientes[i] + '_id' : self.kwargs[self.kwargs_dependientes[i-1] ] }
+            if self.clases_dependientes[i].objects.filter(**busqueda).count > 0 :
+                return super(Nose, self).dispatch(request, *args, **kwargs)
+        raise Http404('no existe proyecto con el id en la url')
+
 
