@@ -16,7 +16,7 @@ from .sprint_views import SprintListView, SprintListJson, crear_sprint, SprintPe
 
 from .miembroSprint_views import MiembroSprintListView, MiembroSprintListJson, MiembroSprintCreateView
 
-from .miembroSprint_views import MiembroSprintListView, MiembroSprintListJson, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint
+from .miembroSprint_views import MiembroSprintListView, MiembroSprintListJson, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint, MiembroSprintIntercambiarView
 
 from .flujo_views import FlujoCreateView, FlujoUpdateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoEliminarView
 

@@ -15,7 +15,7 @@
           </p>
             <div class="form-group">
                 <label><strong>Descripción</strong></label>
-                <textarea style="resize: vertical" readonly class="form-control" rows="4">{{ proyecto.descripcion }}</textarea>
+                <textarea style="resize: vertical" readonly class="form-control" rows="4">{{ proyecto.descripcion|default_if_none:"" }}</textarea>
             </div>
         </div>
 
@@ -144,6 +144,16 @@
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-pencil"></i>
                     Tipos de USs
+                  </button>
+            </a>
+        </div>
+      </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <a href="#">
+                  <button class="btn m-b-xs btn-default btn-addon ">
+                    <i class="fa fa-line-chart" aria-hidden="true"></i>
+                    Burdown Chart
                   </button>
             </a>
         </div>
