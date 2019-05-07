@@ -382,16 +382,16 @@ class Actividad(models.Model):
     # este atributo
     responsable = models.ForeignKey(MiembroProyecto)
 
-    # por ahora todavía no tenemos una clase para archivos adjuntos, en dicha clase se deberá
-    # especificar el ForeignKey a Actividad
-
     horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=0)
     fase = models.ForeignKey(Fase)
 
-    archivos_adjuntos = models.FileField(upload_to='archivos_adjuntos/', help_text='El archivo adjunto de la actividad', null=True)
+    archivoAdjunto = models.FileField(upload_to='archivos_adjuntos/', help_text='El archivo adjunto de la actividad', null=True)
 
     # especifica en que estado estaba el US cuando la actividad fue agregada
     estado = models.CharField(choices=ESTADOS_US_FASE, default='DOING', max_length=10)
+
+    # especifica la fecha y hora en la que se agregó la actividad
+    fechaHora = models.DateTimeField(verbose_name='fecha y hora de registro', auto_now=True, null=False)
 
     class Meta:
         default_permissions = ()
