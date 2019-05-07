@@ -2,6 +2,7 @@ from django.contrib.auth.models import User, Group
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
+import datetime
 
 def validar_mayor_a_cero(value):
     if value == 0:
@@ -110,7 +111,9 @@ class Sprint(models.Model):
         Devuelve todos los flujos que corresponden a un sprint
         :return:
         """
-        return Flujo.objects.filter(userstory__proyecto__flujo__in=list(map(lambda x:x['us'],list(self.userstorysprint_set.all().values('us'))))).distinct()
+        flujos = list(map(lambda us_sprint: us_sprint.us.flujo.id,list(self.userstorysprint_set.all())))
+        return Flujo.objects.filter(id__in=flujos)
+
 
     def save(self, *args, **kwargs):
         """
@@ -129,11 +132,19 @@ class Sprint(models.Model):
         :return:
         """
         if self.estado == 'CERRADO':#Si un sprint se cerro
-            for user_story_sprint in self.userstorysprint_set:
+            for user_story_sprint in self.userstorysprint_set.all():
                 if user_story_sprint.us.estadoProyecto != 5:#Entonces todos los user stories que no este terminados se les coloca el estado no terminado
-                    user_story_sprint.us.estadoProyecto = 6 # Se coloca en el estado de No Terminado
+                    user_story_sprint.us.estadoProyecto = 3 # Se coloca en el estado de No Terminado
                     user_story_sprint.us.save()
 
+    def tiempo_restante(self):
+        """
+        Metodo para calcular el tiempo restante del sprint si es que esta en ejecucion. Se tiene en cuenta todos los dias de la semana
+        :return: La cantidad en dias del tiempo restante o None si no es posible hallar
+        """
+        if self.estado == 'EN_EJECUCION' and self.fechaInicio is not None:
+            return self.duracion * 7 - (datetime.date.today() - self.fechaInicio).days
+        return None
 
 
 class Flujo(models.Model):
@@ -260,12 +271,13 @@ class UserStory(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.priorizacion = (4 * self.prioridad + self.valorTecnico + self.valorNegocio) / 6
-
-        # Si llego al DONE de su ultima fase entonces su estado general pasa a ser EN REVISION
-        if self.fase.orden == self.flujo.cantidadFases and self.estadoFase == 'DONE':
-            self.estadoProyecto = 6
+        self.pasar_a_revision()
         super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
+    def pasar_a_revision(self):
+        # Si llego al DONE de su ultima fase entonces su estado general pasa a ser EN REVISION
+        if self.fase is not None and self.fase.orden == self.flujo.cantidadFases and self.estadoFase == 'DONE':
+            self.estadoProyecto = 6
 
 
 class RolProyecto(Group):
@@ -363,6 +375,14 @@ class UserStorySprint(models.Model):
         :return:
         """
         super(UserStorySprint, self).save(force_insert, force_update, using, update_fields)
+        self.sincronizar_user_story_asociado()
+
+
+    def sincronizar_user_story_asociado(self):
+        """
+        Se actualiza los campos de fase y estado del User Story asociado de acuerdo al moviemiento del US asociado siempre y cuando el sprint este planificado o en ejecucion
+        :return:
+        """
         if self.sprint.estado == 'EN_EJECUCION' or self.sprint.estado == 'PLANIFICADO' :
             self.us.fase = self.fase_sprint
             self.us.estadoFase = self.estado_fase_sprint

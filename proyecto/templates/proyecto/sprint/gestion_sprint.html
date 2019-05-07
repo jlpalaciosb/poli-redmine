@@ -27,10 +27,10 @@
                           <strong>Fecha de Inicio:</strong>   {{ sprint.fechaInicio|default:"" }}<br>
                       {% endif %}
                       {% if sprint.estado == 'EN_EJECUCION' %}
-                          <strong>Tiempo Restante:</strong>   {{ tiempo_restante|default:"" }} dias<br>
+                          <strong>Tiempo Restante:</strong>   {{ sprint.tiempo_restante |default:"" }} dias<br>
                       {% endif %}
                       {% if sprint.estado == 'CERRADO' %}
-                          <strong>Fecha de Finalizacion:</strong>   {{ sprint.fecha_fin | default:"" }} dias<br>
+                          <strong>Fecha de Finalizacion:</strong>   {{ sprint.fecha_fin | default:"" }}<br>
                       {% endif %}
 
                   </p>

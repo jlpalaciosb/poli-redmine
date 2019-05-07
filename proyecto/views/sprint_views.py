@@ -160,8 +160,6 @@ class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         context['titulo'] = 'Administrar Sprint'
         context['titulo_form_editar'] = 'Datos del Sprint'
         context['titulo_form_editar_nombre'] = context[SprintPerfilView.context_object_name].orden
-        if sprint.estado == 'EN_EJECUCION':
-            context['tiempo_restante']= sprint.duracion*7-(datetime.date.today()-sprint.fechaInicio).days
         # Breadcrumbs
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
                                  {'nombre': 'Proyectos', 'url': reverse('proyectos')},
@@ -215,8 +213,9 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Spri
         context = super(SprintCambiarEstadoView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
-        context['titulo'] = 'Cerrar del Sprint'
-        context['titulo_form_crear'] = 'Sprint Nro {}'.format(sprint.orden)
+        context['titulo'] = 'Cerrar el Sprint'
+        context['titulo_form_editar'] = '¿Desea cerrar el Sprint Nro'
+        context['titulo_form_editar_nombre'] = '{}?'.format(sprint.orden)
 
 
         # Breadcrumbs
@@ -226,7 +225,10 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Spri
                                   'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
                                  {'nombre': 'Sprints',
                                   'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
-                                 {'nombre': 'Sprint %d' % sprint.orden, 'url': '#'}
+                                 {'nombre': 'Sprint %d' % sprint.orden,
+                                  'url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs)},
+                                 {'nombre': 'Cerrar Sprint',
+                                  'url': '#'}
                                  ]
 
 
@@ -376,8 +378,17 @@ def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
                                  )
             return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
 
+        cantidad_en_doing = user_story_sprint.asignee.userstorysprint_set.filter(estado_fase_sprint='DOING').exclude(id=user_story_sprint.id).count()
         if movimiento == 1:
             if user_story_sprint.estado_fase_sprint == 'TODO':
+
+                if cantidad_en_doing>0:
+                    #Si se quiere mover a DOING pero ya tiene uno en doing no se le permite mover
+                    messages.add_message(request, messages.WARNING,
+                                         'Solo tiene permitido un User Story en doing a la vez en este proyecto'
+                                         )
+                    return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
+
                 user_story_sprint.estado_fase_sprint = 'DOING'
 
             elif user_story_sprint.estado_fase_sprint == 'DOING':
@@ -398,6 +409,12 @@ def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
                 user_story_sprint.estado_fase_sprint = 'TODO'
 
             elif user_story_sprint.estado_fase_sprint == 'DONE':
+                if cantidad_en_doing>0:
+                    #Si se quiere mover a DOING pero ya tiene uno en doing no se le permite mover
+                    messages.add_message(request, messages.WARNING,
+                                         'Solo tiene permitido un User Story en doing a la vez en este proyecto'
+                                         )
+                    return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
                 user_story_sprint.estado_fase_sprint = 'DOING'
         user_story_sprint.save()
 
