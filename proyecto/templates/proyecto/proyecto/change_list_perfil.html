@@ -41,28 +41,28 @@
                       {% if proyecto.estado == 'PENDIENTE' or proyecto.estado == 'SUSPENDIDO' %}
                           <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=EN%20EJECUCION">
                               <button class="btn m-b-xs btn-default btn-addon ">
-                                  <i class="fa fa-arrow-right"></i> Iniciar
+                                  <i class="fa fa-play"></i> Iniciar
                               </button>
                           </a>
                       {% endif %}
                       {% if proyecto.estado == 'PENDIENTE' or proyecto.estado == 'SUSPENDIDO' or proyecto.estado == 'EN EJECUCION' %}
                           <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=CANCELADO">
                               <button class="btn m-b-xs btn-default btn-addon ">
-                                  <i class="fa fa-arrow-right"></i> Cancelar
+                                  <i class="fa fa-times"></i> Cancelar
                               </button>
                           </a>
                       {% endif %}
                       {% if proyecto.estado == 'EN EJECUCION' %}
                           <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=SUSPENDIDO">
                               <button class="btn m-b-xs btn-default btn-addon ">
-                                  <i class="fa fa-arrow-right"></i> Suspender
+                                  <i class="fa fa-pause"></i> Suspender
                               </button>
                           </a>
                       {% endif %}
                       {% if proyecto.estado == 'EN EJECUCION' or proyecto.estado == 'SUSPENDIDO' %}
                           <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=TERMINADO">
                               <button class="btn m-b-xs btn-default btn-addon ">
-                                  <i class="fa fa-arrow-right"></i> Terminar
+                                  <i class="fa fa-check"></i> Terminar
                               </button>
                           </a>
                       {% endif %}
@@ -93,7 +93,7 @@
                 <a href="{% url 'proyecto_us_list' proyecto.id %}">
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-pencil"></i>
-                    User Stories
+                    Product Backlog
                   </button>
                 </a>
         </div>
@@ -133,7 +133,7 @@
                 <a href="{% url 'proyecto_sprint_list' proyecto.id %}">
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-pencil"></i>
-                    Sprint
+                    Sprints
                   </button>
                 </a>
         </div>

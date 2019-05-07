@@ -176,6 +176,9 @@ class Fase(models.Model):
         unique_together = (('flujo', 'nombre'), ('flujo', 'orden'))
         ordering = ['orden']
 
+    def es_ultima_fase(self):
+        return self.orden == self.flujo.cantidadFases
+
 
 class TipoUS(models.Model):
     """
@@ -394,7 +397,7 @@ class Actividad(models.Model):
     La clase Actividad es la representación de una actividad de un User Story específico
     """
     nombre = models.CharField(max_length=50)
-    descripcion = models.CharField(verbose_name='descripción', max_length=500)
+    descripcion = models.TextField(verbose_name='descripción', max_length=500)
     usSprint = models.ForeignKey(UserStorySprint)
 
     # no sirve obtener quien fue el responsable de la actividad por medio de usSprint ya que un US
@@ -405,7 +408,7 @@ class Actividad(models.Model):
     horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=0)
     fase = models.ForeignKey(Fase)
 
-    archivoAdjunto = models.FileField(upload_to='archivos_adjuntos/', help_text='El archivo adjunto de la actividad', null=True)
+    archivoAdjunto = models.FileField(upload_to='archivos_adjuntos/', help_text='El archivo adjunto de la actividad', null=True, blank=True)
 
     # especifica en que estado estaba el US cuando la actividad fue agregada
     estado = models.CharField(choices=ESTADOS_US_FASE, default='DOING', max_length=10)

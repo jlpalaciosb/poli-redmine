@@ -41,6 +41,11 @@
             </div>
             <div class="row">
                 <div class="col-xs-12">
+                    <a href="{% url 'actividad_list' usp.us.proyecto.id usp.sprint.id usp.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-list"></i> Actividades
+                        </button>
+                    </a>
                     {% if puedeEditar %}
                         <a href="{% url 'sprint_us_editar' usp.us.proyecto.id usp.sprint.id usp.id %}">
                             <button class="btn m-b-xs btn-default btn-addon ">
