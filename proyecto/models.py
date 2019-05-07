@@ -262,7 +262,7 @@ class UserStory(models.Model):
         self.priorizacion = (4 * self.prioridad + self.valorTecnico + self.valorNegocio) / 6
 
         # Si llego al DONE de su ultima fase entonces su estado general pasa a ser EN REVISION
-        if self.fase.orden == self.flujo.cantidadFases and self.estadoFase == 'DONE':
+        if self.fase is not None and self.fase.orden == self.flujo.cantidadFases and self.estadoFase == 'DONE':
             self.estadoProyecto = 6
         super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
