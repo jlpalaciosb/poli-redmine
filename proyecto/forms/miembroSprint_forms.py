@@ -40,3 +40,39 @@ class MiembroSprintForm(forms.ModelForm):
             ),
         ]
         self.helper.layout = Layout(*layout)
+
+class CambiarMiembroForm(forms.ModelForm):
+    """
+    Form para intercambiar un miembro por otro en un sprint en ejecucion. Solo se intercambia el modelo miembro del Miembro Sprint
+    """
+    class Meta:
+        model = MiembroSprint
+        fields = ['miembro']
+
+
+    def __init__(self, *args, **kwargs):
+        self.success_url = kwargs.pop('success_url')
+        sprint_id = kwargs.pop('sprint_id')
+        proyecto_id = kwargs.pop('proyecto_id')
+        super(CambiarMiembroForm, self).__init__(*args, **kwargs)
+        #Se traen todos los miembros del proyecto que tengan el permiso como desarrollador del proyecto y se excluyen aquellos que ya estan asignados en este sprint
+
+
+
+        self.fields['miembro'].queryset = MiembroProyecto.objects.filter(
+            proyecto=proyecto_id, roles__permissions__codename='desarrollador_proyecto') \
+            .exclude(id__in=list(map(lambda x: x['miembro'],
+                                     list(MiembroSprint.objects.filter(sprint__id=sprint_id).values('miembro')))))
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
+        layout = [
+            'miembro',
+            FormActions(
+                Submit('guardar', 'Guardar'),
+                HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
+            ),
+        ]
+        self.helper.layout = Layout(*layout)

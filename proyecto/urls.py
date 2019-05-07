@@ -6,7 +6,8 @@ from proyecto.views import \
     MiembroProyectoCreateView, MiembroProyectoListJsonView, MiembroProyectoListView, MiembroProyectoUpdateView, MiembroProyectoPerfilView, MiembroProyectoDeleteView, \
     TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView, \
     USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView,\
-    SprintListView, SprintListJson, crear_sprint, SprintPerfilView, MiembroSprintListJson, MiembroSprintListView, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint,\
+    SprintListView, SprintListJson, crear_sprint, SprintPerfilView,\
+    MiembroSprintListJson, MiembroSprintListView, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint, MiembroSprintIntercambiarView,\
     FlujoCreateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoUpdateView, FlujoEliminarView, \
     UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView, UserStorySprintDeleteView,\
     FlujoSprintListJson, FlujoSprintListView, TableroKanbanView, mover_us_kanban
@@ -65,6 +66,7 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/agregar$', MiembroSprintCreateView.as_view(), name='proyecto_sprint_miembros_agregar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/(?P<miembroSprint_id>\d+)/ver$', MiembroSprintPerfilView.as_view(), name='proyecto_sprint_miembros_ver'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/(?P<miembroSprint_id>\d+)/editar$', MiembroSprintUpdateView.as_view(), name='proyecto_sprint_miembros_editar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/(?P<miembroSprint_id>\d+)/intercambiar$', MiembroSprintIntercambiarView.as_view(), name='proyecto_sprint_miembros_intercambiar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/(?P<miembroSprint_id>\d+)/excluir$', excluir_miembro_sprint, name='proyecto_sprint_miembros_excluir'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/agregar$', UserStorySprintCreateView.as_view(), name='sprint_us_agregar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories$', UserStorySprintListView.as_view(), name='sprint_us_list'),

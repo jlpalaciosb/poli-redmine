@@ -1,14 +1,14 @@
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEnEjecucionMixin
 from guardian.mixins import LoginRequiredMixin
-from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
+from django.views.generic import CreateView, UpdateView, TemplateView, DetailView
 from proyecto.models import Sprint, Proyecto, MiembroSprint
-from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
+from django.http import  HttpResponseForbidden, HttpResponseRedirect
 from django.urls import reverse
 from django.db import transaction
 from guardian.shortcuts import  get_perms
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.messages.views import SuccessMessageMixin
-from proyecto.forms import MiembroSprintForm
+from proyecto.forms import MiembroSprintForm, CambiarMiembroForm
 from django.contrib import messages
 from guardian.decorators import permission_required
 from proyecto.decorators import proyecto_en_ejecucion
@@ -274,6 +274,82 @@ class MiembroSprintUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Proy
         sprint.capacidad = sprint.capacidad + sprint.duracion*sprint.proyecto.diasHabiles*form.cleaned_data['horasAsignadas']
         sprint.save()
         return response
+
+class MiembroSprintIntercambiarView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, SuccessMessageMixin, UpdateView):
+    """
+    Vista para intercanmbiar un miembro de sprint en ejecucion. Solo es valido si el sprint esta EJECUCION. Se actualiza la capacidad del sprint
+    """
+    model = MiembroSprint
+    template_name = "change_form.html"
+    form_class = CambiarMiembroForm
+    permission_required = 'proyecto.administrar_sprint'
+    permission_denied_message = 'No tiene permiso para administrar sprint.'
+    pk_url_kwarg = 'miembroSprint_id'
+    context_object_name = 'miembro_sprint'
+
+    def check_permissions(self, request):
+        """
+        Si el sprint no esta EN EJECUCION no se puede acceder a esta vista
+        :param request:
+        :return:
+        """
+        try:
+            sprint = Sprint.objects.get(pk = self.kwargs['sprint_id'])
+            if sprint.estado != 'EN_EJECUCION':
+                return HttpResponseForbidden()
+            return super(MiembroSprintIntercambiarView, self).check_permissions(request)
+        except Sprint.DoesNotExist:
+            return HttpResponseForbidden()
+        except:
+            return HttpResponseForbidden()
+
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_success_message(self, cleaned_data):
+        return "Miembro de Sprint intercambiado exitosamente."
+
+    def get_success_url(self):
+        return reverse('proyecto_sprint_miembros',args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id']))
+
+    def get_form_kwargs(self):
+        kwargs = super(MiembroSprintIntercambiarView, self).get_form_kwargs()
+        kwargs.update({
+            'success_url': reverse('proyecto_sprint_miembros',args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id'])),
+            'proyecto_id': self.kwargs['proyecto_id'],
+            'sprint_id': self.kwargs['sprint_id'],
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super(MiembroSprintIntercambiarView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
+        miembro_sprint = MiembroSprint.objects.get(pk=self.kwargs['miembroSprint_id'])
+        context['titulo'] = 'Intercambiar miembro de Sprint'
+        context['titulo_form_editar'] = 'Datos del Miembro a excluir del Sprint'
+        context['titulo_form_editar_nombre'] = context[MiembroSprintUpdateView.context_object_name].miembro
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre,
+                                  'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Sprints',
+                                  'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Sprint %d' % sprint.orden,
+                                  'url': reverse('proyecto_sprint_administrar',
+                                                 args=(self.kwargs['proyecto_id'], self.kwargs['sprint_id']))},
+                                 {'nombre': 'Miembros',
+                                  'url': reverse('proyecto_sprint_miembros',
+                                                 args=(self.kwargs['proyecto_id'], self.kwargs['sprint_id']))},
+                                 {'nombre': miembro_sprint.miembro.user.username, 'url': reverse('proyecto_sprint_miembros_ver', kwargs=self.kwargs)},
+                                 {'nombre': 'Intercambiar', 'url':'#'}
+                                 ]
+
+        return context
+
 
 @login_required
 @permission_required('proyecto.administrar_sprint',(Proyecto, 'id', 'proyecto_id'), return_403=True)
