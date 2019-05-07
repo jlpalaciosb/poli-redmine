@@ -1,0 +1,50 @@
+{% extends 'layout/layout.html' %}
+{% load static %}
+
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            <div class="row">
+                <div class="col-xs-4">
+                    <h4>{{ actividad.nombre }}</h4>
+                    <div class="form-group">
+                        <label><strong>Descripción</strong></label>
+                        <textarea class="form-control" readonly rows="4" style="resize: vertical">{{ actividad.descripcion }}</textarea>
+                    </div>
+                </div>
+                <div class="col-xs-6">
+                    <h4>&nbsp;</h4>
+                    <div>
+                        <strong>Responsable: </strong> {{ actividad.responsable }} ({{ actividad.responsable.user.get_full_name }})
+                    </div>
+                    <br>
+                    <div>
+                        <strong>Fecha:</strong> {{ actividad.fechaHora }} <br>
+                        <strong>Tiempo Trabajado:</strong> {{ actividad.horasTrabajadas }} horas
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    {% if puedeEditar %}
+                        <a href="{% url 'actividad_editar' actividad.usSprint.us.proyecto.id actividad.usSprint.sprint.id actividad.usSprint.id actividad.id %}">
+                            <button class="btn m-b-xs btn-default btn-addon ">
+                                <i class="fa fa-pencil"></i> Editar
+                            </button>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

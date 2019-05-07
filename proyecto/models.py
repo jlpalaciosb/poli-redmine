@@ -394,7 +394,7 @@ class Actividad(models.Model):
     La clase Actividad es la representación de una actividad de un User Story específico
     """
     nombre = models.CharField(max_length=50)
-    descripcion = models.CharField(verbose_name='descripción', max_length=500)
+    descripcion = models.TextField(verbose_name='descripción', max_length=500)
     usSprint = models.ForeignKey(UserStorySprint)
 
     # no sirve obtener quien fue el responsable de la actividad por medio de usSprint ya que un US

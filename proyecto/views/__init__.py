@@ -22,4 +22,4 @@ from .flujo_views import FlujoCreateView, FlujoUpdateView, FlujoListView, FlujoL
 
 from .sprint_us_views import UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView, UserStorySprintDeleteView
 
-from .actividad_views import ActividadCreateView, ActividadListView, ActividadListJsonView
+from .actividad_views import ActividadCreateView, ActividadListView, ActividadListJsonView, ActividadPerfilView, ActividadUpdateView
