@@ -24,14 +24,19 @@
                 </div>
                 <div class="col-xs-6">
                     <h4>&nbsp;</h4>
-                    <div>
-                        <strong>Responsable: </strong> {{ actividad.responsable }} ({{ actividad.responsable.user.get_full_name }})
-                    </div>
+                    <strong>Responsable: </strong> {{ actividad.responsable }} ({{ actividad.responsable.user.get_full_name }})<br>
                     <br>
-                    <div>
-                        <strong>Fecha:</strong> {{ actividad.fechaHora }} <br>
-                        <strong>Tiempo Trabajado:</strong> {{ actividad.horasTrabajadas }} horas
-                    </div>
+                    <strong>Fecha y hora de registro:</strong> {{ actividad.fechaHora }} <br>
+                    <strong>Tiempo trabajado:</strong> {{ actividad.horasTrabajadas }} horas <br>
+                    <br>
+                    <strong>Archivo adjunto:</strong>
+                    {% if actividad.archivoAdjunto %}
+                        <a href="{{ actividad.archivoAdjunto.url }}" style="text-decoration: underline">
+                            {{ actividad.archivoAdjunto.name }}
+                        </a>
+                    {% else %}
+                        <i>Sin archivo adjunto</i>
+                    {% endif %}
                 </div>
             </div>
             <div class="row">

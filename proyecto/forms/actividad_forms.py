@@ -10,7 +10,7 @@ from proyecto.models import Proyecto, UserStory, TipoUS, Actividad, UserStorySpr
 class ActividadForm(ModelForm):
     class Meta:
         model = Actividad
-        fields = ['nombre', 'descripcion', 'horasTrabajadas']
+        fields = ['nombre', 'descripcion', 'horasTrabajadas', 'archivoAdjunto']
 
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
@@ -27,7 +27,7 @@ class ActividadForm(ModelForm):
         super().__init__(*args, **kwargs)
 
         layout = [
-            'nombre', 'descripcion', 'horasTrabajadas',
+            'nombre', 'descripcion', 'horasTrabajadas', 'archivoAdjunto',
             FormActions(
                 Submit('guardar', 'Guardar'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),

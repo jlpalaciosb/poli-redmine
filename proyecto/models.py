@@ -408,7 +408,7 @@ class Actividad(models.Model):
     horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=0)
     fase = models.ForeignKey(Fase)
 
-    archivoAdjunto = models.FileField(upload_to='archivos_adjuntos/', help_text='El archivo adjunto de la actividad', null=True)
+    archivoAdjunto = models.FileField(upload_to='archivos_adjuntos/', help_text='El archivo adjunto de la actividad', null=True, blank=True)
 
     # especifica en que estado estaba el US cuando la actividad fue agregada
     estado = models.CharField(choices=ESTADOS_US_FASE, default='DOING', max_length=10)
