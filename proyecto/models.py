@@ -176,6 +176,9 @@ class Fase(models.Model):
         unique_together = (('flujo', 'nombre'), ('flujo', 'orden'))
         ordering = ['orden']
 
+    def es_ultima_fase(self):
+        return self.orden == self.flujo.cantidadFases
+
 
 class TipoUS(models.Model):
     """

@@ -1,14 +1,14 @@
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
-import pytz
+from django.contrib import messages
 
-from proyecto.forms import USForm, ActividadForm
-from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
-from proyecto.models import Proyecto, Sprint, UserStory, UserStorySprint, Actividad
+from proyecto.forms import ActividadForm
+from proyecto.mixins import PermisosEsMiembroMixin
+from proyecto.models import Proyecto, Sprint, UserStorySprint, Actividad
 
 
 class ActividadBaseView(LoginRequiredMixin):
@@ -33,12 +33,26 @@ class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
     model = Actividad
     template_name = "change_form.html"
     form_class = ActividadForm
+    redirect = False # si en principio el usuario tiene permiso para agregar una actividad pero no puede por las restricciones del sistema
 
     def has_permission(self):
-        return self.usp.asignee.miembro.user == self.request.user
+        parcial = self.usp.asignee.miembro.user == self.request.user
+        if parcial:
+            if self.usp.sprint.estado != 'EN_EJECUCION':
+                messages.add_message(self.request, messages.WARNING, 'El sprint debe estar en ejecución')
+                self.redirect = True
+            elif self.usp.estado_fase_sprint != 'DOING':
+                messages.add_message(self.request, messages.WARNING, 'Es user story debe estar en la etapa DOING')
+                self.redirect = True
+            return self.redirect == False
+        else:
+            return False
 
     def handle_no_permission(self):
-        return HttpResponseForbidden()
+        if self.redirect:
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
         return "Actividad agregada exitosamente"
@@ -165,12 +179,26 @@ class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
     form_class = ActividadForm
     template_name = 'change_form.html'
     pk_url_kwarg = 'actividad_id'
+    redirect = False # si en principio el usuario tiene permiso para agregar una actividad pero no puede por las restricciones del sistema
 
     def has_permission(self):
-        return self.usp.asignee.miembro.user == self.request.user
+        parcial = self.usp.asignee.miembro.user == self.request.user
+        if parcial:
+            if self.usp.sprint.estado != 'EN_EJECUCION':
+                messages.add_message(self.request, messages.WARNING, 'El sprint debe estar en ejecución')
+                self.redirect = True
+            elif self.usp.fase_sprint.es_ultima_fase() and self.usp.estado_fase_sprint == 'DONE':
+                messages.add_message(self.request, messages.WARNING, 'No se puede modificar la actividad de un user story cuando el user story esta DONE en la última fase')
+                self.redirect = True
+            return self.redirect == False
+        else:
+            return False
 
     def handle_no_permission(self):
-        return HttpResponseForbidden()
+        if self.redirect:
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
         return "Actividad editada exitosamente"
