@@ -55,9 +55,27 @@ class ProyectoCambiarEstadoForm(ModelForm):
     """
     class Meta:
         model = Proyecto
-        fields = ['estado']
+        fields = ['estado', 'justificacion']
         widgets = {'estado': forms.HiddenInput}
 
     def __init__(self, *args, **kwargs):
         kwargs.get('instance').estado = kwargs.pop('estado')
+
         super().__init__(*args, **kwargs)
+
+        if self.instance.estado == 'CANCELADO':
+            self.fields['justificacion'] = forms.CharField(
+                widget=forms.widgets.Textarea, required=True, label='Justificación',
+                help_text='justifique por qué se va a cancelar el proyecto'
+            )
+        else:
+            self.fields['justificacion'].widget = forms.HiddenInput()
+
+        self.helper = FormHelper()
+        layout = [
+            'estado', 'justificacion',
+            FormActions(
+                Submit('enviar', 'CONFIRMAR', css_class='btn-danger'),
+            ),
+        ]
+        self.helper.layout = Layout(*layout)
