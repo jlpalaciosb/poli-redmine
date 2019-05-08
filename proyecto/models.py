@@ -258,7 +258,7 @@ class UserStory(models.Model):
         verbose_name='tiempo planificado (en horas)',
         help_text='cuántas horas cree que le llevará a una persona terminar este US',
     )
-    tiempoEjecutado = models.FloatField(verbose_name='tiempo ejecutado (en horas)', default=0, validators=[MinValueValidator(0)])
+    tiempoEjecutado = models.PositiveIntegerField(verbose_name='tiempo ejecutado (en horas)', default=0)
 
     justificacion = models.CharField(verbose_name='Justificacion', null=True, blank=True, default="", max_length=300)
 
@@ -281,10 +281,13 @@ class UserStory(models.Model):
 
     def tiene_tiempo_excedido(self):
         """
-        Metodo en el que se comprueba si el tiempo ejecutado excedio
+        Metodo en el que se comprueba si el tiempo ejecutado excedio si el US no termino en un sprint
         :return:
         """
-        return not self.tiempoPlanificado>self.tiempoEjecutado
+        if self.estadoProyecto == 3:
+            return not self.tiempoPlanificado>self.tiempoEjecutado
+        return False
+
 
 
 class RolProyecto(Group):

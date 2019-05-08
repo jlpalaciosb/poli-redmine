@@ -1,6 +1,6 @@
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, HTML, Layout
+from crispy_forms.layout import Submit, HTML, Layout, Field
 from django import forms
 from django.forms import ModelForm
 from django.forms import  ModelChoiceField
@@ -37,6 +37,17 @@ class USForm(ModelForm):
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
             ),
         ]
+
+        # SI EL USER STORY A MODIFICAR ESTA EN UN SPRINT ENTONCES NO SE MUESTRA EL CAMPO DE TIEMPO PLANIFICADO, NI LOS VALORES DE PRIORIZACION
+        if self.instance is not None and self.instance.id is not None and self.instance.estadoProyecto == 2:
+            del self.fields['tiempoPlanificado']
+            del self.fields['prioridad']
+            del self.fields['valorNegocio']
+            del self.fields['valorTecnico']
+            layout.remove('tiempoPlanificado')
+            layout.remove('prioridad')
+            layout.remove('valorNegocio')
+            layout.remove('valorTecnico')
 
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'

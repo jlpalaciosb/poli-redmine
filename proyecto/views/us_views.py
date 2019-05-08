@@ -6,11 +6,11 @@ from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
 from proyecto.forms import USForm
-from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
+from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEnEjecucionMixin, UserStoryNoModificable
 from proyecto.models import MiembroProyecto, Proyecto, UserStory
 
 
-class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEstadoInvalidoMixin, CreateView):
+class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, CreateView):
     """
     Vista para crear un US para el proyecto
     """
@@ -18,7 +18,7 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     template_name = "change_form.html"
     form_class = USForm
     permission_required = 'proyecto.add_us'
-    estados_inaceptables = ['PENDIENTE','TERMINADO','SUSPENDIDO','CANCELADO']
+
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -158,7 +158,7 @@ class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         return context
 
 
-class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEstadoInvalidoMixin, UpdateView):
+class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, UserStoryNoModificable, UpdateView):
     """
     Vista que permite modificar los datos básicos de un User Story a nivel proyecto
     """
@@ -167,7 +167,7 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     template_name = 'change_form.html'
     pk_url_kwarg = 'us_id'
     permission_required = 'proyecto.change_us'
-    estados_inaceptables = ['PENDIENTE', 'TERMINADO', 'SUSPENDIDO', 'CANCELADO']
+
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
