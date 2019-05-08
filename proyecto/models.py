@@ -2,6 +2,7 @@ from django.contrib.auth.models import User, Group
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
+import datetime
 
 def validar_mayor_a_cero(value):
     if value == 0:
@@ -94,14 +95,56 @@ class Sprint(models.Model):
     duracion = models.PositiveIntegerField(verbose_name='duración del sprint (en semanas)', validators=[validar_mayor_a_cero])
     fechaInicio = models.DateField(verbose_name='fecha de inicio', null=True)
     estado = models.CharField(choices=ESTADOS_SPRINT, default='PLANIFICADO', max_length=15)
+    justificacion= models.CharField(verbose_name='Justificacion', null=True,blank=True,default="",max_length=300)
     capacidad = models.PositiveIntegerField(
         verbose_name='capacidad del sprint (en horas)', default=0,
-        help_text='Este valor nos dice cuantas horas de trabajo disponible hay en el sprint'
+        help_text='Este valor nos dice cuántas horas de trabajo disponible hay en el sprint'
     )
+    fecha_fin = models.DateField(verbose_name='fecha de finalizacion', null=True, help_text='La fecha en la que finaliza un sprint')
 
     class Meta:
         default_permissions =  ()
         unique_together = ('proyecto', 'orden')
+
+    def flujos_sprint(self):
+        """
+        Devuelve todos los flujos que corresponden a un sprint
+        :return:
+        """
+        flujos = list(map(lambda us_sprint: us_sprint.us.flujo.id,list(self.userstorysprint_set.all())))
+        return Flujo.objects.filter(id__in=flujos)
+
+
+    def save(self, *args, **kwargs):
+        """
+        Al cerrar un sprint todos los user stories que no hayan terminado se les coloca en el estado NO TERMINADO
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        super(Sprint, self).save( *args, **kwargs)
+        self.user_stories_sprint_cerrado()
+
+
+    def user_stories_sprint_cerrado(self):
+        """
+        Todos los user stories que su estado no sea TERMINADO se les cambia el estado a NO TERMINADO
+        :return:
+        """
+        if self.estado == 'CERRADO':#Si un sprint se cerro
+            for user_story_sprint in self.userstorysprint_set.all():
+                if user_story_sprint.us.estadoProyecto != 5:#Entonces todos los user stories que no este terminados se les coloca el estado no terminado
+                    user_story_sprint.us.estadoProyecto = 3 # Se coloca en el estado de No Terminado
+                    user_story_sprint.us.save()
+
+    def tiempo_restante(self):
+        """
+        Metodo para calcular el tiempo restante del sprint si es que esta en ejecucion. Se tiene en cuenta todos los dias de la semana
+        :return: La cantidad en dias del tiempo restante o None si no es posible hallar
+        """
+        if self.estado == 'EN_EJECUCION' and self.fechaInicio is not None:
+            return self.duracion * 7 - (datetime.date.today() - self.fechaInicio).days
+        return None
 
 
 class Flujo(models.Model):
@@ -131,12 +174,10 @@ class Fase(models.Model):
     class Meta:
         default_permissions = ()
         unique_together = (('flujo', 'nombre'), ('flujo', 'orden'))
+        ordering = ['orden']
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        cantidadFases  = self.flujo.fase_set.all().count()
-        self.orden = cantidadFases + 1
-        super().save(force_insert, force_update, using, update_fields)
+    def es_ultima_fase(self):
+        return self.orden == self.flujo.cantidadFases
 
 
 class TipoUS(models.Model):
@@ -222,6 +263,8 @@ class UserStory(models.Model):
     )
     tiempoEjecutado = models.FloatField(verbose_name='tiempo ejecutado (en horas)', default=0)
 
+    justificacion = models.CharField(verbose_name='Justificacion', null=True, blank=True, default="", max_length=300)
+
     class Meta:
         default_permissions =  ()
         unique_together = ('proyecto', 'nombre')
@@ -231,7 +274,13 @@ class UserStory(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         self.priorizacion = (4 * self.prioridad + self.valorTecnico + self.valorNegocio) / 6
+        self.pasar_a_revision()
         super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
+
+    def pasar_a_revision(self):
+        # Si llego al DONE de su ultima fase entonces su estado general pasa a ser EN REVISION
+        if self.fase is not None and self.fase.orden == self.flujo.cantidadFases and self.estadoFase == 'DONE':
+            self.estadoProyecto = 6
 
 
 class RolProyecto(Group):
@@ -287,6 +336,7 @@ class MiembroSprint(models.Model):
     """
     Representa la relacion entre un Sprint y un Miembro, cuando es asignado como desarrollador.
     Almacena la cantidad de horas de trabajo asignadas a ese miembro para ese Sprint especifico.
+    Cada vez que se agregue una instancia de esta clase, la capacidad del sprint con quien este asociado dicha instancia sera actualizada
     """
     miembro = models.ForeignKey(MiembroProyecto, verbose_name='Miembro del Sprint')
     sprint = models.ForeignKey(Sprint, verbose_name='Sprint')
@@ -318,13 +368,36 @@ class UserStorySprint(models.Model):
         default_permissions = ()
         unique_together = ('us', 'sprint')
 
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        """
+        Se actualiza el metodo para que al guardar/actualizar un user story en un sprint, si el sprint esta planificado o en ejecucion se sincronize los campos del user story
+        :param force_insert:
+        :param force_update:
+        :param using:
+        :param update_fields:
+        :return:
+        """
+        super(UserStorySprint, self).save(force_insert, force_update, using, update_fields)
+        self.sincronizar_user_story_asociado()
+
+
+    def sincronizar_user_story_asociado(self):
+        """
+        Se actualiza los campos de fase y estado del User Story asociado de acuerdo al moviemiento del US asociado siempre y cuando el sprint este planificado o en ejecucion
+        :return:
+        """
+        if self.sprint.estado == 'EN_EJECUCION' or self.sprint.estado == 'PLANIFICADO' :
+            self.us.fase = self.fase_sprint
+            self.us.estadoFase = self.estado_fase_sprint
+            self.us.save()
+
 
 class Actividad(models.Model):
     """
     La clase Actividad es la representación de una actividad de un User Story específico
     """
     nombre = models.CharField(max_length=50)
-    descripcion = models.CharField(verbose_name='descripción', max_length=500)
+    descripcion = models.TextField(verbose_name='descripción', max_length=500)
     usSprint = models.ForeignKey(UserStorySprint)
 
     # no sirve obtener quien fue el responsable de la actividad por medio de usSprint ya que un US
@@ -332,16 +405,16 @@ class Actividad(models.Model):
     # este atributo
     responsable = models.ForeignKey(MiembroProyecto)
 
-    # por ahora todavía no tenemos una clase para archivos adjuntos, en dicha clase se deberá
-    # especificar el ForeignKey a Actividad
-
     horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=0)
     fase = models.ForeignKey(Fase)
 
-    archivos_adjuntos = models.FileField(upload_to='archivos_adjuntos/', help_text='El archivo adjunto de la actividad', null=True)
+    archivoAdjunto = models.FileField(upload_to='archivos_adjuntos/', help_text='El archivo adjunto de la actividad', null=True, blank=True)
 
     # especifica en que estado estaba el US cuando la actividad fue agregada
     estado = models.CharField(choices=ESTADOS_US_FASE, default='DOING', max_length=10)
+
+    # especifica la fecha y hora en la que se agregó la actividad
+    fechaHora = models.DateTimeField(verbose_name='fecha y hora de registro', auto_now=True, null=False)
 
     class Meta:
         default_permissions = ()

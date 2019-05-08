@@ -3,7 +3,7 @@ from proyecto.models import Sprint, MiembroSprint, MiembroProyecto, UserStorySpr
 from crispy_forms.bootstrap import FormActions, AppendedText
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, HTML, Layout, Field
-
+import datetime
 
 class UserStorySprintCrearForm(forms.ModelForm):
     flujo = forms.ModelChoiceField(
@@ -80,6 +80,40 @@ class UserStorySprintEditarForm(forms.ModelForm):
             'asignee',
             FormActions(
                 Submit('guardar', 'Guardar'),
+                HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
+            ),
+        ]
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
+        self.helper.layout = Layout(*self.layout)
+
+class SprintCambiarEstadoForm(forms.ModelForm):
+    """
+    Form utilizada para cambiar el estado de un proyecto
+    """
+    class Meta:
+        model = Sprint
+        fields = ['justificacion']
+        widgets = {'justificacion': forms.widgets.Textarea}
+
+    def __init__(self, *args, **kwargs):
+        self.success_url = kwargs.pop('success_url')
+        super().__init__(*args, **kwargs)
+        sprint = self.instance
+        es_requerido = False
+        tiempo_restante = sprint.tiempo_restante()
+        if tiempo_restante is not None and tiempo_restante != 0:
+            es_requerido = True
+        self.fields['justificacion'] = forms.CharField(widget=forms.widgets.Textarea, required=es_requerido)
+        sprint.estado = 'CERRADO'  # Se cambia el estado a CERRADO
+        sprint.fecha_fin = datetime.date.today()  # Y LA FECHA DE FINALIZACION VA A SER LA FECHA ACTUAL
+        self.layout = [
+            'justificacion',
+            FormActions(
+                Submit('guardar', 'CONFIRMAR',css_class='btn-danger'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
             ),
         ]

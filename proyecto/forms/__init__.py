@@ -8,8 +8,10 @@ from .tipoUS_forms import TipoUsForm, CampoPersonalizadoForm, CampoPersonalizado
 
 from .us_forms import USForm
 
-from .miembroSprint_forms import MiembroSprintForm
+from .miembroSprint_forms import MiembroSprintForm, CambiarMiembroForm
 
 from .sprint_us_forms import UserStorySprintCrearForm, UserStorySprintEditarForm
 
 from .flujo_form import FaseFormSet, FlujoForm
+
+from .actividad_forms import ActividadForm

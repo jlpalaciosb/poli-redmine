@@ -42,7 +42,7 @@
                 {% endif %}
 
                 {% if 'administrar_sprint' in permisosGuardian and miembro_sprint.sprint.estado == 'EN_EJECUCION'%}
-                    <a href="#">
+                    <a href="{% url 'proyecto_sprint_miembros_intercambiar' miembro_sprint.sprint.proyecto.id miembro_sprint.sprint.id miembro_sprint.id %}">
                       <button class="btn m-b-xs btn-default btn-addon ">
                         <i class="fa fa-pencil"></i>
                         Intercambiar miembro

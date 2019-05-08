@@ -1,0 +1,104 @@
+{% extends 'layout/layout.html' %}
+{% load static %}
+{% load guardian_tags %}
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+    <div class="wrapper-md">
+        <div class="well m-t bg-white lt">
+              <div class="row">
+                <div class="col-xs-12">
+                  <h2>Flujo: {{ flujo.nombre }} del Sprint Nro. {{ sprint.orden }}</h2>
+
+                </div>
+              </div>
+
+                <table class="table table-bordered">
+                    <thead>
+                        <!-- ENCABEZADO DE CADA FASE DEL FLUJO -->
+                        <tr>
+                            {% for fase in flujo.fase_set.all %}
+                                <th style="text-align: center" colspan="3">{{ fase.nombre }}</th>
+                            {% endfor %}
+                        </tr>
+                        <!-- SUBENCABEZADO DE CADA ESTADO DE CADA FASE -->
+                        <tr>
+                            {% for fase in flujo.fase_set.all %}
+                                <th style="text-align: center; background-color: #ffb3b5">To Do</th>
+                                <th style="text-align: center;background-color: #9ec6ff">Doing</th>
+                                <th style="text-align: center;background-color: #c2ff8d">Done</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                <tbody>
+
+                <!-- CADA ELEMENTO(FILA) DE LA TABLA ES UN USER STORY QUE PERTENCE A UN SPRINT Y UN FLUJO EN ESPECIFICO  -->
+                {% for us_sprint in user_stories_sprint %}
+                    <tr>
+                    <!-- UN USER STORY SE POSICIONARA UNICAMENTE EN UNA COLUMNA. DEBIDO A QUE SOLO SE ENCUENTRA EN UNA UNICA FASE Y UN UNICO ESTADO EN UN MOMENTO DADO -->
+                    <!-- SE COMPARA EN QUE FASE Y ESTADO SE ENCUENTRA PARA MOSTRAR EN DICHA COLUMNA -->
+                    {% for fase in flujo.fase_set.all %}
+                        <td style="text-align: center">
+                        {% if us_sprint.fase_sprint == fase and us_sprint.estado_fase_sprint == 'TODO'%}
+
+                            {% if not fase.orden == 1 and us_sprint.asignee.miembro.user == user %}
+                                <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=-1' }}' class="fa fa-arrow-left" aria-hidden="true"></a>
+                            {% endif %}
+
+                            {{ us_sprint.us.nombre }}
+                            {% if us_sprint.asignee.miembro.user == user %}
+                                <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=1' }}' class="fa fa-arrow-right" aria-hidden="true"></a>
+                            {% endif %}
+                        {% endif %}
+                        </td>
+                        <td style="text-align: center">
+                            {% if us_sprint.fase_sprint == fase and us_sprint.estado_fase_sprint == 'DOING'%}
+                                <div class="row">
+                                {% if us_sprint.asignee.miembro.user == user %}
+                                    <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=-1' }}' class="fa fa-arrow-left" aria-hidden="true"></a>
+                                {% endif %}
+
+                                {{ us_sprint.us.nombre }}
+
+                                {% if us_sprint.asignee.miembro.user == user %}
+                                    <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=1' }}' class="fa fa-arrow-right" aria-hidden="true"></a>
+                                {% endif %}
+                                </div>
+                                <div class="row">
+                                Cargar Actividad
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center">
+                            {% if us_sprint.fase_sprint == fase and us_sprint.estado_fase_sprint == 'DONE'%}
+                                {% if us_sprint.asignee.miembro.user == user %}
+                                    <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=-1' }}' class="fa fa-arrow-left" aria-hidden="true"></a>
+                                {% endif %}
+
+                                {{ us_sprint.us.nombre }}
+
+                                {% if not fase.orden == flujo.cantidadFases and us_sprint.asignee.miembro.user == user %}
+                                    <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=1' }}' class="fa fa-arrow-right" aria-hidden="true"></a>
+                                {% endif %}
+
+                            {% endif %}
+
+                        </td>
+
+                    {% endfor %}
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+
+                </table>
+        </div>
+    </div>
+{% endblock %}

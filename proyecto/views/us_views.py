@@ -50,7 +50,7 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
-            {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', kwargs=self.kwargs)},
+            {'nombre': 'Product Backlog', 'url': reverse('proyecto_us_list', kwargs=self.kwargs)},
             {'nombre': 'Crear US', 'url': '#'}
         ]
 
@@ -92,7 +92,7 @@ class USListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', kwargs=kwargs)},
-            {'nombre': 'User Stories', 'url': '#'},
+            {'nombre': 'Product Backlog', 'url': '#'},
         ]
 
         return context
@@ -143,7 +143,7 @@ class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', args=(p.id,))},
-            {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', args=(p.id,))},
+            {'nombre': 'Product Backlog', 'url': reverse('proyecto_us_list', args=(p.id,))},
             {'nombre': us.nombre, 'url': '#'},
         ]
 
@@ -198,7 +198,7 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', args=(p.id,))},
-            {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', args=(p.id,))},
+            {'nombre': 'Product Backlog', 'url': reverse('proyecto_us_list', args=(p.id,))},
             {'nombre': us.nombre, 'url': reverse('proyecto_us_ver', args=(p.id, us.id))},
             {'nombre': 'Editar', 'url': '#'}
         ]

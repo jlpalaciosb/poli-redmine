@@ -12,12 +12,14 @@ from .tipoUS_views import TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, Ti
 
 from .us_views import USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView
 
-from .sprint_views import SprintListView, SprintListJson, crear_sprint, SprintPerfilView
+from .sprint_views import SprintListView, SprintListJson, crear_sprint, SprintPerfilView, FlujoSprintListJson, FlujoSprintListView, TableroKanbanView, mover_us_kanban
 
 from .miembroSprint_views import MiembroSprintListView, MiembroSprintListJson, MiembroSprintCreateView
 
-from .miembroSprint_views import MiembroSprintListView, MiembroSprintListJson, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint
+from .miembroSprint_views import MiembroSprintListView, MiembroSprintListJson, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint, MiembroSprintIntercambiarView
 
 from .flujo_views import FlujoCreateView, FlujoUpdateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoEliminarView
 
-from .sprint_us_views import UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView
+from .sprint_us_views import UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView, UserStorySprintDeleteView
+
+from .actividad_views import ActividadCreateView, ActividadListView, ActividadListJsonView, ActividadPerfilView, ActividadUpdateView
