@@ -4,6 +4,7 @@ from crispy_forms.bootstrap import FormActions, AppendedText
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, HTML, Layout, Field
 import datetime
+from django.db.models import F
 
 class UserStorySprintCrearForm(forms.ModelForm):
     flujo = forms.ModelChoiceField(
@@ -24,8 +25,8 @@ class UserStorySprintCrearForm(forms.ModelForm):
         super(UserStorySprintCrearForm, self).__init__(*args, **kwargs)
 
         self.fields['us'].queryset = UserStory.objects.filter(
-            proyecto=self.proyecto, estadoProyecto__in=(1, 3),
-        ).order_by('-priorizacion')
+            proyecto=self.proyecto, estadoProyecto__in=(1, 3),tiempoPlanificado__gt=F('tiempoEjecutado')
+        ).order_by('-estadoProyecto','-priorizacion')
 
         self.fields['flujo'].queryset = Flujo.objects.filter(proyecto=self.proyecto)
 

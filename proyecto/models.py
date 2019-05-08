@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 import datetime
-
+from django.core.validators import MinValueValidator
 def validar_mayor_a_cero(value):
     if value == 0:
         raise ValidationError(
@@ -262,7 +262,7 @@ class UserStory(models.Model):
         verbose_name='tiempo planificado (en horas)',
         help_text='cuántas horas cree que le llevará a una persona terminar este US',
     )
-    tiempoEjecutado = models.FloatField(verbose_name='tiempo ejecutado (en horas)', default=0)
+    tiempoEjecutado = models.PositiveIntegerField(verbose_name='tiempo ejecutado (en horas)', default=0)
 
     justificacion = models.CharField(verbose_name='Justificacion', null=True, blank=True, default="", max_length=300)
 
@@ -282,6 +282,16 @@ class UserStory(models.Model):
         # Si llego al DONE de su ultima fase entonces su estado general pasa a ser EN REVISION
         if self.fase is not None and self.fase.orden == self.flujo.cantidadFases and self.estadoFase == 'DONE':
             self.estadoProyecto = 6
+
+    def tiene_tiempo_excedido(self):
+        """
+        Metodo en el que se comprueba si el tiempo ejecutado excedio si el US no termino en un sprint
+        :return:
+        """
+        if self.estadoProyecto == 3:
+            return not self.tiempoPlanificado>self.tiempoEjecutado
+        return False
+
 
 
 class RolProyecto(Group):
@@ -419,3 +429,26 @@ class Actividad(models.Model):
 
     class Meta:
         default_permissions = ()
+
+    def save(self, *args, **kwargs):
+        if self.id is None:
+            anterior = 0
+        else:
+            anterior = Actividad.objects.get(pk=self.id).horasTrabajadas
+
+        super(Actividad, self).save(*args, **kwargs)
+
+        self.acumular_horas_user_story(anterior)
+
+    def acumular_horas_user_story(self, anterior):
+        """
+        Metodo que sumas las horas trabajadas en la actividad al user story correspondiente
+        :param anterior: Las horas trabajadas del registro anterior
+        :return:
+        """
+        if self.usSprint is not None and self.usSprint.us is not None:
+            us = self.usSprint.us
+            if us.tiempoEjecutado >= 0 and self.horasTrabajadas>=0:
+                us.tiempoEjecutado = us.tiempoEjecutado - anterior# EN CASO DE QUE SE MODIFIQUE. SE DESCARTA LAS HORAS ANTERIORES
+                us.tiempoEjecutado = us.tiempoEjecutado + self.horasTrabajadas
+                us.save()
