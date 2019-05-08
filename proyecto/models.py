@@ -53,6 +53,7 @@ class Proyecto(models.Model):
     duracionSprint = models.PositiveIntegerField(verbose_name='duración del sprint', help_text='duración estimada para los sprints (en semanas)', default=4, validators=[validar_mayor_a_cero])
     diasHabiles = models.PositiveIntegerField(verbose_name='días hábiles', help_text='cantidad de días hábiles en la semana', default=5, validators=[validar_mayor_a_cero])
     estado = models.CharField(choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
+    justificacion = models.TextField(verbose_name='justificación', null=True, blank=True, default="", max_length=500)
     scrum_master = models.ForeignKey(User, verbose_name='scrum master')
 
     class Meta:
