@@ -113,24 +113,25 @@ def cambiable_estado_proyecto(proyecto, newst):
     if newst == 'TERMINADO':
         if currentst not in ['EN EJECUCION', 'SUSPENDIDO']:
             return 'solo se puede pasar a "TERMINADO" si el proyecto está en ejecución o pendiente'
-        elif currentst == 'EN EJECUCION':
-            return 'yes'
-        elif currentst == 'SUSPENDIDO':
+        elif proyecto.sprint_set.filter(estado='EN_EJECUCION').count() > 0:
+            return 'tiene un sprint en ejecución'
+        elif proyecto.userstory_set.filter(estadoProyecto__in=[1, 3]):
+            return 'tiene al menos un user story pendiente o no terminado'
+        else:
             return 'yes'
 
     if newst == 'CANCELADO':
         if currentst not in ['PENDIENTE', 'EN EJECUCION', 'SUSPENDIDO']:
             return 'solo se puede pasar a "CANCELADO" si el proyecto está pendiente, en ejecución o suspendido'
-        elif currentst == 'PENDIENTE':
-            return 'yes'
-        elif currentst == 'EN EJECUCION':
-            return 'yes'
-        elif currentst == 'SUSPENDIDO':
+        elif proyecto.sprint_set.filter(estado='EN_EJECUCION').count() > 0:
+            return 'tiene un sprint en ejecución'
+        else:
             return 'yes'
 
     if newst == 'SUSPENDIDO':
         if currentst not in ['EN EJECUCION',]:
             return 'solo se puede pasar a "SUSPENDIDO" si el proyecto está en ejecución'
-        elif currentst == 'EN EJECUCION':
+        elif proyecto.sprint_set.filter(estado='EN_EJECUCION').count() > 0:
+            return 'tiene un sprint en ejecución'
+        else:
             return 'yes'
-

@@ -31,7 +31,11 @@
               <p>
                 <strong>Duración del Sprint:</strong>   {{ proyecto.duracionSprint|default_if_none:"" }} semanas <br><br>
                 <strong>Cantidad de Días Hábiles:</strong>   {{ proyecto.diasHabiles|default_if_none:"" }} por semana<br><br>
-                <strong>Estado:</strong>   {{ proyecto.get_estado_display | default_if_none:"" }}<br><br>
+                <strong>Estado:</strong>   {{ proyecto.get_estado_display | default_if_none:"" }}<br>
+                {% if proyecto.estado == 'CANCELADO' %}
+                    <label><i>Justificación de la cancelación:</i></label>
+                    <textarea style="resize: vertical" readonly class="form-control" rows="4">{{ proyecto.justificacion|default_if_none:"" }}</textarea>
+                {% endif %}
               </p>
 
               <!-- cambio de estado -->
