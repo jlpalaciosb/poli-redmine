@@ -1,5 +1,6 @@
 {% extends 'layout/layout.html' %}
 {% load static %}
+{% load guardian_tags %}
 
 {% block content %}
     {% block titulo %}
@@ -61,6 +62,35 @@
                                 <i class="fa fa-arrow-left"></i> Quitar del Sprint
                             </button>
                         </form>
+                    {% endif %}
+                    <a href="{% url 'proyecto_sprint_tablero' usp.us.proyecto.id usp.sprint.id usp.us.flujo.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-table"></i> Tablero Kanban
+                        </button>
+                    </a>
+
+                    {% get_obj_perms request.user for usp.sprint.proyecto as "permisosGuardian" %}
+                    <!-- SI EL USER STORY ESTA EN REVISION Y TIENE PERMISO PARA ADMINISTRAR SPRINT -->
+                    {% if usp.us.estadoProyecto == 6 and 'administrar_sprint' in permisosGuardian %}
+                        <div class="row">
+                        <div class="col-xs-12">
+                            <form
+                                action=""
+                                method="post" style="display: inline-block"
+                            >
+                                {% csrf_token %}
+                                <button class="btn m-b-xs btn-success btn-addon ">
+                                    <i class="fa fa-thumbs-up" aria-hidden="true"></i>Aprobar
+                                </button>
+                            </form>
+
+                            <a href="#">
+                                <button class="btn m-b-xs btn-danger btn-addon ">
+                                    <i class="fa fa-thumbs-down" aria-hidden="true"></i>Rechazar
+                                </button>
+                            </a>
+                        </div>
+                        </div>
                     {% endif %}
                 </div>
             </div>

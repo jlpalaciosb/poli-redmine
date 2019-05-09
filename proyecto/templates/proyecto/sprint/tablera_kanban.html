@@ -47,12 +47,17 @@
                     {% for fase in flujo.fase_set.all %}
                         <td style="text-align: center">
                         {% if us_sprint.fase_sprint == fase and us_sprint.estado_fase_sprint == 'TODO'%}
-
+                             <!-- RETROCEDER -->
                             {% if not fase.orden == 1 and us_sprint.asignee.miembro.user == user %}
                                 <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=-1' }}' class="fa fa-arrow-left" aria-hidden="true"></a>
                             {% endif %}
 
-                            {{ us_sprint.us.nombre }}
+                            <!-- PERFIL US -->
+                            <a href="{% url 'sprint_us_ver' us_sprint.us.proyecto.id us_sprint.sprint.id us_sprint.id %}">
+                                {{ us_sprint.us.nombre }}
+                            </a>
+
+                            <!-- AVANZAR -->
                             {% if us_sprint.asignee.miembro.user == user %}
                                 <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=1' }}' class="fa fa-arrow-right" aria-hidden="true"></a>
                             {% endif %}
@@ -60,30 +65,36 @@
                         </td>
                         <td style="text-align: center">
                             {% if us_sprint.fase_sprint == fase and us_sprint.estado_fase_sprint == 'DOING'%}
-                                <div class="row">
+                                <!-- RETROCEDER -->
                                 {% if us_sprint.asignee.miembro.user == user %}
                                     <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=-1' }}' class="fa fa-arrow-left" aria-hidden="true"></a>
                                 {% endif %}
 
-                                {{ us_sprint.us.nombre }}
+                                <!-- PERFIL US -->
+                                <a href="{% url 'sprint_us_ver' us_sprint.us.proyecto.id us_sprint.sprint.id us_sprint.id %}">
+                                    {{ us_sprint.us.nombre }}
+                                </a>
 
+                                <!-- AVANZAR -->
                                 {% if us_sprint.asignee.miembro.user == user %}
                                     <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=1' }}' class="fa fa-arrow-right" aria-hidden="true"></a>
                                 {% endif %}
-                                </div>
-                                <div class="row">
-                                Cargar Actividad
-                                </div>
+
                             {% endif %}
                         </td>
                         <td style="text-align: center">
                             {% if us_sprint.fase_sprint == fase and us_sprint.estado_fase_sprint == 'DONE'%}
+                                <!-- RETROCEDER -->
                                 {% if us_sprint.asignee.miembro.user == user %}
                                     <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=-1' }}' class="fa fa-arrow-left" aria-hidden="true"></a>
                                 {% endif %}
 
-                                {{ us_sprint.us.nombre }}
+                                <!-- PERFIL US -->
+                                <a href="{% url 'sprint_us_ver' us_sprint.us.proyecto.id us_sprint.sprint.id us_sprint.id %}">{
+                                    { us_sprint.us.nombre }}
+                                </a>
 
+                                <!-- AVANZAR -->
                                 {% if not fase.orden == flujo.cantidadFases and us_sprint.asignee.miembro.user == user %}
                                     <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=1' }}' class="fa fa-arrow-right" aria-hidden="true"></a>
                                 {% endif %}
