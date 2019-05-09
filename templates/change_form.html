@@ -26,11 +26,18 @@
                 <div class="col-lg-12">
                     <div class="panel panel-default border">
                         <div class="panel-heading wrapper">
-                            <h4 class="font-thin m-t-none m-b-none">
-                                {% if form.instance.id %}{{ titulo_form_editar }}: {{ titulo_form_editar_nombre }}
-                                {% else %} {{ titulo_form_crear }}
-                                {% endif %}
-                            </h4>
+                        <div class="row">
+                            <div class="col-md-9">
+                                <h4 class="font-thin m-t-none m-b-none">
+                                    {% if form.instance.id %}{{ titulo_form_editar }}: {{ titulo_form_editar_nombre }}
+                                    {% else %} {{ titulo_form_crear }}
+                                    {% endif %}
+                                </h4>
+                            </div>
+                            <div class="col-md-3">
+                                <a class="btn btn-success" href='{% url "proyecto_tipous_importar_list" form.instance.proyecto.id %}'>Importar Tipo US</a>
+                            </div>
+                        </div>
                         </div>
                         <div class="panel-body wrapper">
                             {% crispy form %}

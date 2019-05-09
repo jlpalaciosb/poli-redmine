@@ -1,7 +1,7 @@
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, SuccessMessageOnDeleteMixin, ProyectoEstadoInvalidoMixin
 from guardian.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
-from proyecto.models import TipoUS, Proyecto
+from proyecto.models import TipoUS, Proyecto, CampoPersonalizado
 from proyecto.forms import TipoUsForm, CampoPersonalizadoFormSet
 from django.http import Http404, HttpResponseForbidden
 from django.urls import reverse
@@ -10,7 +10,10 @@ from guardian.shortcuts import  get_perms
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http import HttpResponseRedirect
-
+from django.contrib import messages
+from guardian.decorators import permission_required
+from django.contrib.auth.decorators import login_required
+from proyecto.decorators import proyecto_en_ejecucion
 
 class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin,ProyectoEstadoInvalidoMixin , SuccessMessageMixin, CreateView):
     """
@@ -279,3 +282,117 @@ class TipoUsEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoE
         else:
             return HttpResponseRedirect(self.success_url)
 
+class ImportarTipoUsListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
+    """
+    Vista para listar tipos de us a importar de otros proyectos de un proyecto en especifico.
+    """
+    template_name = 'change_list.html'
+    permission_denied_message = 'No tiene permiso para ver este proyecto.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        context = super(ImportarTipoUsListView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
+        context['titulo'] = 'Lista de Tipos de US a importar'
+
+        # datatables
+        context['nombres_columnas'] = ['id', 'Nombre', 'proyecto']
+        context['order'] = [1, "asc"]
+        context['datatable_row_link'] = reverse('proyecto_tipous_importar_ver', args=(self.kwargs['proyecto_id'],99999))  # pasamos inicialmente el id 1
+        context['list_json'] = reverse('proyecto_tipous_import_json', kwargs=self.kwargs)
+        context['roles']=True
+        #Breadcrumbs
+        context['breadcrumb'] = [{'nombre':'Inicio', 'url':'/'},
+                   {'nombre':'Proyectos', 'url': reverse('proyectos')},
+                    {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
+                                 {'nombre': 'Tipos de US',
+                                  'url': reverse('proyecto_tipous_list', args=(self.kwargs['proyecto_id'],))},
+                    {'nombre': 'Crear', 'url': reverse('proyecto_tipous_crear',kwargs=self.kwargs)},
+                    {'nombre': 'Tipos de US a importar', 'url': '#'}
+                   ]
+
+
+
+        return context
+
+class ImportarTipoUsListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView):
+    """
+    Vista para devolver todos los tipos de us de otros proyecto en formato JSON
+    """
+    model = TipoUS
+    columns = ['id', 'nombre', 'proyecto.nombre']
+    order_columns = ['id', 'nombre', 'proyecto.nombre']
+    max_display_length = 100
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+    def get_initial_queryset(self):
+        """
+        Se sobreescribe el metodo para que la lista sean todos los tipos de us de un proyecto en particular
+        :return:
+        """
+        proyecto=Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        return TipoUS.objects.exclude(proyecto__id=proyecto.id)
+
+class ImportarTipoUSPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
+    """
+           Vista Basada en Clases para la visualizacion del perfil de un tipo de us a importar con la opcion de importar
+    """
+    model = TipoUS
+    context_object_name = 'tipous'
+    template_name = 'proyecto/tipous/tipous_perfi_importar.html'
+    pk_url_kwarg = 'tipous_id'
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        context = super(ImportarTipoUSPerfilView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        context['titulo'] = 'Ver Tipo de US'
+        context['importar_button'] = 'add_tipous' in get_perms(self.request.user, proyecto)
+        context['titulo_form_editar'] = 'Datos del Tipo de US'
+        context['titulo_form_editar_nombre'] = context[ImportarTipoUSPerfilView.context_object_name].nombre
+        context['proyecto_id'] = proyecto.id
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre':'Inicio', 'url':'/'},
+                   {'nombre':'Proyectos', 'url': reverse('proyectos')},
+                    {'nombre': proyecto.nombre, 'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Tipos de US',
+                                  'url': reverse('proyecto_tipous_list', args=(self.kwargs['proyecto_id'],))},
+                    {'nombre': 'Crear', 'url': reverse('proyecto_tipous_crear',args=(self.kwargs['proyecto_id'],))},
+                    {'nombre': 'Tipos de US a importar', 'url': reverse('proyecto_tipous_importar_list',args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Ver Tipo de US a importar', 'url': '#'}
+                                 ]
+
+        return context
+
+
+@login_required
+@permission_required('proyecto.add_tipous',(Proyecto, 'id', 'proyecto_id'), return_403=True)
+@proyecto_en_ejecucion
+def importar_tus(request, proyecto_id, tipous_id):
+    """
+    Vista para agregar un tipo de us a un proyecto dado un modelo de tipo de us incluido campos personalizados
+    :param request:
+    :param proyecto_id:
+    :param tipous_id:
+    :return:
+    """
+    try:
+        tipous_a_copiar = TipoUS.objects.get(pk=tipous_id)
+        proyecto = Proyecto.objects.get(pk=proyecto_id)
+        campos_personalizados = tipous_a_copiar.campopersonalizado_set.all()
+        tipo_us = TipoUS(nombre=tipous_a_copiar.nombre, proyecto=proyecto)
+        tipo_us.save()
+        for campo_a_copiar in campos_personalizados:
+            campo = CampoPersonalizado(nombre_campo=campo_a_copiar.nombre_campo, tipo_dato=campo_a_copiar.tipo_dato, tipoUS=tipo_us)
+            campo.save()
+        messages.add_message(request, messages.SUCCESS, 'Tipo de US importado correctamente')
+        return HttpResponseRedirect(reverse('proyecto_tipous_ver',args=(proyecto_id, tipo_us.id)))
+    except:
+        messages.add_message(request, messages.ERROR, 'Ha ocurrido un error!')
+        return HttpResponseRedirect(reverse('proyecto_tipous_list', args=(proyecto_id,)))
