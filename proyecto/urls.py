@@ -5,7 +5,7 @@ from proyecto.views import \
     RolListView, RolListJson, RolProyectoCreateView, RolProyectoUpdateView, RolPerfilView, RolEliminarView, \
     MiembroProyectoCreateView, MiembroProyectoListJsonView, MiembroProyectoListView, MiembroProyectoUpdateView, MiembroProyectoPerfilView, MiembroProyectoDeleteView, \
     TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView, \
-    USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView,\
+    USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView, USCancelarView, \
     SprintListView, SprintListJson, crear_sprint, SprintPerfilView,\
     MiembroSprintListJson, MiembroSprintListView, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint, MiembroSprintIntercambiarView,\
     FlujoCreateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoUpdateView, FlujoEliminarView, \
@@ -52,6 +52,7 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/userstories/list$', USListJsonView.as_view(), name='proyecto_us_list_json'),
     url(r'^(?P<proyecto_id>\d+)/userstories/(?P<us_id>\d+)/ver$', USPerfilView.as_view(), name='proyecto_us_ver'),
     url(r'^(?P<proyecto_id>\d+)/userstories/(?P<us_id>\d+)/editar$', USUpdateView.as_view(), name='proyecto_us_editar'),
+    url(r'^(?P<proyecto_id>\d+)/userstories/(?P<us_id>\d+)/cancelar$', USCancelarView.as_view(), name='proyecto_us_cancelar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/$', SprintListView.as_view(), name='proyecto_sprint_list'),
     url(r'^(?P<proyecto_id>\d+)/sprints/list$', SprintListJson.as_view(), name='proyecto_sprint_list_json'),
     url(r'^(?P<proyecto_id>\d+)/sprints/crear$', crear_sprint, name='proyecto_sprint_crear'),

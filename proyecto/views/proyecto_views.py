@@ -255,6 +255,7 @@ class ProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView)
 
         return context
 
+
 class ProyectoCambiarEstadoEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, UpdateView):
     """
     Vista Basada en Clases para la actualizacion de los proyectos

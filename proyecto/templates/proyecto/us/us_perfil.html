@@ -41,6 +41,10 @@
                     <br>
                     <div>
                         <strong>Estado General: </strong> {{ us.get_estadoProyecto_display }} <br>
+                        {% if us.estadoProyecto == 4 %}
+                            <label><i>Justificación de la cancelación:</i></label>
+                            <textarea style="resize: vertical" readonly class="form-control" rows="4">{{ us.justificacion|default_if_none:"" }}</textarea>
+                        {% endif %}
                         {% if us.estadoProyecto == 2 or us.estadoProyecto == 3 %}
                             <strong>Flujo: </strong> {{ us.flujo.nombre | default_if_none:"" }} <br>
                             <strong>Fase: </strong> {{ us.fase.nombre | default_if_none:"" }} <br>
@@ -52,6 +56,7 @@
                         <strong>Tiempo Planificado: </strong> {{ us.tiempoPlanificado }} horas <br>
                         <strong>Tiempo Ejecutado: </strong> {{ us.tiempoEjecutado | floatformat }} horas <br>
                     </div>
+                    <br>
                 </div>
 
                 <div class="col-xs-6">
@@ -73,6 +78,12 @@
                             <button class="btn m-b-xs btn-default btn-addon ">
                                 <i class="fa fa-pencil"></i>
                                 Editar
+                            </button>
+                        </a>
+                        <a href="{% url 'proyecto_us_cancelar' us.proyecto.id us.id %}">
+                            <button class="btn m-b-xs btn-default btn-addon ">
+                                <i class="fa fa-times"></i>
+                                Cancelar el US
                             </button>
                         </a>
                     {% endif %}

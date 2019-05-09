@@ -264,7 +264,8 @@ class UserStory(models.Model):
     )
     tiempoEjecutado = models.PositiveIntegerField(verbose_name='tiempo ejecutado (en horas)', default=0)
 
-    justificacion = models.CharField(verbose_name='Justificacion', null=True, blank=True, default="", max_length=300)
+    justificacion = models.TextField(verbose_name='justificación', null=True, blank=False, default="",
+                                     max_length=500, help_text="justifique por qué se va a cancelar el user story")
 
     class Meta:
         default_permissions =  ()
