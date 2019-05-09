@@ -1,0 +1,99 @@
+{% extends 'layout/layout.html' %}
+{% load static %}
+{% load guardian_tags %}
+
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            <div class="row">
+
+                <div class="col-xs-4">
+                    <h4>{{ usp.us.nombre }}</h4>
+                    <div>
+                        <strong>Priorización: </strong> {{ usp.us.priorizacion | floatformat:2 }} <br>
+                    </div>
+                    <br>
+                    <div>
+                        <strong>Flujo: </strong> {{ usp.us.flujo.nombre | default_if_none:"" }} <br>
+                        <strong>Fase: </strong> {{ usp.fase_sprint.nombre | default_if_none:"" }} <br>
+                        <strong>Estado en la Fase: </strong> {{ usp.get_estado_fase_sprint_display | default_if_none:"" }} <br>
+                    </div>
+                    <br>
+                </div>
+
+                <div class="col-xs-6">
+                    <h4>&nbsp;</h4>
+                    <div>
+                        <strong>Encargado: </strong>
+                        {{ usp.asignee.miembro.user.username }} ({{ usp.asignee.miembro.user.get_full_name }}) <br>
+                    </div>
+                    <br>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <a href="{% url 'actividad_list' usp.us.proyecto.id usp.sprint.id usp.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-list"></i> Actividades
+                        </button>
+                    </a>
+                    {% if puedeEditar %}
+                        <a href="{% url 'sprint_us_editar' usp.us.proyecto.id usp.sprint.id usp.id %}">
+                            <button class="btn m-b-xs btn-default btn-addon ">
+                                <i class="fa fa-pencil"></i> Cambiar Encargado
+                            </button>
+                        </a>
+                        <form
+                            action="{% url 'sprint_us_eliminar' usp.us.proyecto.id usp.sprint.id usp.id %}"
+                            method="post" style="display: inline-block"
+                        >
+                            {% csrf_token %}
+                            <button class="btn m-b-xs btn-danger btn-addon ">
+                                <i class="fa fa-arrow-left"></i> Quitar del Sprint
+                            </button>
+                        </form>
+                    {% endif %}
+                    <a href="{% url 'proyecto_sprint_tablero' usp.us.proyecto.id usp.sprint.id usp.us.flujo.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-table"></i> Tablero Kanban
+                        </button>
+                    </a>
+
+                    {% get_obj_perms request.user for usp.sprint.proyecto as "permisosGuardian" %}
+                    <!-- SI EL USER STORY ESTA EN REVISION Y TIENE PERMISO PARA ADMINISTRAR SPRINT -->
+                    {% if usp.us.estadoProyecto == 6 and 'administrar_sprint' in permisosGuardian %}
+                        <div class="row">
+                        <div class="col-xs-12">
+                            <form
+                                action=""
+                                method="post" style="display: inline-block"
+                            >
+                                {% csrf_token %}
+                                <button class="btn m-b-xs btn-success btn-addon ">
+                                    <i class="fa fa-thumbs-up" aria-hidden="true"></i>Aprobar
+                                </button>
+                            </form>
+
+                            <a href="#">
+                                <button class="btn m-b-xs btn-danger btn-addon ">
+                                    <i class="fa fa-thumbs-down" aria-hidden="true"></i>Rechazar
+                                </button>
+                            </a>
+                        </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

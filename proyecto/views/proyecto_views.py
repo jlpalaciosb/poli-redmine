@@ -1,13 +1,15 @@
 from django.db.models.query_utils import Q
 from django.http import HttpResponseForbidden
-
+from guardian.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import  PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib import messages
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
-from proyecto.forms import ProyectoForm
+from ProyectoIS2_9.utils import cambiable_estado_proyecto
+from proyecto.forms import ProyectoForm, ProyectoCambiarEstadoForm
 from proyecto.models import Proyecto, MiembroProyecto
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
 
@@ -252,3 +254,51 @@ class ProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView)
                                  ]
 
         return context
+
+class ProyectoCambiarEstadoEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, UpdateView):
+    """
+    Vista Basada en Clases para la actualizacion de los proyectos
+    """
+    model = Proyecto
+    form_class = ProyectoCambiarEstadoForm
+    context_object_name = 'proyecto'
+    template_name = 'proyecto/proyecto/cambiarestado.html'
+    pk_url_kwarg = 'proyecto_id'
+    permission_required = 'proyecto.change_proyecto'
+
+    def get_success_url(self):
+        return reverse('perfil_proyecto', kwargs=self.kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = 'Cambiar Estado del Proyecto'
+
+        # Breadcrumbs
+        context['breadcrumb'] = [
+            {'nombre': 'Inicio', 'url': '/'},
+            {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+            {'nombre': context['proyecto'].nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
+            {'nombre': 'Cambiar Estado', 'url': '#'},
+        ]
+
+        camb = cambiable_estado_proyecto(self.get_object(), self.request.GET.get('estado', ''))
+        context['cambiable'] = camb == 'yes'
+        context['motivo'] = camb
+
+        context['currentst'] = self.get_object().estado
+        context['newst'] = self.request.GET.get('estado', '')
+
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'estado': self.request.GET.get('estado', '')})
+        return kwargs
+
+    def form_valid(self, form):
+        newst = form.cleaned_data['estado']
+        if cambiable_estado_proyecto(self.get_object(), newst) == 'yes':
+            messages.add_message(self.request, messages.SUCCESS, 'Ahora el proyecto está {}'.format(newst))
+            return super().form_valid(form)
+        else:
+            return HttpResponseForbidden()

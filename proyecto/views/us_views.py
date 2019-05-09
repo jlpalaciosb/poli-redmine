@@ -1,16 +1,16 @@
 from django.http import HttpResponseForbidden
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
-from django.contrib.auth.mixins import LoginRequiredMixin
+
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
-
+from guardian.mixins import LoginRequiredMixin
 from proyecto.forms import USForm
-from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
+from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEnEjecucionMixin, UserStoryNoModificable
 from proyecto.models import MiembroProyecto, Proyecto, UserStory
 
 
-class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, CreateView):
+class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, CreateView):
     """
     Vista para crear un US para el proyecto
     """
@@ -18,6 +18,7 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     template_name = "change_form.html"
     form_class = USForm
     permission_required = 'proyecto.add_us'
+
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -49,7 +50,7 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
-            {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', kwargs=self.kwargs)},
+            {'nombre': 'Product Backlog', 'url': reverse('proyecto_us_list', kwargs=self.kwargs)},
             {'nombre': 'Crear US', 'url': '#'}
         ]
 
@@ -77,7 +78,7 @@ class USListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
         context['crear_button_text'] = 'Crear US'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización', 'Estado General']
+        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización', 'Estado General', 'Comentarios Adicionales']
         context['order'] = [2, "desc"]
         ver_kwargs = self.kwargs.copy()
         ver_kwargs['us_id'] = 7836271  # pasamos inicialmente un id aleatorio
@@ -91,7 +92,7 @@ class USListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', kwargs=kwargs)},
-            {'nombre': 'User Stories', 'url': '#'},
+            {'nombre': 'Product Backlog', 'url': '#'},
         ]
 
         return context
@@ -102,22 +103,33 @@ class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
     Vista que retorna en json la lista de user stories del product backlog
     """
     model = MiembroProyecto
-    columns = ['id', 'nombre', 'priorizacion', 'estadoProyecto']
+    columns = ['id', 'nombre', 'priorizacion', 'estadoProyecto','comentarios']
     order_columns = ['id', 'nombre', 'priorizacion', 'estadoProyecto']
     max_display_length = 100
 
     def get_initial_queryset(self):
         iqs = Proyecto.objects.get(pk=self.kwargs['proyecto_id']).userstory_set.all()
         st = self.request.GET.get('estado', '*')
-        if st == '1' or st == '2' or st == '3' or st == '4' or st == '5':
+        if st == '1' or st == '2' or st == '3' or st == '4' or st == '5' or st == '6':
             iqs = iqs.filter(estadoProyecto=int(st))
         return iqs
+
+    def render_column(self, row, column):
+        if column == 'priorizacion':
+            return "{0:.2f}".format(row.priorizacion)
+        if column == 'comentarios':
+            #SI EL US NO TERMINO EN UN SPRINT Y SU TIEMPO PLANIFICADO EXCEDE AL TIEMPO EJECUTADO ENTONCES ADVERTIR AL USUARIO
+            if row.tiene_tiempo_excedido() and row.estadoProyecto==3:
+                return 'Falta ajustar las horas planificadas'
+            else:
+                return ''
+        else:
+            return super().render_column(row, column)
 
 
 class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     """
-    Vista para el perfil de un miembro de un proyecto. Cualquier usuario que sea miembro del proyecto
-    tiene acceso a esta vista
+    Vista para ver los datos básicos de un User Story a nivel de proyecto
     """
     model = UserStory
     context_object_name = 'us'
@@ -137,7 +149,7 @@ class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', args=(p.id,))},
-            {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', args=(p.id,))},
+            {'nombre': 'Product Backlog', 'url': reverse('proyecto_us_list', args=(p.id,))},
             {'nombre': us.nombre, 'url': '#'},
         ]
 
@@ -146,15 +158,16 @@ class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         return context
 
 
-class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, UpdateView):
+class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, UserStoryNoModificable, UpdateView):
     """
-    Vista que permite modificar los roles de un miembro de proyecto
+    Vista que permite modificar los datos básicos de un User Story a nivel proyecto
     """
     model = UserStory
     form_class = USForm
     template_name = 'change_form.html'
     pk_url_kwarg = 'us_id'
     permission_required = 'proyecto.change_us'
+
 
     def handle_no_permission(self):
         return HttpResponseForbidden()
@@ -164,8 +177,8 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
 
     def get_success_url(self):
         pid = self.kwargs['proyecto_id']
-        mid = self.kwargs['us_id']
-        return reverse('proyecto_us_ver', args=(pid, mid))
+        uid = self.kwargs['us_id']
+        return reverse('proyecto_us_ver', args=(pid, uid))
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -191,7 +204,7 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', args=(p.id,))},
-            {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', args=(p.id,))},
+            {'nombre': 'Product Backlog', 'url': reverse('proyecto_us_list', args=(p.id,))},
             {'nombre': us.nombre, 'url': reverse('proyecto_us_ver', args=(p.id, us.id))},
             {'nombre': 'Editar', 'url': '#'}
         ]

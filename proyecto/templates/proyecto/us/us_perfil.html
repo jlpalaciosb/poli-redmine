@@ -22,6 +22,7 @@
                         <strong>Prioridad: </strong> {{ us.get_prioridad_display }} <br>
                         <strong>Valor Técnico: </strong> {{ us.get_valorTecnico_display }} <br>
                         <strong>Valor de Negocio: </strong> {{ us.get_valorNegocio_display }} <br>
+                        <strong>Priorización: </strong> {{ us.priorizacion | floatformat:2 }} <br>
                     </div>
                     <br>
                     <div>
@@ -45,6 +46,11 @@
                             <strong>Fase: </strong> {{ us.fase.nombre | default_if_none:"" }} <br>
                             <strong>Estado en la Fase: </strong> {{ us.get_estadoFase_display | default_if_none:"" }} <br>
                         {% endif %}
+                    </div>
+                    <br>
+                    <div>
+                        <strong>Tiempo Planificado: </strong> {{ us.tiempoPlanificado }} horas <br>
+                        <strong>Tiempo Ejecutado: </strong> {{ us.tiempoEjecutado | floatformat }} horas <br>
                     </div>
                 </div>
 

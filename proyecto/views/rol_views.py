@@ -1,7 +1,7 @@
 from django.http import HttpResponseForbidden
 
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from guardian.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView

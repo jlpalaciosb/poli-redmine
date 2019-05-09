@@ -4,7 +4,7 @@ from django.views.generic import TemplateView, DetailView, UpdateView, CreateVie
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.contrib.auth.mixins import LoginRequiredMixin
+from guardian.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -76,7 +76,7 @@ class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
         context['crear_button_text'] = 'Crear Miembro'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'Nombre_de_Usuario', 'Roles']
+        context['nombres_columnas'] = ['id', 'Nombre de Usuario', 'Roles']
         context['order'] = [1, "asc"]
         editar_kwargs = self.kwargs.copy(); editar_kwargs['miembro_id'] = 6436276 # pasamos inicialmente un id aleatorio
         context['datatable_row_link'] = reverse('proyecto_miembro_perfil', kwargs=editar_kwargs)

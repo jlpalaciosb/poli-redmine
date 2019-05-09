@@ -1,6 +1,6 @@
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, HTML, Layout
+from crispy_forms.layout import Submit, HTML, Layout, Field
 from django import forms
 from django.forms import ModelForm
 from django.forms import  ModelChoiceField
@@ -38,6 +38,17 @@ class USForm(ModelForm):
             ),
         ]
 
+        # SI EL USER STORY A MODIFICAR ESTA EN UN SPRINT ENTONCES NO SE MUESTRA EL CAMPO DE TIEMPO PLANIFICADO, NI LOS VALORES DE PRIORIZACION
+        if self.instance is not None and self.instance.id is not None and self.instance.estadoProyecto == 2:
+            del self.fields['tiempoPlanificado']
+            del self.fields['prioridad']
+            del self.fields['valorNegocio']
+            del self.fields['valorTecnico']
+            layout.remove('tiempoPlanificado')
+            layout.remove('prioridad')
+            layout.remove('valorNegocio')
+            layout.remove('valorTecnico')
+
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-2'
@@ -56,3 +67,14 @@ class USForm(ModelForm):
             if self.instance.nombre != self.cleaned_data['nombre'] and c == 1:
                 raise forms.ValidationError('Existe otro US con este nombre para este proyecto')
         return self.cleaned_data['nombre']
+
+    def clean_tiempoPlanificado(self):
+        """
+        Asegurarse de que el tiempo planificado no sea menor que el tiempo ejecutado. Solo para actualizacion de US
+        """
+        us = self.instance
+        us.tiempoPlanificado = self.cleaned_data['tiempoPlanificado']
+        if us.id is not None:
+            if us.tiene_tiempo_excedido():
+                raise forms.ValidationError('El tiempo planficicado debe ser superior al tiempo ejecutado({} horas)'.format(us.tiempoEjecutado))
+        return self.cleaned_data['tiempoPlanificado']

@@ -1,0 +1,73 @@
+{% extends 'layout/layout.html' %}
+{% load static %}
+{% load guardian_tags %}
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            <div class="row">
+
+                <div class="col-xs-6">
+                    <h4><strong>Miembro: </strong>{{ miembro_sprint.miembro }}</h4>
+                    <p>
+                        <strong>Horas disponibles: </strong> {{ miembro_sprint.horasAsignadas }} <br>
+                    </p>
+                </div>
+                {% get_obj_perms request.user for miembro_sprint.sprint.proyecto as "permisosGuardian" %}
+                <!-- Se comprueba que tenga el permiso para el proyecto en particular-->
+                {% if 'administrar_sprint' in permisosGuardian and miembro_sprint.sprint.estado == 'PLANIFICADO'%}
+                    <a href="{% url 'proyecto_sprint_miembros_editar' miembro_sprint.sprint.proyecto.id miembro_sprint.sprint.id miembro_sprint.id %}">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                        <i class="fa fa-pencil"></i>
+                        Cambiar horas asignadas
+                      </button>
+                    </a>
+                {% endif %}
+
+                {% if 'administrar_sprint' in permisosGuardian and miembro_sprint.sprint.estado == 'PLANIFICADO' %}
+                    <a href="{% url 'proyecto_sprint_miembros_excluir'  miembro_sprint.sprint.proyecto.id miembro_sprint.sprint.id miembro_sprint.id %}">
+                      <button class="btn m-b-xs btn-danger btn-addon ">
+                        <i class="fa fa-trash-o"></i>
+                        Excluir
+                      </button>
+                    </a>
+                {% endif %}
+
+                {% if 'administrar_sprint' in permisosGuardian and miembro_sprint.sprint.estado == 'EN_EJECUCION'%}
+                    <a href="{% url 'proyecto_sprint_miembros_intercambiar' miembro_sprint.sprint.proyecto.id miembro_sprint.sprint.id miembro_sprint.id %}">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                        <i class="fa fa-pencil"></i>
+                        Intercambiar miembro
+                      </button>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    <div class="well m-t bg-light lt">
+            <div class="row">
+            <div class="col-xs-12">
+
+                    <h5><strong>User Stories asignados: </strong></h5>
+                    <p>
+
+                        <ul>
+                            {% for us in miembro_sprint.userstorysprint_set.all %}
+
+                                <li>{{  us.us.nombre }}</li>
+                            {% endfor %}
+                        </ul>
+                        <br>
+                    </p>
+            </div>
+            </div>
+    </div>
+    </div>
+{% endblock %}

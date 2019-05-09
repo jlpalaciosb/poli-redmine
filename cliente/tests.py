@@ -17,16 +17,11 @@ class ClienteTest(TestCase):
         self.cliente = Cliente.objects.create(ruc='123', nombre='abc', direccion='abc',
                                               pais='abc', correo='abc@abc.com', telefono='123')
 
-    def tearDown(self):
-        self.admin.delete()
-        self.comun.delete()
-        self.cliente.delete()
-
 
 class ClienteListViewTest(ClienteTest):
 
     def setUp(self):
-        self.permiso = Permission.objects.get(name='Can view clientes')
+        self.permiso = Permission.objects.get(codename='add_cliente')
         super(ClienteListViewTest, self).setUp()
 
     def test_permitido(self):
@@ -45,7 +40,7 @@ class ClienteListViewTest(ClienteTest):
 class ClienteListJsonTest(ClienteTest):
 
     def setUp(self):
-        self.permiso = Permission.objects.get(name='Can view clientes')
+        self.permiso = Permission.objects.get(codename='change_cliente')
         super(ClienteListJsonTest, self).setUp()
 
     def test_permitido(self):
@@ -64,7 +59,7 @@ class ClienteListJsonTest(ClienteTest):
 class ClientePerfilViewTest(ClienteTest):
 
     def setUp(self):
-        self.permiso = Permission.objects.get(name='Can view clientes')
+        self.permiso = Permission.objects.get(codename='change_cliente')
         super(ClientePerfilViewTest, self).setUp()
 
     def test_permitido(self):
@@ -85,7 +80,7 @@ class ClientePerfilViewTest(ClienteTest):
 class ClienteCreateViewTest(ClienteTest):
 
     def setUp(self):
-        self.permiso = Permission.objects.get(name='Can add cliente')
+        self.permiso = Permission.objects.get(codename='add_cliente')
         super(ClienteCreateViewTest, self).setUp()
 
     def test_permitido(self):
@@ -106,7 +101,7 @@ class ClienteCreateViewTest(ClienteTest):
 class ClienteUpdateViewTest(ClienteTest):
 
     def setUp(self):
-        self.permiso = Permission.objects.get(name='Can change cliente')
+        self.permiso = Permission.objects.get(codename='change_cliente')
         super(ClienteUpdateViewTest, self).setUp()
 
     def test_permitido(self):
@@ -127,7 +122,7 @@ class ClienteUpdateViewTest(ClienteTest):
 class ClienteDeleteViewTest(ClienteTest):
 
     def setUp(self):
-        self.permiso = Permission.objects.get(name='Can delete cliente')
+        self.permiso = Permission.objects.get(codename='delete_cliente')
         super(ClienteDeleteViewTest, self).setUp()
 
     def test_permitido(self):

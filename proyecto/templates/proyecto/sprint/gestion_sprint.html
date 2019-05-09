@@ -1,0 +1,98 @@
+{% extends 'layout/layout.html' %}
+{% load static %}
+{% load guardian_tags %}
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+              <div class="row">
+                <div class="col-xs-4">
+                  <h2>Sprint Nro. {{ sprint.orden }}</h2>
+                  <p>
+                      <strong>Estado:</strong>   {{ sprint.get_estado_display |default_if_none:"" }}<br>
+                      <strong>Duración:</strong>   {{ sprint.duracion|default_if_none:"" }} semanas<br>
+                      <strong>Capacidad:</strong>   {{ sprint.capacidad|default_if_none:"" }} horas<br>
+                      {% if sprint.estado == 'CERRADO' %}
+                          <strong>Justificación :</strong>   {{ sprint.justificacion|default:"" }}<br>
+                      {% endif %}
+                      {% if not sprint.estado == 'PLANIFICADO' %}
+                          <strong>Fecha de Inicio:</strong>   {{ sprint.fechaInicio|default:"" }}<br>
+                      {% endif %}
+                      {% if sprint.estado == 'EN_EJECUCION' %}
+                          <strong>Tiempo Restante:</strong>   {{ sprint.tiempo_restante |default:"" }} dias<br>
+                      {% endif %}
+                      {% if sprint.estado == 'CERRADO' %}
+                          <strong>Fecha de Finalizacion:</strong>   {{ sprint.fecha_fin | default:"" }}<br>
+                      {% endif %}
+
+                  </p>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-xs-12">
+                <!-- Se trae todos los permisos asociados con el usuario y el proyecto actual -->
+                {% get_obj_perms request.user for sprint.proyecto as "permisosGuardian" %}
+                    {% if 'administrar_sprint' in permisosGuardian and sprint.estado == 'PLANIFICADO'%}
+                        <a href="{% url 'proyecto_sprint_iniciar' sprint.proyecto.id sprint.id %}">
+                          <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-play"></i>
+                            Iniciar Sprint
+                          </button>
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="col-xs-3">
+                    <a href="{% url 'sprint_us_list' sprint.proyecto.id sprint.id %}">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                        <i class="fa fa-tasks"></i>
+                        Sprint Backlog
+                      </button>
+                    </a>
+                </div>
+                <div class="col-xs-3">
+                    <a href="{% url 'proyecto_sprint_miembros' sprint.proyecto.id sprint.id %}">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                        <i class="fa fa-users"></i>
+                        Miembros
+                      </button>
+                    </a>
+                </div>
+
+                <div class="col-xs-3">
+                    <a href="{% url 'proyecto_sprint_flujos' sprint.proyecto.id sprint.id %}">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                        <i class="fa fa-table"></i>
+                        Tableros Kanban
+                      </button>
+                    </a>
+                </div>
+
+              {% if 'administrar_sprint' in permisosGuardian and sprint.estado == 'EN_EJECUCION' %}
+                  <div class="col-xs-3">
+                  <a href="{% url 'proyecto_sprint_cerrar' sprint.proyecto.id sprint.id %}?estado=CERRADO">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                          <i class="fa fa-stop"></i> Cerrar Sprint
+                      </button>
+                  </a>
+                  </div>
+              {% endif %}
+              <div class="col-xs-3">
+                  <a href="#">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                          <i class="fa fa-line-chart" aria-hidden="true"></i> Burdown Chart
+                      </button>
+                  </a>
+                  </div>
+
+              </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'layout/layout.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            {% if cambiable %}
+                <p>¿Está seguro de que desea pasar el estado del proyecto de "{{ currentst }}" a "{{ newst }}"?</p>
+                {% crispy form %}
+            {% else %}
+                <p>
+                    No se puede pasar el estado del proyecto de "{{ currentst }}" a "{{ newst }}" porque {{ motivo }}
+                </p>
+                <a href="{% url 'perfil_proyecto' proyecto.id %}">
+                    <button type="button" class="btn m-b-xs btn-default btn-addon">
+                        <i class="fa fa-check"></i> Volver
+                    </button>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
