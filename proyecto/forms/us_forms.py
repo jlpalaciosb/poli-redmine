@@ -78,3 +78,32 @@ class USForm(ModelForm):
             if us.tiene_tiempo_excedido():
                 raise forms.ValidationError('El tiempo planficicado debe ser superior al tiempo ejecutado({} horas)'.format(us.tiempoEjecutado))
         return self.cleaned_data['tiempoPlanificado']
+
+
+class USCancelarForm(ModelForm):
+    """
+    Form utilizado para cancelar un user story a nivel de proyecto
+    """
+    class Meta:
+        model = UserStory
+        fields = ['estadoProyecto', 'justificacion']
+        widgets = {'estadoProyecto': forms.HiddenInput}
+
+    def __init__(self, *args, **kwargs):
+        kwargs['instance'].estadoProyecto = 4
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        layout = [
+            'estadoProyecto', 'justificacion',
+            FormActions(
+                Submit('enviar', 'CONFIRMAR', css_class='btn-danger'),
+            ),
+        ]
+        self.helper.layout = Layout(*layout)
+
+    def clean_estadoProyecto(self):
+        estado = self.cleaned_data['estadoProyecto']
+        if estado != 4:
+            raise forms.ValidationError('este form sirve solo para cancelar un user story')
+        else:
+            return estado
