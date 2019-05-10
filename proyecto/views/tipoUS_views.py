@@ -92,7 +92,7 @@ class TipoUsUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEst
         try:
             tipous = TipoUS.objects.get(pk=self.kwargs['tipous_id'])
             if tipous.userstory_set.all():
-               return self.handle_no_permission()
+               return HttpResponseForbidden()
             return super(TipoUsUpdateView, self).check_permissions(request)
         except TipoUS.DoesNotExist:
             raise Http404('no existe tipo de us con el id en la url')
@@ -282,15 +282,14 @@ class TipoUsEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoE
         else:
             return HttpResponseRedirect(self.success_url)
 
-class ImportarTipoUsListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
+class ImportarTipoUsListView(LoginRequiredMixin, PermisosPorProyectoMixin,ProyectoEstadoInvalidoMixin, TemplateView):
     """
     Vista para listar tipos de us a importar de otros proyectos de un proyecto en especifico.
     """
     template_name = 'change_list.html'
     permission_denied_message = 'No tiene permiso para ver este proyecto.'
+    permission_required = ['proyecto.add_tipous']
 
-    def handle_no_permission(self):
-        return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
         context = super(ImportarTipoUsListView, self).get_context_data(**kwargs)
@@ -317,7 +316,7 @@ class ImportarTipoUsListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templat
 
         return context
 
-class ImportarTipoUsListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView):
+class ImportarTipoUsListJson(LoginRequiredMixin, PermisosPorProyectoMixin,ProyectoEstadoInvalidoMixin, BaseDatatableView):
     """
     Vista para devolver todos los tipos de us de otros proyecto en formato JSON
     """
@@ -326,6 +325,7 @@ class ImportarTipoUsListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDat
     order_columns = ['id', 'nombre', 'proyecto.nombre']
     max_display_length = 100
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
+    permission_required = ['proyecto.add_tipous']
 
     def get_initial_queryset(self):
         """
@@ -335,7 +335,7 @@ class ImportarTipoUsListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDat
         proyecto=Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         return TipoUS.objects.exclude(proyecto__id=proyecto.id)
 
-class ImportarTipoUSPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
+class ImportarTipoUSPerfilView(LoginRequiredMixin,  PermisosPorProyectoMixin,ProyectoEstadoInvalidoMixin, DetailView):
     """
            Vista Basada en Clases para la visualizacion del perfil de un tipo de us a importar con la opcion de importar
     """
@@ -344,10 +344,8 @@ class ImportarTipoUSPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Detai
     template_name = 'proyecto/tipous/tipous_perfi_importar.html'
     pk_url_kwarg = 'tipous_id'
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
+    permission_required = ['proyecto.add_tipous']
 
-
-    def handle_no_permission(self):
-        return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
         context = super(ImportarTipoUSPerfilView, self).get_context_data(**kwargs)
@@ -373,7 +371,6 @@ class ImportarTipoUSPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Detai
 
 @login_required
 @permission_required('proyecto.add_tipous',(Proyecto, 'id', 'proyecto_id'), return_403=True)
-@proyecto_en_ejecucion
 def importar_tus(request, proyecto_id, tipous_id):
     """
     Vista para agregar un tipo de us a un proyecto dado un modelo de tipo de us incluido campos personalizados
@@ -385,6 +382,8 @@ def importar_tus(request, proyecto_id, tipous_id):
     try:
         tipous_a_copiar = TipoUS.objects.get(pk=tipous_id)
         proyecto = Proyecto.objects.get(pk=proyecto_id)
+        if proyecto.estado not in ['EN EJECUCION', 'PENDIENTE']:
+            return HttpResponseRedirect(reverse('proyecto_tipous_list', args=(proyecto_id,)))
         campos_personalizados = tipous_a_copiar.campopersonalizado_set.all()
         tipo_us = TipoUS(nombre=tipous_a_copiar.nombre, proyecto=proyecto)
         tipo_us.save()
@@ -394,5 +393,5 @@ def importar_tus(request, proyecto_id, tipous_id):
         messages.add_message(request, messages.SUCCESS, 'Tipo de US importado correctamente')
         return HttpResponseRedirect(reverse('proyecto_tipous_ver',args=(proyecto_id, tipo_us.id)))
     except:
-        messages.add_message(request, messages.ERROR, 'Ha ocurrido un error!')
+        messages.add_message(request,messages.WARNING,'El proyecto debe estar EN EJECUCION o PENDIENTE para acceder a esta funcionalidad')
         return HttpResponseRedirect(reverse('proyecto_tipous_list', args=(proyecto_id,)))

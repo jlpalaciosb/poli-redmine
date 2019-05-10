@@ -34,9 +34,7 @@
                                     {% endif %}
                                 </h4>
                             </div>
-                            <div class="col-md-3">
-                                <a class="btn btn-success" href='{% url "proyecto_tipous_importar_list" form.instance.proyecto.id %}'>Importar Tipo US</a>
-                            </div>
+                            {% block extra_encabezado %}{% endblock %}
                         </div>
                         </div>
                         <div class="panel-body wrapper">
