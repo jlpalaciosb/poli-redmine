@@ -256,9 +256,21 @@ class ProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView)
         return context
 
 
-class ProyectoCambiarEstadoEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, UpdateView):
+class ProyectoCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, UpdateView):
     """
-    Vista Basada en Clases para la actualizacion de los proyectos
+    Vista para cambiar el estado de un proyecto.
+
+    **Diagrama de Estado:**
+
+    .. image:: /media/diagrama_de_estado_proyecto.png
+
+    **Condiciones:**
+
+    - El usuario debe estar logueado.
+    - El usuario debe tener el permiso change_proyecto sobre el proyecto.
+    - Se debe cumplir las restricciones del diagrama de estado.
+    - Para pasar a cancelado o suspendido o terminado, no debe tener ningún sprint en ejecución.
+    - Para pasar a terminado no debe tener ningún user story pendiente o no terminado.
     """
     model = Proyecto
     form_class = ProyectoCambiarEstadoForm
