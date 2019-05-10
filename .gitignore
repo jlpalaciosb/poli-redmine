@@ -1,6 +1,7 @@
 .idea/
 *.pyc
 media/*
+!media/diagrama_de_estado_proyecto.png
 __pycache__/
 static_root
 *.jasper
