@@ -1,5 +1,5 @@
 from django import forms
-from proyecto.models import Sprint, MiembroSprint, MiembroProyecto, UserStorySprint, UserStory, Proyecto, Flujo
+from proyecto.models import Sprint, MiembroSprint, MiembroProyecto, UserStorySprint, UserStory, Proyecto, Flujo, Fase
 from crispy_forms.bootstrap import FormActions, AppendedText
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, HTML, Layout, Field
@@ -115,6 +115,39 @@ class SprintCambiarEstadoForm(forms.ModelForm):
             'justificacion',
             FormActions(
                 Submit('guardar', 'CONFIRMAR',css_class='btn-danger'),
+                HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
+            ),
+        ]
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
+        self.helper.layout = Layout(*self.layout)
+
+class UserStoryRechazadoForm(forms.ModelForm):
+
+    class Meta:
+        model = UserStorySprint
+        fields = ['fase_sprint']
+        labels = {'fase_sprint':'Fase'}
+        help_texts = {'fase_sprint':'La fase en la que se movera el user story(El estado sera TO DO)'}
+
+    def __init__(self, *args, **kwargs):
+        self.success_url = kwargs.pop('success_url')
+        super().__init__(*args, **kwargs)
+
+        user_story_sprint = self.instance
+        user_story_sprint.estado_fase_sprint = 'TODO'
+        flujo = user_story_sprint.us.flujo
+        self.fields['fase_sprint'].queryset = flujo.fase_set.all()
+        self.fields['fase_sprint'].label_from_instance = lambda fase :\
+            '{}'.\
+                format(fase.nombre)
+        self.layout = [
+            'fase_sprint',
+            FormActions(
+                Submit('guardar', 'CONFIRMAR', css_class='btn-danger'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
             ),
         ]
