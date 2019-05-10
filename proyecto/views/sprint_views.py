@@ -5,7 +5,7 @@ from proyecto.forms.sprint_us_forms import SprintCambiarEstadoForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
 from guardian.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
-from proyecto.models import Sprint, Proyecto, ESTADOS_SPRINT, MiembroSprint, UserStorySprint
+from proyecto.models import Sprint, Proyecto, ESTADOS_SPRINT, MiembroSprint, UserStorySprint, UserStory
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
 from django.urls import reverse
 from django.db import transaction
@@ -221,4 +221,33 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Upda
 
         return context
 
+class SprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView):
+    """
+        Vista Basada en Clases para la eliminacion de los Sprint
+    """
+    model = Sprint
+    pk_url_kwarg = 'sprint_id'
+    permission_required = 'proyecto.administrar_sprint'
+    template_name = 'proyecto/sprint/sprint_confirm_delete.html'
 
+    def get_success_url(self):
+        return reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))
+
+    def delete(self, request, *args, **kwargs):
+        # TODO: transaction
+
+        sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
+        if sprint.estado == 'PLANIFICADO':
+            user_sprint = UserStorySprint.objects.filter(sprint=sprint.id)
+            if user_sprint.count() > 0:
+                for us in user_sprint:
+                    user_story=UserStory.objects.get(pk=us.us.id)
+                    user_story.estadoProyecto=1
+                    user_story.save()
+                    us.delete()
+            messages.add_message(self.request, messages.SUCCESS, 'Sprint Eliminado')
+        else:
+            messages.add_message(self.request, messages.ERROR, 'No se puede eliminar este Sprint')
+            return HttpResponseForbidden()
+
+        return super().delete(request, *args, **kwargs)
