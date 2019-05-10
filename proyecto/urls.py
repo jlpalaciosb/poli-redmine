@@ -4,8 +4,8 @@ from proyecto.views import \
     ProyectoListView, ProyectoCreateView, ProyectoUpdateView, ProyectoPerfilView, ProyectoListJson, ProyectoCambiarEstadoEstadoView, \
     RolListView, RolListJson, RolProyectoCreateView, RolProyectoUpdateView, RolPerfilView, RolEliminarView, \
     MiembroProyectoCreateView, MiembroProyectoListJsonView, MiembroProyectoListView, MiembroProyectoUpdateView, MiembroProyectoPerfilView, MiembroProyectoDeleteView, \
-    TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView, \
-    USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView, USCancelarView, \
+    TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView, ImportarTipoUsListJson, ImportarTipoUsListView, ImportarTipoUSPerfilView, importar_tus,\
+    USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView, USCancelarView,\
     SprintListView, SprintListJson, crear_sprint, SprintPerfilView,\
     MiembroSprintListJson, MiembroSprintListView, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint, MiembroSprintIntercambiarView,\
     FlujoCreateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoUpdateView, FlujoEliminarView, \
@@ -42,6 +42,10 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/flujos/(?P<flujo_id>\d+)/editar$', FlujoUpdateView.as_view(), name='proyecto_flujo_editar'),
     url(r'^(?P<proyecto_id>\d+)/flujos/(?P<flujo_id>\d+)/excluir$', FlujoEliminarView.as_view(), name='proyecto_flujo_eliminar'),
     url(r'^(?P<proyecto_id>\d+)/tipous/crear$', TipoUsCreateView.as_view(), name='proyecto_tipous_crear'),
+    url(r'^(?P<proyecto_id>\d+)/tipous/importar/list$', ImportarTipoUsListView.as_view(), name='proyecto_tipous_importar_list'),
+    url(r'^(?P<proyecto_id>\d+)/tipous/importar/(?P<tipous_id>\d+)/ver$', ImportarTipoUSPerfilView.as_view(),name='proyecto_tipous_importar_ver'),
+    url(r'^(?P<proyecto_id>\d+)/tipous/importar/(?P<tipous_id>\d+)$', importar_tus,name='proyecto_tipous_importar'),
+    url(r'^(?P<proyecto_id>\d+)/tipous/importar/json$', ImportarTipoUsListJson.as_view(), name='proyecto_tipous_import_json'),
     url(r'^(?P<proyecto_id>\d+)/tipous/(?P<tipous_id>\d+)/editar$', TipoUsUpdateView.as_view(), name='proyecto_tipous_editar'),
     url(r'^(?P<proyecto_id>\d+)/tiposus/$', TipoUsListView.as_view(), name='proyecto_tipous_list'),
     url(r'^(?P<proyecto_id>\d+)/tiposus/list$', TipoUsListJson.as_view(), name='proyecto_tipous_list_json'),

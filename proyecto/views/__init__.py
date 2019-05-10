@@ -8,7 +8,7 @@ from .miembro_views import \
     MiembroProyectoCreateView, MiembroProyectoListView, MiembroProyectoListJsonView, \
     MiembroProyectoPerfilView, MiembroProyectoUpdateView, MiembroProyectoDeleteView
 
-from .tipoUS_views import TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView
+from .tipoUS_views import TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView, ImportarTipoUsListJson, ImportarTipoUsListView, ImportarTipoUSPerfilView, importar_tus
 
 from .us_views import USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView, USCancelarView
 
