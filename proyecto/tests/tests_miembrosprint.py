@@ -31,17 +31,17 @@ class MiembroSprintTestBase(TestCase):
         otroMiembro1 = MiembroProyecto.objects.create(user=self.user_developer_team_1, proyecto=self.proyecto)
         otroMiembro1.roles.add(RolProyecto.objects.get(nombre='Developer Team', proyecto=self.proyecto))
 
-        otroMiembro2 = MiembroProyecto.objects.create(user=self.user_developer_team_2, proyecto=self.proyecto)
-        otroMiembro2.roles.add(RolProyecto.objects.get(nombre='Developer Team', proyecto=self.proyecto))
+        self.otroMiembro2 = MiembroProyecto.objects.create(user=self.user_developer_team_2, proyecto=self.proyecto)
+        self.otroMiembro2.roles.add(RolProyecto.objects.get(nombre='Developer Team', proyecto=self.proyecto))
 
-        otroMiembro3 = MiembroProyecto.objects.create(user=self.user_developer_team_3, proyecto=self.proyecto)
-        otroMiembro3.roles.add(RolProyecto.objects.get(nombre='Developer Team', proyecto=self.proyecto))
+        self.otroMiembro3 = MiembroProyecto.objects.create(user=self.user_developer_team_3, proyecto=self.proyecto)
+        self.otroMiembro3.roles.add(RolProyecto.objects.get(nombre='Developer Team', proyecto=self.proyecto))
 
         self.sprint1 = Sprint.objects.create(proyecto=self.proyecto, orden=1, duracion=self.proyecto.duracionSprint, estado='PLANIFICADO')
 
 
         self.miembro_sprint1 = MiembroSprint.objects.create(sprint=self.sprint1, miembro=otroMiembro1, horasAsignadas=3)
-        self.miembro_sprint2 = MiembroSprint.objects.create(sprint=self.sprint1, miembro=otroMiembro2, horasAsignadas=1)
+        self.miembro_sprint2 = MiembroSprint.objects.create(sprint=self.sprint1, miembro=self.otroMiembro2, horasAsignadas=1)
 
 
 class PermisosEsMiembroTest(MiembroSprintTestBase):
@@ -203,3 +203,14 @@ class MiembroSprintUpdateViewTest(MiembroSprintTestBase):
         self.miembro_sprint1.refresh_from_db()
         horas = self.miembro_sprint1.horasAsignadas
         self.assertEqual(horas, 5)
+
+    def test_cambiar_miembro(self):
+        print('Testeando vistas de intercambiar miembro sprint por otro miembro')
+        self.client.login(username=self.user_scrum_master, password=PWD)
+        self.sprint1.estado ='EN_EJECUCION'
+        self.sprint1.save()
+        self.url = reverse('proyecto_sprint_miembros_intercambiar',args=(self.proyecto.id,self.sprint1.id,self.miembro_sprint2.id))
+        self.assertEqual(self.miembro_sprint2.miembro, self.otroMiembro2)
+        self.client.post(self.url,{'miembro':self.otroMiembro3.id})
+        self.miembro_sprint2.refresh_from_db()
+        self.assertEqual(self.miembro_sprint2.miembro, self.otroMiembro3)

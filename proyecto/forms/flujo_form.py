@@ -46,3 +46,18 @@ class FlujoForm(forms.ModelForm):
                 )
 
             )
+
+    def clean(self):
+        clean = super(FlujoForm, self).clean()
+        cantidad_fases = int(self.data.get('fase_set-TOTAL_FORMS'))
+        for i in range(0, cantidad_fases):
+            campo_fase = 'fase_set-{}-nombre'.format(i)
+            campo_a_eliminar = 'fase_set-{}-DELETE'.format(i)
+            nombre_fase = self.data.get(campo_fase)
+            se_elimina = self.data.get(campo_a_eliminar)
+            if nombre_fase.strip() and se_elimina != 'on':
+                break
+        else:
+            raise forms.ValidationError(
+                'Debe tener al menos una fase', code='invalid'
+            )

@@ -1,0 +1,22 @@
+{% extends 'layout/layout.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
+
+    {% block breadcrumbs %}
+        {{ block.super }}
+    {% endblock %}
+
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            <p>¿Está seguro de que desea cancelar el user story "{{ us.nombre }}"?</p>
+            {% crispy form %}
+        </div>
+    </div>
+{% endblock %}

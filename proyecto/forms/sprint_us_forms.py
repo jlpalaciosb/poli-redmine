@@ -1,9 +1,10 @@
 from django import forms
-from proyecto.models import Sprint, MiembroSprint, MiembroProyecto, UserStorySprint, UserStory, Proyecto, Flujo
+from proyecto.models import Sprint, MiembroSprint, MiembroProyecto, UserStorySprint, UserStory, Proyecto, Flujo, Fase
 from crispy_forms.bootstrap import FormActions, AppendedText
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, HTML, Layout, Field
-
+import datetime
+from django.db.models import F
 
 class UserStorySprintCrearForm(forms.ModelForm):
     flujo = forms.ModelChoiceField(
@@ -24,8 +25,8 @@ class UserStorySprintCrearForm(forms.ModelForm):
         super(UserStorySprintCrearForm, self).__init__(*args, **kwargs)
 
         self.fields['us'].queryset = UserStory.objects.filter(
-            proyecto=self.proyecto, estadoProyecto__in=(1, 3),
-        ).order_by('-priorizacion')
+            proyecto=self.proyecto, estadoProyecto__in=(1, 3),tiempoPlanificado__gt=F('tiempoEjecutado')
+        ).order_by('-estadoProyecto','-priorizacion')
 
         self.fields['flujo'].queryset = Flujo.objects.filter(proyecto=self.proyecto)
 
@@ -80,6 +81,73 @@ class UserStorySprintEditarForm(forms.ModelForm):
             'asignee',
             FormActions(
                 Submit('guardar', 'Guardar'),
+                HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
+            ),
+        ]
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
+        self.helper.layout = Layout(*self.layout)
+
+class SprintCambiarEstadoForm(forms.ModelForm):
+    """
+    Form utilizada para cambiar el estado de un proyecto
+    """
+    class Meta:
+        model = Sprint
+        fields = ['justificacion']
+        widgets = {'justificacion': forms.widgets.Textarea}
+
+    def __init__(self, *args, **kwargs):
+        self.success_url = kwargs.pop('success_url')
+        super().__init__(*args, **kwargs)
+        sprint = self.instance
+        es_requerido = False
+        tiempo_restante = sprint.tiempo_restante()
+        if tiempo_restante is not None and tiempo_restante != 0:
+            es_requerido = True
+        self.fields['justificacion'] = forms.CharField(widget=forms.widgets.Textarea, required=es_requerido)
+        sprint.estado = 'CERRADO'  # Se cambia el estado a CERRADO
+        sprint.fecha_fin = datetime.date.today()  # Y LA FECHA DE FINALIZACION VA A SER LA FECHA ACTUAL
+        self.layout = [
+            'justificacion',
+            FormActions(
+                Submit('guardar', 'CONFIRMAR',css_class='btn-danger'),
+                HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
+            ),
+        ]
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
+        self.helper.layout = Layout(*self.layout)
+
+class UserStoryRechazadoForm(forms.ModelForm):
+
+    class Meta:
+        model = UserStorySprint
+        fields = ['fase_sprint']
+        labels = {'fase_sprint':'Fase'}
+        help_texts = {'fase_sprint':'La fase en la que se movera el user story(El estado sera TO DO)'}
+
+    def __init__(self, *args, **kwargs):
+        self.success_url = kwargs.pop('success_url')
+        super().__init__(*args, **kwargs)
+
+        user_story_sprint = self.instance
+        user_story_sprint.estado_fase_sprint = 'TODO'
+        flujo = user_story_sprint.us.flujo
+        self.fields['fase_sprint'].queryset = flujo.fase_set.all()
+        self.fields['fase_sprint'].label_from_instance = lambda fase :\
+            '{}'.\
+                format(fase.nombre)
+        self.layout = [
+            'fase_sprint',
+            FormActions(
+                Submit('guardar', 'CONFIRMAR', css_class='btn-danger'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
             ),
         ]

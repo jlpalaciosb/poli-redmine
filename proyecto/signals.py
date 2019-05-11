@@ -3,10 +3,11 @@ from django.db.models.signals import pre_delete, post_save, pre_save, m2m_change
 from .models import MiembroProyecto, RolProyecto, Proyecto
 from django.db.models.signals import pre_delete, post_save, pre_save, m2m_changed
 from .models import MiembroProyecto, RolProyecto, Proyecto
-from django.db.models.signals import pre_delete,post_save,pre_save,m2m_changed
-from .models import MiembroProyecto,RolProyecto, Proyecto
+from django.db.models.signals import pre_delete,post_save,post_delete,m2m_changed
+from .models import MiembroProyecto,RolProyecto, Proyecto, Fase
 from guardian.shortcuts import assign_perm,remove_perm
 from django.contrib.auth.models import Permission
+
 @receiver(pre_delete, sender=MiembroProyecto, dispatch_uid='miembro_delete_signal')
 def quitar_group_miembro_eliminado(sender, instance, using, **kwargs):
     roles = instance.roles.all()
@@ -65,6 +66,28 @@ def miembro_usuario(sender, instance, action, reverse, model, pk_set, using, **k
             miembro.user.groups.remove(rol)
 
         miembro.user.save()
+
+@receiver(pre_save, sender = Fase, dispatch_uid='fase_nueva')
+def actualizar_orden_fase_al_crear(sender, instance,raw, using,update_fields, **kwargs):
+    fase = instance
+    if fase.id is None:
+        fase.flujo.cantidadFases = fase.flujo.cantidadFases + 1
+        fase.orden = fase.flujo.cantidadFases
+        fase.flujo.save()
+
+
+@receiver(post_delete, sender = Fase, dispatch_uid='fase_eliminada')
+def actualizar_orden_fase_al_eliminar(sender, instance, using, **kwargs):
+    fase = instance
+    orden_eliminado = fase.orden
+    flujo = fase.flujo
+    for fase_actualizar in flujo.fase_set.filter(orden__gt=orden_eliminado):
+        fase_actualizar.orden = fase_actualizar.orden - 1
+        fase_actualizar.save()
+    flujo.cantidadFases = flujo.cantidadFases - 1
+    flujo.save()
+
+
 
 @receiver(m2m_changed,sender=RolProyecto.permissions.through,dispatch_uid='rol_guardian')
 def asignar_permisos_por_objeto(sender, instance, action, reverse, model, pk_set, using, **kwargs):
@@ -161,3 +184,4 @@ def asignar_miembro_scrum_master(proyecto,scrum_master):
     miembro.save()
     miembro.roles.add(scrum_master)
     miembro.save()
+

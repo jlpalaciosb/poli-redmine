@@ -1,16 +1,17 @@
-from django.http import HttpResponseForbidden
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
 
 from django.contrib.messages.views import SuccessMessageMixin
+from django.http import HttpResponseRedirect
+from django.contrib import messages
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from guardian.mixins import LoginRequiredMixin
-from proyecto.forms import USForm
-from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
+from proyecto.forms import USForm, USCancelarForm
+from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEnEjecucionMixin, UserStoryNoModificable
 from proyecto.models import MiembroProyecto, Proyecto, UserStory
 
 
-class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEstadoInvalidoMixin, CreateView):
+class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, CreateView):
     """
     Vista para crear un US para el proyecto
     """
@@ -18,10 +19,6 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     template_name = "change_form.html"
     form_class = USForm
     permission_required = 'proyecto.add_us'
-    estados_inaceptables = ['PENDIENTE','TERMINADO','SUSPENDIDO','CANCELADO']
-
-    def handle_no_permission(self):
-        return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
         return "US creado exitosamente"
@@ -50,7 +47,7 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
-            {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', kwargs=self.kwargs)},
+            {'nombre': 'Product Backlog', 'url': reverse('proyecto_us_list', kwargs=self.kwargs)},
             {'nombre': 'Crear US', 'url': '#'}
         ]
 
@@ -78,7 +75,7 @@ class USListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
         context['crear_button_text'] = 'Crear US'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización', 'Estado General']
+        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización', 'Estado General', 'Comentarios Adicionales']
         context['order'] = [2, "desc"]
         ver_kwargs = self.kwargs.copy()
         ver_kwargs['us_id'] = 7836271  # pasamos inicialmente un id aleatorio
@@ -92,7 +89,7 @@ class USListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', kwargs=kwargs)},
-            {'nombre': 'User Stories', 'url': '#'},
+            {'nombre': 'Product Backlog', 'url': '#'},
         ]
 
         return context
@@ -103,20 +100,26 @@ class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
     Vista que retorna en json la lista de user stories del product backlog
     """
     model = MiembroProyecto
-    columns = ['id', 'nombre', 'priorizacion', 'estadoProyecto']
+    columns = ['id', 'nombre', 'priorizacion', 'estadoProyecto','comentarios']
     order_columns = ['id', 'nombre', 'priorizacion', 'estadoProyecto']
     max_display_length = 100
 
     def get_initial_queryset(self):
         iqs = Proyecto.objects.get(pk=self.kwargs['proyecto_id']).userstory_set.all()
         st = self.request.GET.get('estado', '*')
-        if st == '1' or st == '2' or st == '3' or st == '4' or st == '5':
+        if st == '1' or st == '2' or st == '3' or st == '4' or st == '5' or st == '6':
             iqs = iqs.filter(estadoProyecto=int(st))
         return iqs
 
     def render_column(self, row, column):
         if column == 'priorizacion':
             return "{0:.2f}".format(row.priorizacion)
+        if column == 'comentarios':
+            #SI EL US NO TERMINO EN UN SPRINT Y SU TIEMPO PLANIFICADO EXCEDE AL TIEMPO EJECUTADO ENTONCES ADVERTIR AL USUARIO
+            if row.tiene_tiempo_excedido() and row.estadoProyecto==3:
+                return 'Falta ajustar las horas planificadas'
+            else:
+                return ''
         else:
             return super().render_column(row, column)
 
@@ -143,7 +146,7 @@ class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', args=(p.id,))},
-            {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', args=(p.id,))},
+            {'nombre': 'Product Backlog', 'url': reverse('proyecto_us_list', args=(p.id,))},
             {'nombre': us.nombre, 'url': '#'},
         ]
 
@@ -152,7 +155,7 @@ class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         return context
 
 
-class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEstadoInvalidoMixin, UpdateView):
+class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, UserStoryNoModificable, UpdateView):
     """
     Vista que permite modificar los datos básicos de un User Story a nivel proyecto
     """
@@ -161,10 +164,6 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     template_name = 'change_form.html'
     pk_url_kwarg = 'us_id'
     permission_required = 'proyecto.change_us'
-    estados_inaceptables = ['PENDIENTE', 'TERMINADO', 'SUSPENDIDO', 'CANCELADO']
-
-    def handle_no_permission(self):
-        return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
         return "US editado exitosamente"
@@ -198,9 +197,62 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': p.nombre, 'url': reverse('perfil_proyecto', args=(p.id,))},
-            {'nombre': 'User Stories', 'url': reverse('proyecto_us_list', args=(p.id,))},
+            {'nombre': 'Product Backlog', 'url': reverse('proyecto_us_list', args=(p.id,))},
             {'nombre': us.nombre, 'url': reverse('proyecto_us_ver', args=(p.id, us.id))},
             {'nombre': 'Editar', 'url': '#'}
         ]
 
         return context
+
+
+class USCancelarView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, UpdateView):
+        """
+        Vista que permite cancelar un User Story a nivel proyecto
+        """
+        model = UserStory
+        context_object_name = 'us'
+        form_class = USCancelarForm
+        template_name = 'proyecto/us/us_cancelar.html'
+        pk_url_kwarg = 'us_id'
+        permission_required = 'proyecto.change_us'
+        proyecto = None # el proyecto en cuestión
+        us = None # el user story en cuestión
+
+        def dispatch(self, request, *args, **kwargs):
+            self.proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
+            self.us = UserStory.objects.get(pk=kwargs['us_id'])
+            cancelable = self.cancelable()
+            if cancelable != 'yes':
+                messages.add_message(
+                    request, messages.WARNING, 'No se puede cancelar el user story porque %s' % cancelable
+                )
+                return HttpResponseRedirect(self.get_success_url())
+            return super().dispatch(request, *args, **kwargs)
+
+        def get_success_message(self, cleaned_data):
+            return "User Story cancelado"
+
+        def get_success_url(self):
+            return reverse('proyecto_us_ver', args=(self.proyecto.id, self.us.id))
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['titulo'] = 'Cancelar User Story'
+            context['breadcrumb'] = [
+                {'nombre': 'Inicio', 'url': '/'},
+                {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                {'nombre': self.proyecto.nombre, 'url': reverse('perfil_proyecto', args=(self.proyecto.id,))},
+                {'nombre': 'Product Backlog', 'url': reverse('proyecto_us_list', args=(self.proyecto.id,))},
+                {'nombre': self.us.nombre, 'url': reverse('proyecto_us_ver', args=(self.proyecto.id, self.us.id))},
+                {'nombre': 'Cancelar', 'url': '#'}
+            ]
+            return context
+
+        # retorna 'yes' o el motivo de por qué no se puede cancelar
+        def cancelable(self):
+            if self.proyecto.estado != 'EN EJECUCION':
+                return 'el proyecto debe estar en ejecución'
+            elif self.us.estadoProyecto not in [1, 3]:
+                return 'el user story debe estar pendiente o no terminado'
+            else:
+                return 'yes'

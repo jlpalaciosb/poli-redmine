@@ -1,6 +1,10 @@
 from django.contrib.auth.models import User, Permission
 from proyecto.models import Cliente
 from proyecto.models import RolAdministrativo
+from proyecto.models import Proyecto
+from proyecto.models import MiembroProyecto
+from proyecto.models import RolProyecto
+from proyecto.models import TipoUS, Flujo, CampoPersonalizado, Fase, UserStorySprint, UserStory, Sprint, MiembroSprint
 
 PASSWORD = '12345' # contraseña para todos los usuarios
 ROL_ADMINISTRADOR_NOMBRE = 'Administrador'
@@ -50,6 +54,9 @@ def cargar_users():
     cargar_user('javier', 'Javier', 'Adorno', 'javier@gmail.com')
     cargar_user('ingrid', 'Ingrid', 'López', 'ingrid@gmail.com')
     cargar_user('moises', 'Moisés', 'Cabrera', 'moises@gmail.com')
+    cargar_user('jose', 'Jose', 'Palacios', 'jose@gmail.com')
+    cargar_user('joel', 'Joel', 'Florentin', 'joel@gmail.com')
+    cargar_user('enzo', 'Enzo', 'Galeano', 'enzo@gmail.com')
 
 
 # CARGAR CLIENTES
@@ -109,3 +116,127 @@ def asignar_roles_administrativos():
     asignar_rol_administrativo('ingrid', 'Administrador')
     asignar_rol_administrativo('javier', 'Gestor de Clientes')
     asignar_rol_administrativo('moises', 'Gestor de Usuarios')
+
+def cargar_proyecto(nombre, cliente, scrum_master,estado=None):
+    if estado is None:
+        estado = 'PENDIENTE'
+    print('+ Se agrego el proyecto {}'.format(nombre))
+    return Proyecto.objects.create(nombre=nombre, cliente=cliente, scrum_master=scrum_master, estado = estado)
+
+def cargar_proyectos():
+    # obtiene usuarios
+    user1 = User.objects.get(username='javier')
+    user2 = User.objects.get(username='ingrid')
+    user3 = User.objects.get(username='moises')
+    user4 = User.objects.get(username='joel')
+    user5 = User.objects.get(username='jose')
+    user6 = User.objects.get(username='enzo')
+
+    #obtiene clientes
+    cliente = Cliente.objects.get(ruc='1846374-1')
+
+    #crea proyectos
+    proyecto1 = cargar_proyecto('Proyecto de Javier', cliente, user1)
+    proyecto2 = cargar_proyecto('Proyecto de Ingrid', cliente, user2)
+    proyecto3 = cargar_proyecto('Proyecto de Moises', cliente, user3)
+
+
+    #asigna miembros a cada proyecto con el rol de desarrollador
+    asignar_miembro_developer_team(user=user4, proyecto=proyecto1)
+    asignar_miembro_developer_team(user=user5, proyecto=proyecto2)
+    asignar_miembro_developer_team(user=user6, proyecto=proyecto3)
+
+    #crea tipos de us
+    tipous11 = cargar_tipo_us('Tipo US1 de proy 1', proyecto1)
+    tipous12 = cargar_tipo_us('Tipo US2 de proy 1', proyecto1)
+    tipous13 = cargar_tipo_us('Tipo US3 de proy 1', proyecto1)
+    tipous14 = cargar_tipo_us('Tipo US4 de proy 1', proyecto1)
+
+    tipous21 = cargar_tipo_us('Tipo US1 de proy 2', proyecto2)
+    tipous22 = cargar_tipo_us('Tipo US2 de proy 2', proyecto2)
+    tipous23 = cargar_tipo_us('Tipo US3 de proy 2', proyecto2)
+    tipous24 = cargar_tipo_us('Tipo US4 de proy 2', proyecto2)
+
+    tipous31 = cargar_tipo_us('Tipo US1 de proy 3', proyecto3)
+    tipous32 = cargar_tipo_us('Tipo US2 de proy 3', proyecto3)
+    tipous33 = cargar_tipo_us('Tipo US3 de proy 3', proyecto3)
+    tipous34 = cargar_tipo_us('Tipo US4 de proy 3', proyecto3)
+
+    #crea flujos
+    flujo11 = cargar_flujo('Flujo 1 de Proyecto 1', proyecto1, ['Fase 1', 'Fase 2', 'Fase 3'])
+    flujo12 = cargar_flujo('Flujo 2 de Proyecto 1', proyecto1, ['Fase 1', 'Fase 2', 'Fase 3'])
+    flujo13 = cargar_flujo('Flujo 3 de Proyecto 1', proyecto1, ['Fase 1', 'Fase 2', 'Fase 3'])
+
+    flujo21 = cargar_flujo('Flujo 1 de Proyecto 2', proyecto2, ['Fase 1', 'Fase 2', 'Fase 3'])
+    flujo22 = cargar_flujo('Flujo 2 de Proyecto 2', proyecto2, ['Fase 1', 'Fase 2', 'Fase 3'])
+    flujo23 = cargar_flujo('Flujo 3 de Proyecto 2', proyecto2, ['Fase 1', 'Fase 2', 'Fase 3'])
+
+    flujo31 = cargar_flujo('Flujo 1 de Proyecto 3', proyecto3, ['Fase 1', 'Fase 2', 'Fase 3'])
+    flujo32 = cargar_flujo('Flujo 2 de Proyecto 3', proyecto3, ['Fase 1', 'Fase 2', 'Fase 3'])
+    flujo33 = cargar_flujo('Flujo 3 de Proyecto 3', proyecto3, ['Fase 1', 'Fase 2', 'Fase 3'])
+
+    #crea us
+    us11 = cargar_us('User Story 1 de proyecto 1','Descripcion blabla', 'Criterio de Aceptacion', tipous11, 1, proyecto1 )
+    us12 = cargar_us('User Story 2 de proyecto 1','Descripcion blabla', 'Criterio de Aceptacion', tipous12, 2, proyecto1 )
+    us13 = cargar_us('User Story 3 de proyecto 1','Descripcion blabla', 'Criterio de Aceptacion', tipous13, 3, proyecto1 )
+
+    us21 = cargar_us('User Story 1 de proyecto 2', 'Descripcion blabla', 'Criterio de Aceptacion', tipous21, 1, proyecto2)
+    us22 = cargar_us('User Story 2 de proyecto 2', 'Descripcion blabla', 'Criterio de Aceptacion', tipous22, 2, proyecto2)
+    us23 = cargar_us('User Story 3 de proyecto 2', 'Descripcion blabla', 'Criterio de Aceptacion', tipous23, 3, proyecto2)
+
+    us31 = cargar_us('User Story 1 de proyecto 3', 'Descripcion blabla', 'Criterio de Aceptacion', tipous31, 1, proyecto3)
+    us32 = cargar_us('User Story 2 de proyecto 3', 'Descripcion blabla', 'Criterio de Aceptacion', tipous32, 2, proyecto3)
+    us33 = cargar_us('User Story 3 de proyecto 3', 'Descripcion blabla', 'Criterio de Aceptacion', tipous33, 3, proyecto3)
+
+    #crea sprint
+
+
+    #agrega miembro a sprint
+
+    #agrega us a sprint
+
+def cargar_tipo_us(nombre, proyecto):
+    print('+ Se agrego tipo de user story al proyecto {}'.format(proyecto.nombre))
+    return TipoUS.objects.create(nombre=nombre, proyecto=proyecto)
+
+def cargar_flujo(nombre, proyecto, fases):
+    """
+    :param nombre:
+    :param proyecto:
+    :param fases: Array de los nombres de las fases
+    :return:
+    """
+    flujo = Flujo.objects.create(nombre=nombre, proyecto=proyecto)
+    i=1
+    for fase in fases:
+        Fase.objects.create(orden=i, flujo=flujo, nombre=fase)
+        i=i+1
+    print('+ Se agrego flujo al proyecto {}'.format(proyecto.nombre))
+    return flujo
+
+def cargar_us(nombre, descripcion, criterioAceptacion, tipoUS,tiempoPlanificado, proyecto):
+    print('+ Se agrego user story al proyecto {}'.format(proyecto.nombre))
+    return UserStory.objects.create(nombre=nombre, descripcion=descripcion, criteriosAceptacion=criterioAceptacion, tiempoPlanificado=tiempoPlanificado, tipo=tipoUS, proyecto=proyecto)
+
+def cargar_sprint(proyecto, orden, duracion):
+    return Sprint.objects.create(proyecto=proyecto, orden=orden, duracion=duracion)
+
+def cargar_miembro_sprint(miembro_proyecto, sprint, horas_disponibles):
+    return MiembroSprint.objects.create(miembro=miembro_proyecto, sprint=sprint, horasAsignadas=horas_disponibles)
+
+def cargar_us_sprint(user_story, sprint, miembro_asignado):
+    return UserStorySprint.objects.create(us=user_story ,sprint=sprint ,asignee=miembro_asignado)
+
+
+def asignar_miembro_developer_team(user, proyecto = None, nombreProyecto = None):
+    if not nombreProyecto is None:
+        proyecto = Proyecto.objects.get(nombre=nombreProyecto)
+    rol = RolProyecto.objects.get(nombre = 'Developer Team',proyecto = proyecto)
+    miembro = MiembroProyecto.objects.create(user = user, proyecto = proyecto)
+    miembro.roles.add(rol)
+    print('+ Se asigno como miembro developer team a {} al proyecto {}'.format(user, proyecto.nombre))
+    return miembro
+
+
+
+
