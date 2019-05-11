@@ -29,6 +29,12 @@ class ActividadBaseView(LoginRequiredMixin):
 class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequiredMixin, CreateView):
     """
     Vista para agregar una Actividad a un User Story en un Sprint
+
+    **Condiciones:**
+
+    - Solo el encargado del user story podra acceder a esta vista
+    - Solo cuando el sprint asociado este en ejecucion se podra acceder a esta vista
+    - Solo cuando el user story este en DOING se podra acceder a esta vista
     """
     model = Actividad
     template_name = "change_form.html"
@@ -174,6 +180,12 @@ class ActividadPerfilView(ActividadBaseView, PermisosEsMiembroMixin, DetailView)
 class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequiredMixin, UpdateView):
     """
     Vista para editar una actividad
+
+     **Condiciones:**
+
+    - Solo el encargado del user story podra acceder a esta vista
+    - Solo cuando el sprint asociado este en ejecucion se podra acceder a esta vista
+    - Si el user story se encuentra terminado no se podra acceder a este vista
     """
     model = Actividad
     form_class = ActividadForm

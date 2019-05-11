@@ -8,3 +8,4 @@ static_root
 *.project
 .settings
 *.sqlite3
+_build/

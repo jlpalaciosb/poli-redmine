@@ -75,7 +75,7 @@
                         <div class="row">
                         <div class="col-xs-12">
                             <form
-                                action=""
+                                action="{% url 'sprint_us_aprobar' usp.us.proyecto.id usp.sprint.id usp.id %}"
                                 method="post" style="display: inline-block"
                             >
                                 {% csrf_token %}
@@ -84,7 +84,7 @@
                                 </button>
                             </form>
 
-                            <a href="#">
+                            <a href="{% url 'sprint_us_rechazar' usp.us.proyecto.id usp.sprint.id usp.id %}">
                                 <button class="btn m-b-xs btn-danger btn-addon ">
                                     <i class="fa fa-thumbs-down" aria-hidden="true"></i>Rechazar
                                 </button>
