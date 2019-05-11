@@ -267,9 +267,9 @@ def aprobar_user_story(request, proyecto_id, sprint_id, usp_id):
     """
     Vista para culminar definitavemente un user story. Es decir colocarle el estado terminado
     :param request:
-    :param proyecto_id:
-    :param sprint_id:
-    :param usp_id:
+    :param proyecto_id: el id del proyecto
+    :param sprint_id: el id del sprint
+    :param usp_id: el id del user story sprint
     :return:
     """
     try:
@@ -351,33 +351,20 @@ class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, Permi
         return context
 
     def get(self, request, *args, **kwargs):
-        proyecto_id = self.kwargs['proyecto_id']
-        sprint_id = self.kwargs['sprint_id']
-        usp_id = self.kwargs['usp_id']
-        try:
-            sprint = Sprint.objects.get(pk=sprint_id, proyecto_id=proyecto_id)
-            if sprint.estado != 'EN_EJECUCION':
-                messages.add_message(request, messages.WARNING, 'El Sprint debe estar en ejecucion')
-                return HttpResponseRedirect(reverse('sprint_us_ver', args=(proyecto_id, sprint_id, usp_id)))
-            user_story_sprint = UserStorySprint.objects.get(pk=usp_id, sprint_id=sprint_id,
-                                                            sprint__proyecto_id=proyecto_id)
-            us = user_story_sprint.us
-            if not (us.estadoFase == 'DONE' and us.fase.orden == us.flujo.cantidadFases):
-                messages.add_message(request, messages.WARNING, 'El User Story debe estar en el DONE de su ultima fase')
-                return HttpResponseRedirect(reverse('sprint_us_ver', args=(proyecto_id, sprint_id, usp_id)))
-            if us.estadoProyecto != 6:
-                messages.add_message(request, messages.WARNING, 'El User Story debe estar en revision')
-                return HttpResponseRedirect(reverse('sprint_us_ver', args=(proyecto_id, sprint_id, usp_id)))
+        response = self.es_valido(request)
+        if response is None:
             return super(UserStorySprintRechazarView, self).get(request, args, kwargs)
-        except UserStorySprint.DoesNotExist:
-            messages.add_message(request, messages.ERROR, 'El User Story solicitido no existe')
-            return HttpResponseRedirect(reverse('sprint_us_list', args=(proyecto_id, sprint_id)))
-        except Sprint.DoesNotExist:
-            messages.add_message(request, messages.ERROR, 'El Sprint solicitido no existe')
-            return HttpResponseRedirect(reverse('perfil_proyecto', args=(proyecto_id,)))
+        return response
 
 
     def post(self, request, *args, **kwargs):
+        response = self.es_valido(request)
+        if response is None:
+            return super(UserStorySprintRechazarView, self).post(request, args, kwargs)
+        return response
+
+
+    def es_valido(self, request):
         proyecto_id = self.kwargs['proyecto_id']
         sprint_id = self.kwargs['sprint_id']
         usp_id = self.kwargs['usp_id']
@@ -395,7 +382,7 @@ class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, Permi
             if us.estadoProyecto != 6:
                 messages.add_message(request, messages.WARNING, 'El User Story debe estar en revision')
                 return HttpResponseRedirect(reverse('sprint_us_ver', args=(proyecto_id, sprint_id, usp_id)))
-            return super(UserStorySprintRechazarView, self).post(request, args, kwargs)
+            return None
         except UserStorySprint.DoesNotExist:
             messages.add_message(request, messages.ERROR, 'El User Story solicitido no existe')
             return HttpResponseRedirect(reverse('sprint_us_list', args=(proyecto_id, sprint_id)))
