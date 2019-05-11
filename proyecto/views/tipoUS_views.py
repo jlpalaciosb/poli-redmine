@@ -9,10 +9,11 @@ from django.db import transaction
 from guardian.shortcuts import  get_perms
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.messages.views import SuccessMessageMixin
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from guardian.decorators import permission_required
 from django.contrib.auth.decorators import login_required
+import json
 from proyecto.decorators import proyecto_en_ejecucion
 
 class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin,ProyectoEstadoInvalidoMixin , SuccessMessageMixin, CreateView):
@@ -490,3 +491,11 @@ def importar_tus(request, proyecto_id, tipous_id):
     except:
         messages.add_message(request,messages.WARNING,'El proyecto debe estar EN EJECUCION o PENDIENTE para acceder a esta funcionalidad')
         return HttpResponseRedirect(reverse('proyecto_tipous_list', args=(proyecto_id,)))
+
+
+def getTUS(request, proyecto_id, tipous_id):
+    tus = TipoUS.objects.get(pk=tipous_id)
+    tusDic = {}
+    for cp in tus.campopersonalizado_set.all():
+        tusDic[cp.nombre_campo] = cp.tipo_dato
+    return HttpResponse(json.dumps(tusDic), content_type='application/javascript; charset=utf8')

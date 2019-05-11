@@ -27,16 +27,11 @@
                     <br>
                     <div>
                         <strong>Tipo: </strong> {{ us.tipo.nombre }} <br>
-                        <!-- No vamos a entregar esto para la iter 3
                         {% for nombre_campo, valor_campo in us.valoresCPs.items %}
-                            {% if forloop.first %}
-                                <i>Campos Personalizados</i> <br>
-                            {% endif %}
                             <strong>{{ nombre_campo }}: </strong> {{ valor_campo | default_if_none:"" }} <br>
                         {% empty %}
                             <i>Sin Campos Personalizados</i> <br>
                         {% endfor %}
-                        -->
                     </div>
                     <br>
                     <div>
