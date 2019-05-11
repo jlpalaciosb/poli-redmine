@@ -281,7 +281,7 @@ class UserStory(models.Model):
 
     def pasar_a_revision(self):
         # Si llego al DONE de su ultima fase entonces su estado general pasa a ser EN REVISION
-        if self.fase is not None and self.fase.orden == self.flujo.cantidadFases and self.estadoFase == 'DONE' and self.estadoProyecto == 2:
+        if self.flujo is not None and self.fase is not None and self.fase.orden == self.flujo.cantidadFases and self.estadoFase == 'DONE' and self.estadoProyecto == 2:
             self.estadoProyecto = 6
 
     def tiene_tiempo_excedido(self):

@@ -75,6 +75,17 @@
                     </a>
                 </div>
 
+
+              {% if 'administrar_sprint' in permisosGuardian and sprint.estado == 'PLANIFICADO' %}
+                  <div class="col-xs-3">
+                  <a href="{% url 'proyecto_sprint_eliminar' sprint.proyecto.id sprint.id %}">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                          <i class="fa fa-trash"></i> Eliminar Sprint
+                      </button>
+                  </a>
+                  </div>
+              {% endif %}
+
               {% if 'administrar_sprint' in permisosGuardian and sprint.estado == 'EN_EJECUCION' %}
                   <div class="col-xs-3">
                   <a href="{% url 'proyecto_sprint_cerrar' sprint.proyecto.id sprint.id %}?estado=CERRADO">

@@ -2,9 +2,9 @@ import datetime
 from proyecto.forms.sprint_us_forms import SprintCambiarEstadoForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
 from guardian.mixins import LoginRequiredMixin
-from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
-from proyecto.models import Sprint, Proyecto, ESTADOS_SPRINT, Flujo, UserStorySprint, Fase
-from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
+from django.views.generic import UpdateView, TemplateView, DetailView, DeleteView
+from proyecto.models import Sprint, Proyecto, ESTADOS_SPRINT, Flujo, UserStorySprint, Fase, MiembroSprint, UserStory
+from django.http import Http404, HttpResponseForbidden
 from django.urls import reverse
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
@@ -428,3 +428,54 @@ def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
         return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
 
 
+class SprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView):
+    """
+        Vista Basada en Clases para la eliminacion de los Sprint
+    """
+    model = Sprint
+    pk_url_kwarg = 'sprint_id'
+    permission_required = 'proyecto.administrar_sprint'
+    template_name = 'proyecto/sprint/sprint_confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))
+
+    def delete(self, request, *args, **kwargs):
+        # TODO: transaction
+
+        sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
+        if sprint.estado == 'PLANIFICADO':
+            user_sprint = UserStorySprint.objects.filter(sprint=sprint.id)
+            if user_sprint.count() > 0:
+                for us in user_sprint:
+                    user_story=UserStory.objects.get(pk=us.us.id)
+                    user_story.estadoProyecto=1
+                    user_story.flujo = None
+                    user_story.save()
+                    us.delete()
+            messages.add_message(self.request, messages.SUCCESS, 'Sprint Eliminado')
+        else:
+            messages.add_message(self.request, messages.ERROR, 'No se puede eliminar este Sprint')
+            return HttpResponseRedirect(reverse('proyecto_sprint_administrar',args=(sprint.proyecto.id, sprint.id)))
+
+        return super().delete(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(SprintDeleteView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
+        context['titulo'] = 'Eliminar Sprint'
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre,
+                                  'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Sprints',
+                                  'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Sprint %d' % sprint.orden, 'url': reverse('proyecto_sprint_administrar',kwargs=self.kwargs)},
+                                 {'nombre': 'Eliminar Sprint %d' % sprint.orden,
+                                  'url': '#'}
+                                 ]
+
+        return context

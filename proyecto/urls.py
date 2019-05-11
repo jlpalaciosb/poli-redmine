@@ -13,7 +13,8 @@ from proyecto.views import \
     FlujoSprintListJson, FlujoSprintListView, TableroKanbanView, mover_us_kanban, \
     ActividadCreateView, ActividadListView, ActividadListJsonView, ActividadPerfilView, ActividadUpdateView
 
-from proyecto.views.sprint_views import iniciar_sprint, SprintCambiarEstadoView
+from proyecto.views.sprint_views import iniciar_sprint, SprintCambiarEstadoView, SprintDeleteView
+
 
 
 urlpatterns = [
@@ -67,6 +68,7 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/flujos/list$', FlujoSprintListJson.as_view(), name='proyecto_sprint_flujos_json'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/iniciar$', iniciar_sprint, name='proyecto_sprint_iniciar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/cerrar$', SprintCambiarEstadoView.as_view(), name='proyecto_sprint_cerrar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/delete$', SprintDeleteView.as_view(), name='proyecto_sprint_eliminar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros$', MiembroSprintListView.as_view(), name='proyecto_sprint_miembros'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/list$', MiembroSprintListJson.as_view(), name='proyecto_sprint_miembros_json'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/miembros/agregar$', MiembroSprintCreateView.as_view(), name='proyecto_sprint_miembros_agregar'),
