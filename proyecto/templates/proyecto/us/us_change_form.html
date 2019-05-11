@@ -1,0 +1,8 @@
+{% extends 'change_form.html' %}
+
+{% load static %}
+
+{% block extrajs %}
+    <script type="application/javascript">const proyecto_id = '{{ proyecto_id }}'</script>
+    <script src="{% static 'js/procesar_cps.js' %}" type="application/javascript"></script>
+{% endblock %}

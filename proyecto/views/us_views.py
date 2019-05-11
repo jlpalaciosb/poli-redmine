@@ -16,7 +16,7 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     Vista para crear un US para el proyecto
     """
     model = UserStory
-    template_name = "change_form.html"
+    template_name = 'proyecto/us/us_change_form.html'
     form_class = USForm
     permission_required = 'proyecto.add_us'
 
@@ -69,6 +69,8 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
             {'nombre': 'Product Backlog', 'url': reverse('proyecto_us_list', kwargs=self.kwargs)},
             {'nombre': 'Crear US', 'url': '#'}
         ]
+
+        context['proyecto_id'] = p.id
 
         return context
 
@@ -194,7 +196,7 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     """
     model = UserStory
     form_class = USForm
-    template_name = 'change_form.html'
+    template_name = 'proyecto/us/us_change_form.html'
     pk_url_kwarg = 'us_id'
     permission_required = 'proyecto.change_us'
 
@@ -253,6 +255,8 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
             {'nombre': us.nombre, 'url': reverse('proyecto_us_ver', args=(p.id, us.id))},
             {'nombre': 'Editar', 'url': '#'}
         ]
+
+        context['proyecto_id'] = p.id
 
         return context
 

@@ -226,7 +226,7 @@ PRIORIDADES_US = (
     (4, 'Alto'),
     (5, 'Muy Alto'),
 )
-def default_vals(): return {'c1': 'v1', 'c2': 2}
+def default_vals(): return {}
 class UserStory(models.Model):
     """
     La clase UserStory representa a un User Story de un proyecto específico
@@ -239,7 +239,7 @@ class UserStory(models.Model):
     )
 
     tipo = models.ForeignKey(TipoUS)
-    valoresCPs = JSONField(default=default_vals) # Será un diccionario donde la clave de los items es el nombre del campo pers. y el valor es el valor del campo pers.
+    valoresCPs = JSONField(default=default_vals, blank=True) # Será un diccionario donde la clave de los items es el nombre del campo pers. y el valor es el valor del campo pers.
 
     proyecto = models.ForeignKey(Proyecto)
     estadoProyecto = models.IntegerField(
