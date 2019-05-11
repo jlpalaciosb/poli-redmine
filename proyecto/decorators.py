@@ -6,6 +6,7 @@ from django.urls import reverse
 def proyecto_en_ejecucion(function):
     """
     Prohibir acceso a una vista si el proyecto de esa vista no esta en ejecucion
+
     :param function:
     :return:
     """

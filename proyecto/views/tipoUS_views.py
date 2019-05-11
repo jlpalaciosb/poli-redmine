@@ -25,6 +25,11 @@ class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin,ProyectoEsta
     template_name = 'proyecto/tipous/change_form.html'
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de creacion
+
+        :return:
+        """
         try:
             kwargs = super().get_form_kwargs()
             #La instancia del tipo de US va ser uno cuyo proyecto sea aquel que le corresponda el id del request
@@ -37,7 +42,12 @@ class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin,ProyectoEsta
             raise Http404('no existe proyecto con el id en la url')
 
     def form_valid(self, form):
+        """
+        Al guardar el Tipo de User Story se guardan los campos personalizados asociados
 
+        :param form:
+        :return:
+        """
         context = self.get_context_data()
         campospersonalizados = context['campospersonalizados']
         with transaction.atomic():
@@ -48,12 +58,29 @@ class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin,ProyectoEsta
         return super(TipoUsCreateView, self).form_valid(form)
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al crear correctamente
+
+        :return:
+        """
         return reverse('proyecto_tipous_list', kwargs=self.kwargs)
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se crea correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Tipo de US '{}' creado exitosamente.".format(cleaned_data['nombre'])
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Tipos de US'
@@ -86,6 +113,7 @@ class TipoUsUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEst
     def check_permissions(self, request):
         """
         Se sobreescribe el metodo para no permitir la modificacion de un tipo de us si algun US ya tiene asociado el tipo de us
+
         :param request:
         :return:
         """
@@ -99,12 +127,29 @@ class TipoUsUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEst
 
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al editar correctamente
+
+        :return:
+        """
         return reverse('proyecto_tipous_ver', kwargs=self.kwargs)
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se crea correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Tipo de US '{}' editado exitosamente.".format(cleaned_data['nombre'])
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(TipoUsUpdateView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Editar Tipo de US'
@@ -126,7 +171,12 @@ class TipoUsUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEst
         return context
 
     def form_valid(self, form):
+        """
+        Al guardar el Tipo de User Story se guardan los campos personalizados asociados
 
+        :param form:
+        :return:
+        """
         context = self.get_context_data()
         campospersonalizados = context['campospersonalizados']
         with transaction.atomic():
@@ -137,6 +187,11 @@ class TipoUsUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEst
         return super(TipoUsUpdateView, self).form_valid(form)
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de actualizacion
+
+        :return:
+        """
         try:
             kwargs = super().get_form_kwargs()
             #La instancia del tipo de US va ser uno cuyo proyecto sea aquel que le corresponda el id del request
@@ -158,6 +213,12 @@ class TipoUsListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(TipoUsListView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
         context['titulo'] = 'Lista de Tipos de US '+ proyecto.nombre
@@ -195,6 +256,7 @@ class TipoUsListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
     def get_initial_queryset(self):
         """
         Se sobreescribe el metodo para que la lista sean todos los tipos de us de un proyecto en particular
+
         :return:
         """
         proyecto=Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -215,6 +277,12 @@ class TipoUSPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(TipoUSPerfilView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Ver Tipo de US'
@@ -249,13 +317,30 @@ class TipoUsEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoE
         return HttpResponseForbidden()
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al eliminar correctamente
+
+        :return:
+        """
         return reverse('proyecto_tipous_list', args=(self.kwargs['proyecto_id'],))
 
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se crea correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Tipo de US eliminado exitosamente."
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(TipoUsEliminarView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Eliminar Tipo de US'
@@ -292,6 +377,11 @@ class ImportarTipoUsListView(LoginRequiredMixin, PermisosPorProyectoMixin,Proyec
 
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(ImportarTipoUsListView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
         context['titulo'] = 'Lista de Tipos de US a importar'
@@ -348,6 +438,11 @@ class ImportarTipoUSPerfilView(LoginRequiredMixin,  PermisosPorProyectoMixin,Pro
 
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(ImportarTipoUSPerfilView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Ver Tipo de US'

@@ -42,6 +42,10 @@ class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
     redirect = False # si en principio el usuario tiene permiso para agregar una actividad pero no puede por las restricciones del sistema
 
     def has_permission(self):
+        """
+        Se controla que el permiso sea de acuerdo al encargado del user story
+        :return:
+        """
         parcial = self.usp.asignee.miembro.user == self.request.user
         if parcial:
             if self.usp.sprint.estado != 'EN_EJECUCION':
@@ -55,18 +59,36 @@ class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
             return False
 
     def handle_no_permission(self):
+        """
+        En caso de que no tenga permiso se tira 403.
+        :return:
+        """
         if self.redirect:
             return HttpResponseRedirect(self.get_success_url())
         else:
             return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se crea correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Actividad agregada exitosamente"
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al crear correctamente
+        :return:
+        """
         return reverse('actividad_list', kwargs=self.kwargs)
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de creacion
+        :return:
+        """
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'success_url': reverse('actividad_list', kwargs=self.kwargs),
@@ -75,6 +97,11 @@ class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
         context['titulo'] = 'Agregar Actividad'
         context['titulo_form_crear'] = 'Insertar Datos de la Actividad'
@@ -99,6 +126,11 @@ class ActividadListView(ActividadBaseView, PermisosEsMiembroMixin, TemplateView)
     template_name = 'change_list.html'
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
 
         context['titulo'] = 'Actividades'
@@ -141,6 +173,10 @@ class ActividadListJsonView(ActividadBaseView, PermisosEsMiembroMixin, BaseDatat
     max_display_length = 100
 
     def get_initial_queryset(self):
+        """
+        Se obtiene una lista de los elementos correspondientes
+        :return:
+        """
         return Actividad.objects.filter(usSprint=self.usp)
 
     def render_column(self, row, column):
@@ -160,6 +196,11 @@ class ActividadPerfilView(ActividadBaseView, PermisosEsMiembroMixin, DetailView)
     pk_url_kwarg = 'actividad_id'
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
         context['titulo'] = 'Ver Actividad'
         context['breadcrumb'] = [
@@ -213,12 +254,26 @@ class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
             return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se edita correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Actividad editada exitosamente"
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al editar correctamente
+        :return:
+        """
         return reverse('actividad_ver', args=(self.proyecto.id, self.sprint.id, self.usp.id, self.actividad.id))
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+        :return:
+        """
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'success_url': self.get_success_url(),
@@ -227,6 +282,11 @@ class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
         context['titulo'] = 'Editar la Actividad'
         context['titulo_form_editar'] = 'Actividad'

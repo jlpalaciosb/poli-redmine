@@ -111,6 +111,12 @@ class ProyectoListView(LoginRequiredMixin, TemplateView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(ProyectoListView, self).get_context_data(**kwargs)
         context['titulo'] = 'Lista de Proyectos'
         context['crear_button'] = self.request.user.has_perm('proyecto.add_proyecto')
@@ -143,6 +149,7 @@ class ProyectoListJson(LoginRequiredMixin, CustomFilterBaseDatatableView, ):
     def get_initial_queryset(self):
         """
         Un usuario es miembro de distintos proyectos. Se obtiene todos los proyectos con los que esta relacionados a traves de la lista de Miembro del user
+
         :return:
         """
         return Proyecto.objects.filter(id__in = list(map(lambda x: x.proyecto_id, MiembroProyecto.objects.filter(user=self.request.user))))
@@ -162,12 +169,26 @@ class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se crea correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Proyecto '{}' creado exitosamente.".format(cleaned_data['nombre'])
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al crear correctamente
+        :return:
+        """
         return reverse('proyectos')
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de creacion
+        :return:
+        """
         kwargs = super(ProyectoCreateView, self).get_form_kwargs()
         kwargs.update({
             'success_url': reverse('proyectos'),
@@ -175,6 +196,11 @@ class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(ProyectoCreateView, self).get_context_data(**kwargs)
         context['titulo'] = 'Proyectos'
         context['titulo_form_crear'] = 'Insertar Datos del Nuevo Proyecto'
@@ -204,12 +230,26 @@ class ProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMe
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se edita correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Proyecto '{}' editado exitosamente.".format(cleaned_data['nombre'])
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al editar correctamente
+        :return:
+        """
         return reverse('perfil_proyecto', kwargs=self.kwargs)
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+        :return:
+        """
         kwargs = super(ProyectoUpdateView, self).get_form_kwargs()
         kwargs.update({
             'success_url': self.get_success_url(),
@@ -217,6 +257,11 @@ class ProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMe
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(ProyectoUpdateView, self).get_context_data(**kwargs)
         context['titulo'] = 'Editar Proyecto'
         context['titulo_form_editar'] = 'Datos del Proyecto'
@@ -246,6 +291,11 @@ class ProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView)
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(ProyectoPerfilView, self).get_context_data(**kwargs)
         context['titulo'] = 'Perfil del Proyecto'
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
@@ -280,9 +330,18 @@ class ProyectoCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Up
     permission_required = 'proyecto.change_proyecto'
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al cambiar correctamente
+        :return:
+        """
         return reverse('perfil_proyecto', kwargs=self.kwargs)
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
         context['titulo'] = 'Cambiar Estado del Proyecto'
 
@@ -304,11 +363,20 @@ class ProyectoCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Up
         return context
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+        :return:
+        """
         kwargs = super().get_form_kwargs()
         kwargs.update({'estado': self.request.GET.get('estado', '')})
         return kwargs
 
     def form_valid(self, form):
+        """
+        Se controla la coherencia de los cambios de estado de un proyecto.
+        :param form:
+        :return:
+        """
         newst = form.cleaned_data['estado']
         if cambiable_estado_proyecto(self.get_object(), newst) == 'yes':
             messages.add_message(self.request, messages.SUCCESS, 'Ahora el proyecto está {}'.format(newst))

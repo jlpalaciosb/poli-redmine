@@ -23,12 +23,26 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
     permission_required = 'proyecto.administrar_sprint'
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se agrega correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "User Story agregado exitosamente"
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al crear correctamente
+        :return:
+        """
         return reverse('sprint_us_list', kwargs=self.kwargs)
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de creacion
+        :return:
+        """
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'success_url': self.get_success_url(),
@@ -38,6 +52,11 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
         return kwargs
 
     def form_valid(self, form):
+        """
+        Se cambia las fases y estados del user story sprint al valor inicial o en caso de ser uno que continua al valor dejado en el sprint anterior
+        :param form:
+        :return:
+        """
         # TODO : transaction
 
         # establecer estado del us seleccionado y su flujo
@@ -71,6 +90,11 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
         context['titulo'] = 'Agregar US al Sprint'
         context['titulo_form_crear'] = 'Datos'
@@ -99,6 +123,11 @@ class UserStorySprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
     template_name = 'change_list.html'
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
 
@@ -138,6 +167,10 @@ class UserStorySprintListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, Ba
     max_display_length = 100
 
     def get_initial_queryset(self):
+        """
+        Se obtiene una lista de los elementos correspondientes
+        :return:
+        """
         return UserStorySprint.objects.filter(sprint__id=self.kwargs['sprint_id'])
 
     def render_column(self, row, column):
@@ -157,6 +190,11 @@ class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
     pk_url_kwarg = 'usp_id'
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
 
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -192,15 +230,29 @@ class UserStorySprintUpdateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
     permission_required = 'proyecto.administrar_sprint'
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se crea correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Se estableció el encargado exitosamente"
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al cargar correctamente
+        :return:
+        """
         pid = self.kwargs['proyecto_id']
         sid = self.kwargs['sprint_id']
         uid = self.kwargs['usp_id']
         return reverse('sprint_us_ver', args=(pid, sid, uid))
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de creacion
+        :return:
+        """
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'success_url': self.get_success_url(),
@@ -210,6 +262,11 @@ class UserStorySprintUpdateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
 
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -240,9 +297,20 @@ class UserStorySprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, De
     permission_required = 'proyecto.administrar_sprint'
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al eliminar correctamente
+        :return:
+        """
         return reverse('sprint_us_list', args=(self.kwargs['proyecto_id'], self.kwargs['sprint_id']))
 
     def delete(self, request, *args, **kwargs):
+        """
+        Para eliminar se comprueba cual sera su estado de proyecto pudiendo ser PENDIENTE o NO TERMINADO
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
         # TODO: transaction
 
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
@@ -310,15 +378,31 @@ class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, Permi
     permission_required = 'proyecto.administrar_sprint'
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se rechaza correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Se rechazo el user story correctamente"
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al rechazar correctamente
+
+        :return:
+        """
         pid = self.kwargs['proyecto_id']
         sid = self.kwargs['sprint_id']
         uid = self.kwargs['usp_id']
         return reverse('sprint_us_ver', args=(pid, sid, uid))
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form
+
+        :return:
+        """
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'success_url': self.get_success_url()
@@ -326,6 +410,12 @@ class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, Permi
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
 
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -365,6 +455,17 @@ class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, Permi
 
 
     def es_valido(self, request):
+        """
+        Controla si se puede acceder a esta vista
+
+        **Condiciones**
+        - El Sprint debe estar en ejecucion
+        - El User Story debe estar en el DONE de su ultima fase
+        - El User Story debe estar en revision
+
+        :param request:
+        :return:
+        """
         proyecto_id = self.kwargs['proyecto_id']
         sprint_id = self.kwargs['sprint_id']
         usp_id = self.kwargs['usp_id']
@@ -394,6 +495,12 @@ class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, Permi
             return HttpResponseRedirect(reverse('sprint_us_list', args=(proyecto_id, sprint_id)))
 
     def form_valid(self, form):
+        """
+        Se cambia nuevamente el estado del user story a EN SPRINT
+
+        :param form:
+        :return:
+        """
         response = super(UserStorySprintRechazarView, self).form_valid(form)
         form.instance.us.estadoProyecto = 2
         form.instance.us.save()

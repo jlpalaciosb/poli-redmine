@@ -24,6 +24,12 @@ class RolListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(RolListView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
         context['titulo'] = 'Lista de Roles del Proyecto '+ proyecto.nombre
@@ -60,6 +66,7 @@ class RolListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView)
     def get_initial_queryset(self):
         """
         Se sobreescribe el metodo para que la lista sean todos los roles de un proyecto en particular
+
         :return:
         """
         proyecto=Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -80,12 +87,26 @@ class RolProyectoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se crea correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Rol de Proyecto '{}' creado exitosamente.".format(cleaned_data['nombre'])
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al crear correctamente
+        :return:
+        """
         return reverse('proyecto_rol_list',kwargs=self.kwargs)
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de creacion
+        :return:
+        """
         kwargs = super(RolProyectoCreateView, self).get_form_kwargs()
         kwargs.update({
             'success_url': reverse('proyecto_rol_list',kwargs=self.kwargs),
@@ -94,6 +115,11 @@ class RolProyectoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(RolProyectoCreateView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Roles de Proyectos'
@@ -110,11 +136,13 @@ class RolProyectoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
         return context
 
     def form_valid(self, form):
+        """
+        Se actualiza el nombre del group asociado para que no genere conflictos de unicidad
+        :param form:
+        :return:
+        """
         rol = form.save(commit=False)
         rol.name = rol.nombre+rol.proyecto.id.__str__()
-        print(rol.name)
-        print(rol.nombre)
-
         return super().form_valid(form)
 
 
@@ -148,12 +176,26 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
             raise Http404('no existe rol de proyecto con el id en la url')
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se edita correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Rol de Proyecto '{}' editado exitosamente.".format(cleaned_data['nombre'])
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al editar correctamente
+        :return:
+        """
         return reverse('proyecto_rol_list', args=(self.kwargs['proyecto_id'],))
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+        :return:
+        """
         kwargs = super(RolProyectoUpdateView, self).get_form_kwargs()
         kwargs.update({
             'success_url': self.get_success_url(),
@@ -162,6 +204,11 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(RolProyectoUpdateView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Editar Rol de Proyecto'
@@ -180,6 +227,11 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
         return context
 
     def form_valid(self, form):
+        """
+        Se actualiza el nombre del group asociado para que no genere conflictos de unicidad
+        :param form:
+        :return:
+        """
         rol = form.save(commit=False)
         rol.name = rol.nombre + rol.proyecto.id.__str__()
         print(rol.name)
@@ -203,6 +255,11 @@ class RolPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(RolPerfilView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Ver Rol de Proyecto'
@@ -238,6 +295,10 @@ class RolEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessa
         return HttpResponseForbidden()
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al eliminar correctamente
+        :return:
+        """
         return reverse('proyecto_rol_list', args=(self.kwargs['proyecto_id'],))
 
     def check_permissions(self, request):
@@ -257,9 +318,20 @@ class RolEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessa
 
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se elimina correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Rol eliminado exitosamente."
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(RolEliminarView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Eliminar Rol'

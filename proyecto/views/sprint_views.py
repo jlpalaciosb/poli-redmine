@@ -32,6 +32,11 @@ class SprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(SprintListView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
         context['titulo'] = 'Lista de Sprints de '+ proyecto.nombre
@@ -154,6 +159,11 @@ class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(SprintPerfilView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
@@ -200,9 +210,17 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Spri
     permission_required = 'proyecto.administrar_sprint'
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al actualizar correctamente
+        :return:
+        """
         return reverse('proyecto_sprint_administrar', kwargs=self.kwargs)
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+        :return:
+        """
         kwargs = super(SprintCambiarEstadoView, self).get_form_kwargs()
         kwargs.update({
             'success_url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs),
@@ -210,6 +228,11 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Spri
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(SprintCambiarEstadoView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
@@ -246,6 +269,10 @@ class FlujoSprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatata
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
     def get_initial_queryset(self):
+        """
+        Se obtiene una lista de los elementos correspondientes
+        :return:
+        """
         try:
             sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
             return sprint.flujos_sprint()
@@ -264,6 +291,11 @@ class FlujoSprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateVi
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(FlujoSprintListView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
@@ -307,6 +339,11 @@ class TableroKanbanView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(TableroKanbanView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         try:
@@ -438,6 +475,10 @@ class SprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView)
     template_name = 'proyecto/sprint/sprint_confirm_delete.html'
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al eliminar correctamente
+        :return:
+        """
         return reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))
 
     def delete(self, request, *args, **kwargs):
@@ -461,6 +502,11 @@ class SprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView)
         return super().delete(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(SprintDeleteView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
