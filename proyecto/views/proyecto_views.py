@@ -1,5 +1,5 @@
 from django.db.models.query_utils import Q
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseRedirect
 from guardian.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
 from django.contrib.auth.mixins import  PermissionRequiredMixin
@@ -323,18 +323,31 @@ class ProyectoCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Up
     - Para pasar a terminado no debe tener ningún user story pendiente o no terminado.
     """
     model = Proyecto
+    proyecto = None # el proyecto en cuestión
+    newst = None # el nuevo estado del proyecto
     form_class = ProyectoCambiarEstadoForm
     context_object_name = 'proyecto'
     template_name = 'proyecto/proyecto/cambiarestado.html'
     pk_url_kwarg = 'proyecto_id'
     permission_required = 'proyecto.change_proyecto'
 
+    def dispatch(self, request, *args, **kwargs):
+        self.proyecto = self.get_object()
+        self.newst = request.GET.get('estado', '') # **
+        camb = cambiable_estado_proyecto(self.proyecto, self.newst)
+        if camb != 'yes':
+            messages.add_message(request, messages.WARNING,
+                'No se puede %s el proyecto porque %s' % (self.get_verbo(), camb))
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return super().dispatch(request, *args, **kwargs)
+
     def get_success_url(self):
         """
         El sitio donde se redirige al cambiar correctamente
         :return:
         """
-        return reverse('perfil_proyecto', kwargs=self.kwargs)
+        return reverse('perfil_proyecto', args=(self.proyecto.id,))
 
     def get_context_data(self, **kwargs):
         """
@@ -343,23 +356,16 @@ class ProyectoCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Up
         :return:
         """
         context = super().get_context_data(**kwargs)
-        context['titulo'] = 'Cambiar Estado del Proyecto'
-
-        # Breadcrumbs
+        context['titulo'] = '%s el Proyecto' % self.get_verbo().capitalize()
         context['breadcrumb'] = [
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': context['proyecto'].nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
-            {'nombre': 'Cambiar Estado', 'url': '#'},
+            {'nombre': self.get_verbo().capitalize(), 'url': '#'},
         ]
-
-        camb = cambiable_estado_proyecto(self.get_object(), self.request.GET.get('estado', ''))
-        context['cambiable'] = camb == 'yes'
-        context['motivo'] = camb
-
         context['currentst'] = self.get_object().estado
-        context['newst'] = self.request.GET.get('estado', '')
-
+        context['newst'] = self.newst
+        context['verbo'] = self.get_verbo()
         return context
 
     def get_form_kwargs(self):
@@ -377,9 +383,17 @@ class ProyectoCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Up
         :param form:
         :return:
         """
-        newst = form.cleaned_data['estado']
-        if cambiable_estado_proyecto(self.get_object(), newst) == 'yes':
-            messages.add_message(self.request, messages.SUCCESS, 'Ahora el proyecto está {}'.format(newst))
-            return super().form_valid(form)
+        messages.add_message(self.request, messages.SUCCESS, 'Ahora el proyecto está %s' % self.newst)
+        return super().form_valid(form)
+
+    def get_verbo(self):
+        if self.newst == 'EN EJECUCION':
+            return 'iniciar'
+        elif self.newst == 'TERMINADO':
+            return 'terminar'
+        elif self.newst == 'CANCELADO':
+            return 'cancelar'
+        elif self.newst == 'SUSPENDIDO':
+            return 'supender'
         else:
-            return HttpResponseForbidden()
+            return ''
