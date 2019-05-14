@@ -177,7 +177,7 @@ class ActividadListJsonView(ActividadBaseView, PermisosEsMiembroMixin, BaseDatat
         Se obtiene una lista de los elementos correspondientes
         :return:
         """
-        return Actividad.objects.filter(usSprint=self.usp)
+        return Actividad.objects.filter(usSprint__us=self.usp.us, usSprint__sprint__orden__lte=self.usp.sprint.orden)
 
     def render_column(self, row, column):
         if column == 'fechaHora':
