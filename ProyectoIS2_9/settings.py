@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'roles_sistema',
     'usuario',
     'cliente',
+    'chartit'
 
 ]
 
