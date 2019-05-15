@@ -446,6 +446,8 @@ class Actividad(models.Model):
     # especifica la fecha y hora en la que se agregó la actividad
     fechaHora = models.DateTimeField(verbose_name='fecha y hora de registro', auto_now=True, null=False)
 
+    dia_sprint = models.PositiveIntegerField(help_text='La cantidad de dias que pasaron desde que inicio el sprint hasta que se cargo esta actividad', null=True)
+
     class Meta:
         default_permissions = ()
 
