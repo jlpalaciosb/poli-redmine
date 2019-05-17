@@ -10,7 +10,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
     flujo = forms.ModelChoiceField(
         queryset=Flujo.objects.all(),
         required=False,
-        help_text='Seleccione el flujo que seguirá el US. Se ignorará si el US seleccionado ya está en algún flujo',
+        help_text='seleccione el flujo que seguirá el US',
     )
 
     class Meta:
@@ -63,7 +63,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
         return flujo
 
 
-class UserStorySprintEditarForm(forms.ModelForm):
+class UserStorySprintChangeAssigneeForm(forms.ModelForm):
     class Meta:
         model = UserStorySprint
         fields = ['asignee']

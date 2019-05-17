@@ -37,20 +37,24 @@
                         </button>
                     </a>
                     {% if puedeEditar %}
-                        <a href="{% url 'sprint_us_editar' usp.us.proyecto.id usp.sprint.id usp.id %}">
-                            <button class="btn m-b-xs btn-default btn-addon ">
-                                <i class="fa fa-pencil"></i> Cambiar Encargado
-                            </button>
-                        </a>
-                        <form
-                            action="{% url 'sprint_us_eliminar' usp.us.proyecto.id usp.sprint.id usp.id %}"
-                            method="post" style="display: inline-block"
-                        >
-                            {% csrf_token %}
-                            <button class="btn m-b-xs btn-danger btn-addon ">
-                                <i class="fa fa-arrow-left"></i> Quitar del Sprint
-                            </button>
-                        </form>
+                        {% if usp.sprint.estado != 'CERRADO' %}
+                            <a href="{% url 'usp_change_assignee' usp.us.proyecto.id usp.sprint.id usp.id %}">
+                                <button class="btn m-b-xs btn-default btn-addon ">
+                                    <i class="fa fa-pencil"></i> Cambiar Encargado
+                                </button>
+                            </a>
+                        {% endif %}
+                        {% if usp.sprint.estado == 'PLANIFICADO' %}
+                            <form
+                                action="{% url 'sprint_us_eliminar' usp.us.proyecto.id usp.sprint.id usp.id %}"
+                                method="post" style="display: inline-block"
+                            >
+                                {% csrf_token %}
+                                <button class="btn m-b-xs btn-danger btn-addon ">
+                                    <i class="fa fa-arrow-left"></i> Quitar del Sprint
+                                </button>
+                            </form>
+                        {% endif %}
                     {% endif %}
                     <a href="{% url 'proyecto_sprint_tablero' usp.us.proyecto.id usp.sprint.id usp.us.flujo.id %}">
                         <button class="btn m-b-xs btn-default btn-addon ">

@@ -272,7 +272,7 @@ class MiembroSprintUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Proy
         El sitio donde se redirige al modificar correctamente
         :return:
         """
-        return reverse('proyecto_sprint_miembros',args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id']))
+        return reverse('proyecto_sprint_miembros_ver',args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id'], self.kwargs['miembroSprint_id']))
 
     def get_form_kwargs(self):
         """
@@ -281,7 +281,7 @@ class MiembroSprintUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Proy
         """
         kwargs = super(MiembroSprintUpdateView, self).get_form_kwargs()
         kwargs.update({
-            'success_url': reverse('proyecto_sprint_miembros',args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id'])),
+            'success_url': self.get_success_url(),
             'proyecto_id': self.kwargs['proyecto_id'],
             'sprint_id': self.kwargs['sprint_id'],
         })

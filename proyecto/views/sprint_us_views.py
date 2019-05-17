@@ -8,7 +8,7 @@ from django.contrib import messages
 from guardian.mixins import LoginRequiredMixin
 
 from ProyectoIS2_9.utils import notificar_asignacion, notificar_aceptacion, notificar_rechazo
-from proyecto.forms import UserStorySprintCrearForm, UserStorySprintEditarForm, UserStoryRechazadoForm
+from proyecto.forms import UserStorySprintCrearForm, UserStorySprintChangeAssigneeForm, UserStoryRechazadoForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEnEjecucionMixin
 from proyecto.models import Sprint, Proyecto, UserStorySprint
 from guardian.decorators import permission_required
@@ -20,7 +20,7 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
     Vista para agregar un user story a un sprint
     """
     model = UserStorySprint
-    template_name = "change_form.html"
+    template_name = "proyecto/usp/usp_create.html"
     form_class = UserStorySprintCrearForm
     permission_required = 'proyecto.administrar_sprint'
 
@@ -219,20 +219,29 @@ class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
             {'nombre': usp.us.nombre, 'url': '#'},
         ]
 
-        context['puedeEditar'] = self.request.user.has_perm('proyecto.administrar_sprint', proyecto) and sprint.estado == 'PLANIFICADO'
+        context['puedeEditar'] = self.request.user.has_perm('proyecto.administrar_sprint', proyecto)
 
         return context
 
 
-class UserStorySprintUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, UpdateView):
+class UserStorySprintChangeAssigneeView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, UpdateView):
     """
-    Vista que permite modificar un User Story a nivel proyecto (hasta ahora solo se permite cambiar el asignee)
+    Vista que permite modificar un User Story a nivel de sprint (hasta ahora solo se permite cambiar el asignee)
     """
     model = UserStorySprint
-    form_class = UserStorySprintEditarForm
+    form_class = UserStorySprintChangeAssigneeForm
     template_name = 'change_form.html'
     pk_url_kwarg = 'usp_id'
     permission_required = 'proyecto.administrar_sprint'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.cambiable():
+            return HttpResponseForbidden()
+        else:
+            return super().dispatch(request, *args, **kwargs)
+
+    def cambiable(self):
+        return self.get_object().sprint.estado != 'CERRADO'
 
     def get_success_message(self, cleaned_data):
         """

@@ -1,0 +1,21 @@
+{% extends 'change_form.html' %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            document.getElementById('id_us').onchange = mostrarOcultarFlujo;
+            mostrarOcultarFlujo();
+        });
+
+        function mostrarOcultarFlujo() {
+            let usSelect = document.getElementById('id_us');
+            let selected = usSelect.options[usSelect.selectedIndex];
+            if(selected.innerText.match(/no terminado/i) || selected.value === ''
+                || selected.value === null || selected.value === undefined) {
+                document.getElementById('div_id_flujo').style.display = 'none'
+            } else {
+                document.getElementById('div_id_flujo').style.display = ''
+            }
+        }
+    </script>
+{% endblock %}
