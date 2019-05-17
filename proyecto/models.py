@@ -386,7 +386,7 @@ class UserStorySprint(models.Model):
     us = models.ForeignKey(UserStory, verbose_name='User Story')
     sprint = models.ForeignKey(Sprint)
     asignee = models.ForeignKey(MiembroSprint, null=True, verbose_name='Encargado')
-
+    prioridad_suprema = models.BooleanField(default=False, help_text='Campo que determina si un user story no culmino en un sprint anterior')
     fase_sprint = models.ForeignKey(Fase, verbose_name='fase en la que se encuentra el US', null=True, help_text='Fase en la que se encuentra un user story en un sprint')
 
     estado_fase_sprint = models.CharField(
@@ -468,6 +468,8 @@ class Actividad(models.Model):
         :return:
         """
         if self.usSprint is not None and self.usSprint.us is not None:
+            #Actividad.objects.filter(usSprint__sprint_id=1).values('dia_sprint').annotate(cantidad=models.Count('dia_sprint'),total_por_dia=models.Sum('horasTrabajadas'))
+            #Actividad.objects.filter(usSprint__sprint__proyecto_id=1).values('usSprint__sprint__orden').annotate(cantidad=models.Count('usSprint__sprint__orden'),total_por_dia=models.Sum('horasTrabajadas'))
             us = self.usSprint.us
             if us.tiempoEjecutado >= 0 and self.horasTrabajadas>=0:
                 us.tiempoEjecutado = us.tiempoEjecutado - anterior# EN CASO DE QUE SE MODIFIQUE. SE DESCARTA LAS HORAS ANTERIORES

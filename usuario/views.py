@@ -6,7 +6,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse,reverse_lazy
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.auth.models import User, Group
-
+from proyecto.models import RolProyecto
 from .forms import UsuarioForm, EditarUsuarioForm
 from ProyectoIS2_9.utils import cualquier_permiso, es_administrador
 
@@ -156,15 +156,15 @@ class UsuarioUpdateView(SuccessMessageMixin, PermissionRequiredMixin, LoginRequi
         return context
 
     def form_valid(self, form):
-        usuario = form.save(commit=False)
-        if not form.instance.pk:
-            usuario.set_password(usuario.password)
-        elif usuario.password:
-            usuario.set_password(usuario.password)
-        else:
-            usuario.password = User.objects.get(pk=usuario.id).password
-
-        return super().form_valid(form)
+        usuario = form.instance
+        password = form.cleaned_data['contraseña']
+        roles_proyecto = RolProyecto.objects.filter(id__in=list(map(lambda x:x['id'],list(usuario.groups.all().values('id')))))
+        if password:
+            usuario.set_password(password)
+        response = super().form_valid(form)
+        for rol in roles_proyecto:
+            usuario.groups.add(rol)
+        return response
 
 
 class UsuarioPerfilView(PermissionRequiredMixin, LoginRequiredMixin, DetailView):
