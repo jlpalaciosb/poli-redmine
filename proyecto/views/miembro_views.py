@@ -9,6 +9,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
+from ProyectoIS2_9.utils import notificar_nuevo_miembro
 from proyecto.forms import CrearMiembroForm, EditarMiembroForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
 from proyecto.models import MiembroProyecto, Proyecto
@@ -63,7 +64,7 @@ class MiembroProyectoCreateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
 
         context = super(MiembroProyectoCreateView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Miembro de Proyectos'
+        context['titulo'] = 'Agregar miembro al proyecto'
         context['titulo_form_crear'] = 'Insertar Datos del Miembro del Proyecto'
 
         # Breadcrumbs
@@ -76,6 +77,11 @@ class MiembroProyectoCreateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
         ]
 
         return context
+
+    def form_valid(self, form):
+        miembro = form.instance
+        notificar_nuevo_miembro(miembro)
+        return super().form_valid(form)
 
 
 class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
@@ -97,7 +103,7 @@ class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
         context['titulo'] = 'Lista de Miembros del Proyecto '+ p.nombre
         context['crear_button'] = self.request.user.has_perm('proyecto.add_miembroproyecto', p)
         context['crear_url'] = reverse('proyecto_miembro_crear', kwargs=self.kwargs)
-        context['crear_button_text'] = 'Crear Miembro'
+        context['crear_button_text'] = 'Agregar Miembro'
 
         # datatables
         context['nombres_columnas'] = ['id', 'Nombre de Usuario', 'Roles']

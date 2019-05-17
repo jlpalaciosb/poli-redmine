@@ -17,7 +17,7 @@ from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render
 from guardian.conf import settings as guardian_settings
 
-from proyecto.models import UserStorySprint
+from proyecto.models import UserStorySprint, MiembroProyecto
 
 logger = logging.getLogger(__name__)
 abspath = lambda *p: os.path.abspath(os.path.join(*p))
@@ -155,7 +155,6 @@ class EmailThread(threading.Thread):
     def run (self):
         send_mail(self.subject, self.message, self.from_email, self.recipient_list)
 
-
 def notificar_revision(usp):
     """
     :type usp: UserStorySprint
@@ -175,7 +174,6 @@ def notificar_revision(usp):
         settings.EMAIL_HOST_USER, [scrum_master.email,],
     ).start()
 
-
 def notificar_asignacion(usp):
     """
     Cuando se agrega un user story a un sprint, se le notifica al asignado del user story
@@ -189,8 +187,19 @@ def notificar_asignacion(usp):
     url_ver = 'http://example.com' + reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))
     EmailThread(
         'Asignación de User Story',
-        'Ha sido asignado para el user story "%s" para el sprint %d del proyecto "%s". Haga click en el '
-        'siguiente enlace para ver el user story: %s' % (usp.us.nombre, sprint.orden, proyecto.nombre,
-                                                         url_ver),
+        'Has sido asignado para el user story "%s" para el sprint %d del proyecto "%s". Haz click en el '
+        'siguiente enlace para ver el user story: %s' % (usp.us.nombre, sprint.orden, proyecto.nombre, url_ver),
         settings.EMAIL_HOST_USER, [assignee.email,]
+    ).start()
+
+def notificar_nuevo_miembro(miembro):
+    """
+    :type miembro: MiembroProyecto
+    """
+    url_ver = 'http://example.com' + reverse('perfil_proyecto', args=(miembro.proyecto.id,))
+    EmailThread(
+        'Miembro de Proyecto',
+        'Ahora eres miembro del proyecto "%s". Haz click en el siguiente enlace para ver '
+        'el proyecto: %s' % (miembro.proyecto.nombre, url_ver),
+        settings.EMAIL_HOST_USER, [miembro.user.email,]
     ).start()
