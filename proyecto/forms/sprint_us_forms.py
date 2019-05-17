@@ -63,7 +63,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
         return flujo
 
 
-class UserStorySprintEditarForm(forms.ModelForm):
+class UserStorySprintChangeAssigneeForm(forms.ModelForm):
     class Meta:
         model = UserStorySprint
         fields = ['asignee']
