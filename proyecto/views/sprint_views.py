@@ -1,4 +1,6 @@
 import datetime
+
+from ProyectoIS2_9.utils import notificar_revision
 from proyecto.forms.sprint_us_forms import SprintCambiarEstadoForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
 from guardian.mixins import LoginRequiredMixin
@@ -430,6 +432,11 @@ def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
 
             elif user_story_sprint.estado_fase_sprint == 'DOING':
                 user_story_sprint.estado_fase_sprint = 'DONE'
+
+                if user_story_sprint.fase_sprint.orden == user_story_sprint.fase_sprint.flujo.cantidadFases:
+                    notificar_revision(user_story_sprint)
+                    messages.add_message(request, messages.INFO, 'Se notificó al Scrum Master para su '
+                                         'revisión.')
 
             elif user_story_sprint.estado_fase_sprint == 'DONE':
                 user_story_sprint.fase_sprint = Fase.objects.get(flujo = user_story_sprint.us.flujo, orden = user_story_sprint.fase_sprint.orden + 1)

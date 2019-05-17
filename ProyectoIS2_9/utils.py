@@ -1,5 +1,12 @@
 from __future__ import unicode_literals
 
+import threading
+
+from proyecto.models import UserStorySprint
+from django.core.mail import send_mail
+from django.conf import settings
+from django.urls import reverse
+
 import logging
 import os
 
@@ -135,3 +142,35 @@ def cambiable_estado_proyecto(proyecto, newst):
             return 'tiene un sprint en ejecución'
         else:
             return 'yes'
+
+
+class EmailThread(threading.Thread):
+    def __init__(self, subject, message, from_email, recipient_list):
+        self.subject = subject
+        self.message = message
+        self.recipient_list = recipient_list
+        self.from_email = from_email
+        threading.Thread.__init__(self)
+
+    def run (self):
+        send_mail(self.subject, self.message, self.from_email, self.recipient_list)
+
+
+def notificar_revision(usp):
+    """
+    :type usp: UserStorySprint
+    :param usp:
+    :return:
+    """
+    sprint = usp.sprint
+    proyecto = sprint.proyecto
+    assignee = usp.asignee.miembro.user
+    scrum_master = proyecto.miembroproyecto_set.filter(roles__nombre='Scrum Master').first().user
+    url_revisar = 'http://example.com%s' % reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))
+    EmailThread(
+        'Revisión de User Story',
+        'El miembro %s finalizó el user story %s. Haga click en el siguiente link para '
+        'aceptar o rechazar la finalización: %s.' % ('%s (%s)' % (assignee.username, assignee.get_full_name()),
+        usp.us.nombre, url_revisar),
+        settings.EMAIL_HOST_USER, [scrum_master.email,],
+    ).start()

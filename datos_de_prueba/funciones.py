@@ -53,7 +53,7 @@ def cargar_users():
     poner_staff_a_anonymous()
     cargar_user('javier', 'Javier', 'Adorno', 'javier@gmail.com')
     cargar_user('ingrid', 'Ingrid', 'López', 'ingrid@gmail.com')
-    cargar_user('moises', 'Moisés', 'Cabrera', 'moises@gmail.com')
+    cargar_user('moises', 'Moisés', 'Cabrera', 'joseluis19397@gmail.com')
     cargar_user('jose', 'Jose', 'Palacios', 'jose@gmail.com')
     cargar_user('joel', 'Joel', 'Florentin', 'joel@gmail.com')
     cargar_user('enzo', 'Enzo', 'Galeano', 'enzo@gmail.com')

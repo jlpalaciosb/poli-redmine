@@ -367,6 +367,7 @@ def aprobar_user_story(request, proyecto_id, sprint_id, usp_id):
         messages.add_message(request, messages.ERROR, 'Ha ocurrido un error!')
         return HttpResponseRedirect(reverse('sprint_us_list', args=(proyecto_id, sprint_id)))
 
+
 class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, UpdateView):
     """
     Vista que permite a un scrum master rechazar un user story que este en revision. Se le manda al TO DO de alguna fase
