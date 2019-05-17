@@ -12,7 +12,7 @@ from .tipoUS_views import TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, Ti
 
 from .us_views import USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView, USCancelarView
 
-from .sprint_views import SprintListView, SprintListJson, crear_sprint, SprintPerfilView, FlujoSprintListJson, FlujoSprintListView, TableroKanbanView, mover_us_kanban
+from .sprint_views import SprintListView, SprintListJson, crear_sprint, SprintPerfilView, FlujoSprintListJson, FlujoSprintListView, TableroKanbanView, mover_us_kanban, BurdownChartSprintView
 
 from .miembroSprint_views import MiembroSprintListView, MiembroSprintListJson, MiembroSprintCreateView
 

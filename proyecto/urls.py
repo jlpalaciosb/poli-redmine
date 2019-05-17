@@ -6,7 +6,7 @@ from proyecto.views import \
     MiembroProyectoCreateView, MiembroProyectoListJsonView, MiembroProyectoListView, MiembroProyectoUpdateView, MiembroProyectoPerfilView, MiembroProyectoDeleteView, \
     TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView, ImportarTipoUsListJson, ImportarTipoUsListView, ImportarTipoUSPerfilView, importar_tus, getTUS, \
     USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView, USCancelarView,\
-    SprintListView, SprintListJson, crear_sprint, SprintPerfilView,\
+    SprintListView, SprintListJson, crear_sprint, SprintPerfilView, BurdownChartSprintView,\
     MiembroSprintListJson, MiembroSprintListView, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint, MiembroSprintIntercambiarView,\
     FlujoCreateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoUpdateView, FlujoEliminarView, \
     UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintChangeAssigneeView, UserStorySprintDeleteView, aprobar_user_story, UserStorySprintRechazarView,\
@@ -63,6 +63,7 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/sprints/list$', SprintListJson.as_view(), name='proyecto_sprint_list_json'),
     url(r'^(?P<proyecto_id>\d+)/sprints/crear$', crear_sprint, name='proyecto_sprint_crear'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/administrar$', SprintPerfilView.as_view(), name='proyecto_sprint_administrar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/burdownchart$', BurdownChartSprintView.as_view(), name='proyecto_sprint_burndownchart'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/flujos$', FlujoSprintListView.as_view(), name='proyecto_sprint_flujos'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/tablero/(?P<flujo_id>\d+)$', TableroKanbanView.as_view(), name='proyecto_sprint_tablero'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/tablero/(?P<flujo_id>\d+)/mover/(?P<us_id>\d+)$', mover_us_kanban, name='proyecto_sprint_mover_us'),

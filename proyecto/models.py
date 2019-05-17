@@ -104,6 +104,7 @@ class Sprint(models.Model):
         help_text='Este valor nos dice cuántas horas de trabajo disponible hay en el sprint'
     )
     fecha_fin = models.DateField(verbose_name='fecha de finalizacion', null=True, help_text='La fecha en la que finaliza un sprint')
+    total_horas_planificadas = models.PositiveIntegerField(default=0, help_text='El total de las horas planificadas de todos los user stories en un sprint')
 
     class Meta:
         default_permissions =  ()
