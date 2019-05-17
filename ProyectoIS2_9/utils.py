@@ -166,11 +166,31 @@ def notificar_revision(usp):
     proyecto = sprint.proyecto
     assignee = usp.asignee.miembro.user
     scrum_master = proyecto.miembroproyecto_set.filter(roles__nombre='Scrum Master').first().user
-    url_revisar = 'http://example.com%s' % reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))
+    url_revisar = 'http://example.com' + reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))
     EmailThread(
         'Revisión de User Story',
-        'El miembro %s finalizó el user story %s. Haga click en el siguiente link para '
+        'El miembro %s finalizó el user story "%s". Haga click en el siguiente enlace para '
         'aceptar o rechazar la finalización: %s.' % ('%s (%s)' % (assignee.username, assignee.get_full_name()),
         usp.us.nombre, url_revisar),
         settings.EMAIL_HOST_USER, [scrum_master.email,],
+    ).start()
+
+
+def notificar_asignacion(usp):
+    """
+    Cuando se agrega un user story a un sprint, se le notifica al asignado del user story
+    :type usp: UserStorySprint
+    :param usp:
+    :return:
+    """
+    sprint = usp.sprint
+    proyecto = sprint.proyecto
+    assignee = usp.asignee.miembro.user
+    url_ver = 'http://example.com' + reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))
+    EmailThread(
+        'Asignación de User Story',
+        'Ha sido asignado para el user story "%s" para el sprint %d del proyecto "%s". Haga click en el '
+        'siguiente enlace para ver el user story: %s' % (usp.us.nombre, sprint.orden, proyecto.nombre,
+                                                         url_ver),
+        settings.EMAIL_HOST_USER, [assignee.email,]
     ).start()

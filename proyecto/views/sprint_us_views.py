@@ -6,6 +6,8 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
 from guardian.mixins import LoginRequiredMixin
+
+from ProyectoIS2_9.utils import notificar_asignacion
 from proyecto.forms import UserStorySprintCrearForm, UserStorySprintEditarForm, UserStoryRechazadoForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEnEjecucionMixin
 from proyecto.models import Sprint, Proyecto, UserStorySprint
@@ -13,7 +15,7 @@ from guardian.decorators import permission_required
 from django.contrib.auth.decorators import login_required
 from proyecto.decorators import proyecto_en_ejecucion
 
-class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, SuccessMessageMixin, CreateView):
+class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, CreateView):
     """
     Vista para agregar un user story a un sprint
     """
@@ -87,7 +89,10 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
         if disponible > 0: messages.add_message(self.request, messages.INFO, 'Quedan ' + str(disponible) + ' horas disponibles en el sprint')
         else: messages.add_message(self.request, messages.WARNING, 'Capacidad del sprint superada por ' + str(-disponible) + ' horas')
 
-        return super().form_valid(form)
+        ret = super().form_valid(form)
+        notificar_asignacion(form.instance)
+        messages.add_message(self.request, messages.INFO, 'Se notificó al asignado')
+        return ret
 
     def get_context_data(self, **kwargs):
         """
