@@ -47,12 +47,12 @@
                 </a>
             {% endif %}
             {% if pasarSM %}
-                <a href="#">
+                <!--<a href="#">
                   <button class="btn m-b-xs btn-default btn-addon ">
                     <i class="fa fa-arrow-right"></i>
                     Pasar rol de Scrum Master
                   </button>
-                </a>
+                </a>-->
             {% endif %}
             {% if puedeEliminar %}
                 <a href="{% url 'proyecto_miembro_excluir' miembro.proyecto.id miembro.id %}">
