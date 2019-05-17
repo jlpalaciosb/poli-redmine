@@ -202,7 +202,7 @@ class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
         :return:
         """
         context = super(ProyectoCreateView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Proyectos'
+        context['titulo'] = 'Nuevo Proyecto'
         context['titulo_form_crear'] = 'Insertar Datos del Nuevo Proyecto'
 
         # Breadcrumbs
