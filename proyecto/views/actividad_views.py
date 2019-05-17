@@ -133,7 +133,7 @@ class ActividadListView(ActividadBaseView, PermisosEsMiembroMixin, TemplateView)
         """
         context = super().get_context_data(**kwargs)
 
-        context['titulo'] = 'Actividades'
+        context['titulo'] = 'Actividades del User Story'
 
         if self.usp.asignee.miembro.user == self.request.user:
             context['crear_button'] = True
@@ -195,6 +195,13 @@ class ActividadPerfilView(ActividadBaseView, PermisosEsMiembroMixin, DetailView)
     template_name = 'proyecto/actividad/actividad_perfil.html'
     pk_url_kwarg = 'actividad_id'
 
+    def dispatch(self, request, *args, **kwargs):
+        incons = self.inconsistente()
+        if incons:
+            return incons
+        else:
+            return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
@@ -216,6 +223,17 @@ class ActividadPerfilView(ActividadBaseView, PermisosEsMiembroMixin, DetailView)
         ]
         context['puedeEditar'] = self.usp.asignee.miembro.user == self.request.user
         return context
+
+    def inconsistente(self):
+        actividad = self.get_object()
+        actividad_proyecto_id = str(actividad.usSprint.sprint.proyecto.id)
+        actividad_sprint_id = str(actividad.usSprint.sprint.id)
+        actividad_usp_id = str(actividad.usSprint.id)
+        if actividad_proyecto_id != self.kwargs['proyecto_id'] or \
+           actividad_sprint_id != self.kwargs['sprint_id'] or \
+           actividad_usp_id != self.kwargs['usp_id']:
+            return HttpResponseRedirect(reverse('actividad_ver',
+                args=(actividad_proyecto_id, actividad_sprint_id, actividad_usp_id, actividad.id)))
 
 
 class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequiredMixin, UpdateView):

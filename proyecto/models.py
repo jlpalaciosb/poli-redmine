@@ -217,7 +217,7 @@ ESTADOS_US_PROYECTO = (
     (3, 'No Terminado'), # estado cuando el us fue parte del sprint anterior pero no se termino
     (4, 'Cancelado'),
     (5, 'Terminado'),
-    (6, 'En Revision')
+    (6, 'En Revisión')
 )
 PRIORIDADES_US = (
     (1, 'Muy Bajo'),

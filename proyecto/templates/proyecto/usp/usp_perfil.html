@@ -16,28 +16,17 @@
     <div class="wrapper-md">
         <div class="well m-t bg-light lt">
             <div class="row">
-
                 <div class="col-xs-4">
                     <h4>{{ usp.us.nombre }}</h4>
-                    <div>
-                        <strong>Priorización: </strong> {{ usp.us.priorizacion | floatformat:2 }} <br>
-                    </div>
-                    <br>
-                    <div>
-                        <strong>Flujo: </strong> {{ usp.us.flujo.nombre | default_if_none:"" }} <br>
-                        <strong>Fase: </strong> {{ usp.fase_sprint.nombre | default_if_none:"" }} <br>
-                        <strong>Estado en la Fase: </strong> {{ usp.get_estado_fase_sprint_display | default_if_none:"" }} <br>
-                    </div>
-                    <br>
+                    <strong>Encargado: </strong> {{ usp.asignee.miembro.user.username }} ({{ usp.asignee.miembro.user.get_full_name }}) <br><br>
+                    <strong>Priorización: </strong> {{ usp.us.priorizacion | floatformat:2 }} <br> <br>
                 </div>
-
                 <div class="col-xs-6">
                     <h4>&nbsp;</h4>
-                    <div>
-                        <strong>Encargado: </strong>
-                        {{ usp.asignee.miembro.user.username }} ({{ usp.asignee.miembro.user.get_full_name }}) <br>
-                    </div>
-                    <br>
+                    <strong>Estado en el Proyecto: </strong> {{ usp.us.get_estadoProyecto_display }} <br><br>
+                    <strong>Flujo: </strong> {{ usp.us.flujo.nombre | default_if_none:"" }} <br>
+                    <strong>Fase: </strong> {{ usp.fase_sprint.nombre | default_if_none:"" }} <br>
+                    <strong>Estado en la Fase: </strong> {{ usp.get_estado_fase_sprint_display | default_if_none:"" }} <br> <br>
                 </div>
             </div>
             <div class="row">
