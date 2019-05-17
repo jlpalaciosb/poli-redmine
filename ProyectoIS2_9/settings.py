@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.admindocs',
     'roles_sistema',
     'usuario',
-    'cliente',
+    'cliente'
 
 ]
 

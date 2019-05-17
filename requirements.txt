@@ -13,3 +13,5 @@ pytz==2018.5
 six==1.11.0
 django-guardian
 docutils
+numpy
+Sphinx

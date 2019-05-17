@@ -27,7 +27,11 @@
                           <strong>Fecha de Inicio:</strong>   {{ sprint.fechaInicio|default:"" }}<br>
                       {% endif %}
                       {% if sprint.estado == 'EN_EJECUCION' %}
-                          <strong>Tiempo Restante:</strong>   {{ sprint.tiempo_restante |default:"" }} días<br>
+                          {% if sprint.tiempo_restante >= 0%}
+                            <strong>Tiempo Restante:</strong>   {{ sprint.tiempo_restante |default:"" }} dias<br>
+                          {% elif sprint.tiempo_restante < 0 %}
+                            <strong>Tiempo Excedido:</strong>   {{ sprint.tiempo_restante | slice:"1:" |default:"" }} dias<br>
+                          {% endif %}
                       {% endif %}
                       {% if sprint.estado == 'CERRADO' %}
                           <strong>Fecha de Finalizacion:</strong>   {{ sprint.fecha_fin | default:"" }}<br>
