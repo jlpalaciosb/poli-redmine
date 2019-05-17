@@ -8,6 +8,7 @@ from guardian.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.contrib import messages
 
 from ProyectoIS2_9.utils import notificar_nuevo_miembro
 from proyecto.forms import CrearMiembroForm, EditarMiembroForm
@@ -81,6 +82,7 @@ class MiembroProyectoCreateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
     def form_valid(self, form):
         miembro = form.instance
         notificar_nuevo_miembro(miembro)
+        messages.add_message(self.request, messages.INFO, 'Se notificó al nuevo miembro')
         return super().form_valid(form)
 
 

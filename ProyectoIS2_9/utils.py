@@ -158,8 +158,6 @@ class EmailThread(threading.Thread):
 def notificar_revision(usp):
     """
     :type usp: UserStorySprint
-    :param usp:
-    :return:
     """
     sprint = usp.sprint
     proyecto = sprint.proyecto
@@ -178,8 +176,6 @@ def notificar_asignacion(usp):
     """
     Cuando se agrega un user story a un sprint, se le notifica al asignado del user story
     :type usp: UserStorySprint
-    :param usp:
-    :return:
     """
     sprint = usp.sprint
     proyecto = sprint.proyecto
@@ -194,6 +190,7 @@ def notificar_asignacion(usp):
 
 def notificar_nuevo_miembro(miembro):
     """
+    Se le notifica al usuario cuando se le agrega como miembro de un proyecto
     :type miembro: MiembroProyecto
     """
     url_ver = 'http://example.com' + reverse('perfil_proyecto', args=(miembro.proyecto.id,))
@@ -202,4 +199,32 @@ def notificar_nuevo_miembro(miembro):
         'Ahora eres miembro del proyecto "%s". Haz click en el siguiente enlace para ver '
         'el proyecto: %s' % (miembro.proyecto.nombre, url_ver),
         settings.EMAIL_HOST_USER, [miembro.user.email,]
+    ).start()
+
+def notificar_aceptacion(usp):
+    """
+    Se le notifica al usuario cuando su user story se acepta
+    :type usp: UserStorySprint
+    """
+    assignee = usp.asignee.miembro.user
+    EmailThread(
+        'User Story Aceptado',
+        'Tu user story "%s" fue aceptado por el scrum master!' % (usp.us.nombre,),
+        settings.EMAIL_HOST_USER, [assignee.email, ]
+    ).start()
+
+def notificar_rechazo(usp):
+    """
+    Se le notifica al usuario cuando su user story se rechaza
+    :type usp: UserStorySprint
+    """
+    sprint = usp.sprint
+    proyecto = sprint.proyecto
+    assignee = usp.asignee.miembro.user
+    url_ver = 'http://example.com' + reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))
+    EmailThread(
+        'User Story Rechazado',
+        'Tu user story "%s" fue rechazado por el scrum master. Haga click en el siguiente enlace para '
+        'ver el user story: %s' % (usp.us.nombre, url_ver),
+        settings.EMAIL_HOST_USER, [assignee.email, ]
     ).start()
