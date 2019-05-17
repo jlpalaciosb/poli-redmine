@@ -20,7 +20,7 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
     Vista para agregar un user story a un sprint
     """
     model = UserStorySprint
-    template_name = "change_form.html"
+    template_name = "proyecto/usp/usp_create.html"
     form_class = UserStorySprintCrearForm
     permission_required = 'proyecto.administrar_sprint'
 
