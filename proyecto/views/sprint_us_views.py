@@ -7,7 +7,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
 from guardian.mixins import LoginRequiredMixin
 
-from ProyectoIS2_9.utils import notificar_asignacion
+from ProyectoIS2_9.utils import notificar_asignacion, notificar_aceptacion, notificar_rechazo
 from proyecto.forms import UserStorySprintCrearForm, UserStorySprintEditarForm, UserStoryRechazadoForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEnEjecucionMixin
 from proyecto.models import Sprint, Proyecto, UserStorySprint
@@ -361,6 +361,8 @@ def aprobar_user_story(request, proyecto_id, sprint_id, usp_id):
         us.estadoProyecto = 5 #Se coloca al user story en el estado terminado
         us.save()
         messages.add_message(request, messages.SUCCESS, 'El User Story {} ha culminado exitosamente'.format(us.nombre))
+        notificar_aceptacion(user_story_sprint)
+        messages.add_message(request, messages.INFO, 'Se notificó al encargado')
         return HttpResponseRedirect(reverse('sprint_us_ver',args=(proyecto_id,sprint_id,usp_id)))
     except UserStorySprint.DoesNotExist:
         messages.add_message(request, messages.ERROR, 'El User Story solicitido no existe')
@@ -510,4 +512,6 @@ class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, Permi
         response = super(UserStorySprintRechazarView, self).form_valid(form)
         form.instance.us.estadoProyecto = 2
         form.instance.us.save()
+        notificar_rechazo(form.instance)
+        messages.add_message(self.request, messages.INFO, 'Se notificó al encargado')
         return response
