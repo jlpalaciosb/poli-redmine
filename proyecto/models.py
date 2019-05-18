@@ -138,6 +138,7 @@ class Sprint(models.Model):
             for user_story_sprint in self.userstorysprint_set.all():
                 if user_story_sprint.us.estadoProyecto != 5:#Entonces todos los user stories que no este terminados se les coloca el estado no terminado
                     user_story_sprint.us.estadoProyecto = 3 # Se coloca en el estado de No Terminado
+                    user_story_sprint.us.prioridad_suprema += 1 # incrementar la prioridad suprema
                     user_story_sprint.us.save()
 
     def tiempo_restante(self):
@@ -275,6 +276,7 @@ class UserStory(models.Model):
     valorNegocio = models.PositiveIntegerField(verbose_name='valor de negocio', choices=PRIORIDADES_US, default=3)
     valorTecnico = models.PositiveIntegerField(verbose_name='valor técnico', choices=PRIORIDADES_US, default=3)
     priorizacion = models.FloatField(default=1)
+    prioridad_suprema = models.PositiveIntegerField(default=0, help_text='Campo que determina si un user story no culmino en un sprint anterior')
 
     tiempoPlanificado = models.PositiveIntegerField(
         verbose_name='tiempo planificado (en horas)',
@@ -293,7 +295,8 @@ class UserStory(models.Model):
         return self.nombre
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        self.priorizacion = (4 * self.prioridad + self.valorTecnico + self.valorNegocio) / 6
+        self.priorizacion = (4 * self.prioridad + self.valorTecnico + self.valorNegocio) / 6 + \
+                            self.prioridad_suprema * 5
         self.pasar_a_revision()
         super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
@@ -308,10 +311,11 @@ class UserStory(models.Model):
         :return:
         """
         if self.estadoProyecto == 3:
-            return not self.tiempoPlanificado>self.tiempoEjecutado
+            return not self.tiempoPlanificado > self.tiempoEjecutado
         return False
 
-
+    def get_priorizacion(self):
+        return self.priorizacion
 
 class RolProyecto(Group):
     """
@@ -386,7 +390,6 @@ class UserStorySprint(models.Model):
     us = models.ForeignKey(UserStory, verbose_name='User Story')
     sprint = models.ForeignKey(Sprint)
     asignee = models.ForeignKey(MiembroSprint, null=True, verbose_name='Encargado')
-    prioridad_suprema = models.BooleanField(default=False, help_text='Campo que determina si un user story no culmino en un sprint anterior')
     fase_sprint = models.ForeignKey(Fase, verbose_name='fase en la que se encuentra el US', null=True, help_text='Fase en la que se encuentra un user story en un sprint')
 
     estado_fase_sprint = models.CharField(

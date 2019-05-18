@@ -34,7 +34,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
 
         self.fields['us'].label_from_instance = lambda us :\
             '{} (Priorización = {:.2f}) (Estado General = {}) (Trabajo Restante = {:.2f} horas)'.\
-                format(us.nombre, us.priorizacion, us.get_estadoProyecto_display(), us.tiempoPlanificado - us.tiempoEjecutado)
+                format(us.nombre, us.get_priorizacion(), us.get_estadoProyecto_display(), us.tiempoPlanificado - us.tiempoEjecutado)
 
         if self.instance.id is None:
             self.instance.sprint = self.sprint
