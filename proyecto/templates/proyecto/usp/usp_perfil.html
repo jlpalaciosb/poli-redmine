@@ -19,7 +19,7 @@
                 <div class="col-xs-4">
                     <h4>{{ usp.us.nombre }}</h4>
                     <strong>Encargado: </strong> {{ usp.asignee.miembro.user.username }} ({{ usp.asignee.miembro.user.get_full_name }}) <br><br>
-                    <strong>Priorización: </strong> {{ usp.us.priorizacion | floatformat:2 }} <br> <br>
+                    <strong>Priorización: </strong> {{ usp.us.get_priorizacion | floatformat:2 }} <br> <br>
                 </div>
                 <div class="col-xs-6">
                     <h4>&nbsp;</h4>

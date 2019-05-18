@@ -143,7 +143,7 @@ class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
 
     def render_column(self, row, column):
         if column == 'priorizacion':
-            return "{0:.2f}".format(row.priorizacion)
+            return "{0:.2f}".format(row.get_priorizacion())
         if column == 'comentarios':
             #SI EL US NO TERMINO EN UN SPRINT Y SU TIEMPO PLANIFICADO EXCEDE AL TIEMPO EJECUTADO ENTONCES ADVERTIR AL USUARIO
             if row.tiene_tiempo_excedido() and row.estadoProyecto==3:

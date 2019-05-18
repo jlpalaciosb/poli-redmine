@@ -24,15 +24,6 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
     form_class = UserStorySprintCrearForm
     permission_required = 'proyecto.administrar_sprint'
 
-    def get_success_message(self, cleaned_data):
-        """
-        El mensaje que aparece cuando se agrega correctamente
-
-        :param cleaned_data:
-        :return:
-        """
-        return "User Story agregado exitosamente"
-
     def get_success_url(self):
         """
         El sitio donde se redirige al crear correctamente
@@ -75,6 +66,7 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
         if us.estadoProyecto == 3 :#SI el estado del US a asignar es NO TERMINADO entonces se copia las fases y estados al User Story Sprint actual
             form.instance.fase_sprint = us.fase
             form.instance.estado_fase_sprint = us.estadoFase
+            # form.instance.prioridad_suprema = True
         us.estadoProyecto = 2
         us.save()
 
@@ -143,7 +135,7 @@ class UserStorySprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
         context['crear_button_text'] = 'Agregar US'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización']
+        context['nombres_columnas'] = ['id', 'Nombre', 'Priorización', 'Encargado']
         context['order'] = [2, "desc"]
         context['datatable_row_link'] = reverse('sprint_us_ver', args=(proyecto.id, sprint.id, 7483900))
         context['list_json'] = reverse('sprint_us_list_json', kwargs=kwargs)
@@ -167,8 +159,8 @@ class UserStorySprintListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, Ba
     Vista que retorna en json la lista de user stories del sprint backlog
     """
     model = UserStorySprint
-    columns = ['id', 'us.nombre', 'us.priorizacion']
-    order_columns = ['id', 'us.nombre', 'us.priorizacion']
+    columns = ['id', 'us.nombre', 'us.priorizacion', 'asignee']
+    order_columns = ['id', 'us.nombre', 'us.priorizacion', 'asignee']
     max_display_length = 100
 
     def get_initial_queryset(self):
@@ -178,11 +170,16 @@ class UserStorySprintListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, Ba
         """
         return UserStorySprint.objects.filter(sprint__id=self.kwargs['sprint_id'])
 
-    def render_column(self, row, column):
-        if column == 'us.priorizacion':
-            return "{0:.2f}".format(row.us.priorizacion)
-        else:
-            return super().render_column(row, column)
+    def render_column(self, usp, column):
+        """
+        :type usp: UserStorySprint
+        """
+        if column == 'us.nombre' and usp.sprint.estado != 'CERRADO':
+            suffix = ' (no terminado en sprint anterior)' if usp.us.prioridad_suprema else ''
+            return usp.us.nombre + suffix
+        elif column == 'us.priorizacion': return "{0:.2f}".format(usp.us.get_priorizacion())
+        elif column == 'asignee': return usp.asignee.miembro.user.get_full_name()
+        else: return super().render_column(usp, column)
 
 
 class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
@@ -368,6 +365,7 @@ def aprobar_user_story(request, proyecto_id, sprint_id, usp_id):
             messages.add_message(request, messages.WARNING, 'El User Story debe estar en revision')
             return HttpResponseRedirect(reverse('sprint_us_ver',args=(proyecto_id,sprint_id,usp_id)))
         us.estadoProyecto = 5 #Se coloca al user story en el estado terminado
+        us.prioridad_suprema = 0
         us.save()
         messages.add_message(request, messages.SUCCESS, 'El User Story {} ha culminado exitosamente'.format(us.nombre))
         notificar_aceptacion(user_story_sprint)
