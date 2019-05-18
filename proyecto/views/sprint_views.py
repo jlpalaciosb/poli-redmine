@@ -19,7 +19,7 @@ from django.contrib.auth.decorators import login_required
 from proyecto.decorators import proyecto_en_ejecucion
 from django.db import models
 from proyecto.models import Actividad
-
+from django.contrib.messages.views import SuccessMessageMixin
 
 class SprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
     """
@@ -207,9 +207,9 @@ class SprintNoSePuedeCerrar(object):
             raise Http404('No existe dicho sprint')
 
 
-class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, SprintNoSePuedeCerrar, UpdateView):
+class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, SprintNoSePuedeCerrar,SuccessMessageMixin, UpdateView):
     """
-    Vista Basada en Clases para la actualizacion de los proyectos
+    Vista Basada en Clases para la cerrar un sprint
     """
     model = Sprint
     form_class = SprintCambiarEstadoForm
@@ -266,6 +266,15 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Spri
 
 
         return context
+
+    def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se cierra correctamente
+
+        :param cleaned_data:
+        :return:
+        """
+        return "Sprint Nro {} cerrado exitosamente.".format(Sprint.objects.get(pk=self.kwargs['sprint_id']).orden)
 
 class FlujoSprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView):
     """
@@ -567,7 +576,7 @@ class BurdownChartSprintView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailV
         datos_grafica = Actividad.objects.filter(usSprint__sprint_id=sprint.id).values('dia_sprint').annotate(
             cantidad=models.Count('dia_sprint'), total_por_dia=models.Sum('horasTrabajadas')).order_by('dia_sprint')
 
-        x_real = []
+        x_real = [0]
         y_real = [sprint.total_horas_planificadas]
         total_dias = sprint.duracion*sprint.cant_dias_habiles
         y_ideal = []
@@ -576,8 +585,8 @@ class BurdownChartSprintView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailV
         acumulado = 0
         for dato in datos_grafica:
             x_real.append(dato['dia_sprint'])
-            acumulado = y_real[0] - ( acumulado + dato['total_por_dia'] )
-            y_real.append(acumulado)
+            acumulado = ( acumulado + dato['total_por_dia'] )
+            y_real.append(y_real[0] - acumulado)
 
         for dia in range(0, total_dias+1):
             x_ideal.append(dia)

@@ -28,7 +28,7 @@
                       {% endif %}
                       {% if sprint.estado == 'EN_EJECUCION' %}
                           {% if sprint.tiempo_restante >= 0%}
-                            <strong>Tiempo Restante:</strong>   {{ sprint.tiempo_restante |default:"" }} dias<br>
+                            <strong>Tiempo Restante:</strong>   {{ sprint.tiempo_restante  }} dias<br>
                           {% elif sprint.tiempo_restante < 0 %}
                             <strong>Tiempo Excedido:</strong>   {{ sprint.tiempo_restante | slice:"1:" |default:"" }} dias<br>
                           {% endif %}

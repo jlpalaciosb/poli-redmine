@@ -221,7 +221,7 @@ class ActividadPerfilView(ActividadBaseView, PermisosEsMiembroMixin, DetailView)
             {'nombre': 'Actividades', 'url': reverse('actividad_list', args=(self.proyecto.id, self.sprint.id, self.usp.id))},
             {'nombre': self.actividad.nombre, 'url': '#'},
         ]
-        context['puedeEditar'] = self.usp.asignee.miembro.user == self.request.user
+        context['puedeEditar'] = self.usp.asignee.miembro.user == self.request.user and self.usp.sprint.estado == 'EN_EJECUCION'
         return context
 
     def inconsistente(self):

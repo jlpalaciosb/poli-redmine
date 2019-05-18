@@ -10,7 +10,8 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 
 from ProyectoIS2_9.utils import cambiable_estado_proyecto
 from proyecto.forms import ProyectoForm, ProyectoCambiarEstadoForm
-from proyecto.models import Proyecto, MiembroProyecto
+from proyecto.models import Proyecto, MiembroProyecto,Actividad, UserStory
+from proyecto.models import models
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
 
 
@@ -397,3 +398,53 @@ class ProyectoCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Up
             return 'supender'
         else:
             return ''
+
+
+class BurdownChartProyectoView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
+    """
+    Vista Basada en Clases para la visualizacion del burdown chart de un proyecto
+    """
+    model = Proyecto
+    context_object_name = 'proyecto'
+    template_name = 'proyecto/proyecto/burdown_chart_proyecto.html'
+    pk_url_kwarg = 'proyecto_id'
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
+        context = super(BurdownChartProyectoView, self).get_context_data(**kwargs)
+        proyecto = context['proyecto']
+        context['titulo'] = 'Burdown Chart del Proyecto {}'.format(proyecto.nombre)
+        datos_grafica = Actividad.objects.filter(usSprint__sprint__proyecto_id=proyecto.id).values('usSprint__sprint__orden'
+                                                                                         ).annotate(cantidad=models.Count('usSprint__sprint__orden'),total_por_sprint=models.Sum('horasTrabajadas'))
+        total_a_trabajar=UserStory.objects.filter(proyecto=proyecto).aggregate(total_planificado=models.Sum('tiempoPlanificado'))['total_planificado']
+        x_real = [0]
+        y_real = [total_a_trabajar]
+
+
+
+        acumulado = 0
+        for dato in datos_grafica:
+            x_real.append(dato['usSprint__sprint__orden'])
+            acumulado = (acumulado + dato['total_por_sprint'])
+            y_real.append(y_real[0] - acumulado)
+
+        context['grafica'] = {'datos_en_x': x_real, 'datos_en_y': y_real}
+
+        context['total'] = total_a_trabajar
+
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': context['proyecto'].nombre,'url': reverse('perfil_proyecto',kwargs=self.kwargs)},
+                                 {'nombre': 'Burdown Chart',
+                                  'url': '#'}
+                                 ]
+
+        return context
