@@ -28,7 +28,7 @@
                       {% endif %}
                       {% if sprint.estado == 'EN_EJECUCION' %}
                           {% if sprint.tiempo_restante >= 0%}
-                            <strong>Tiempo Restante:</strong>   {{ sprint.tiempo_restante |default:"" }} dias<br>
+                            <strong>Tiempo Restante:</strong>   {{ sprint.tiempo_restante  }} dias<br>
                           {% elif sprint.tiempo_restante < 0 %}
                             <strong>Tiempo Excedido:</strong>   {{ sprint.tiempo_restante | slice:"1:" |default:"" }} dias<br>
                           {% endif %}
@@ -100,7 +100,7 @@
                   </div>
               {% endif %}
               <div class="col-xs-3">
-                  <a href="#">
+                  <a href="{% url 'proyecto_sprint_burndownchart' sprint.proyecto.id sprint.id %}">
                       <button class="btn m-b-xs btn-default btn-addon ">
                           <i class="fa fa-line-chart" aria-hidden="true"></i> Burdown Chart
                       </button>

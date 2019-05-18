@@ -17,6 +17,9 @@ from django.http import HttpResponseRedirect
 from guardian.decorators import permission_required
 from django.contrib.auth.decorators import login_required
 from proyecto.decorators import proyecto_en_ejecucion
+from django.db import models
+from proyecto.models import Actividad
+from django.contrib.messages.views import SuccessMessageMixin
 
 class SprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
     """
@@ -88,6 +91,10 @@ def iniciar_sprint(request, proyecto_id, sprint_id):
     try:
         sprint.estado='EN_EJECUCION'
         sprint.fechaInicio=datetime.date.today()
+        horas = 0
+        for usp in sprint.userstorysprint_set.all():
+            horas = horas + usp.us.tiempoPlanificado - usp.us.tiempoEjecutado
+        sprint.total_horas_planificadas = horas
         sprint.save()
         messages.add_message(request, messages.SUCCESS, 'Se inicio el sprint Nro '+str(sprint.orden))
         return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
@@ -138,7 +145,7 @@ def crear_sprint(request, proyecto_id):
         messages.add_message(request, messages.WARNING, 'Ya hay un sprint en planificación!')
         return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
     try:
-        sprint = Sprint.objects.create(proyecto=proyecto, duracion=proyecto.duracionSprint, estado='PLANIFICADO', orden=orden+1)
+        sprint = Sprint.objects.create(proyecto=proyecto, duracion=proyecto.duracionSprint, estado='PLANIFICADO', orden=orden+1, cant_dias_habiles=proyecto.diasHabiles)
         messages.add_message(request, messages.SUCCESS, 'Se creó el sprint Nro '+str(orden+1))
         return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
     except:
@@ -200,9 +207,9 @@ class SprintNoSePuedeCerrar(object):
             raise Http404('No existe dicho sprint')
 
 
-class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, SprintNoSePuedeCerrar, UpdateView):
+class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, SprintNoSePuedeCerrar,SuccessMessageMixin, UpdateView):
     """
-    Vista Basada en Clases para la actualizacion de los proyectos
+    Vista Basada en Clases para la cerrar un sprint
     """
     model = Sprint
     form_class = SprintCambiarEstadoForm
@@ -259,6 +266,15 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Spri
 
 
         return context
+
+    def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se cierra correctamente
+
+        :param cleaned_data:
+        :return:
+        """
+        return "Sprint Nro {} cerrado exitosamente.".format(Sprint.objects.get(pk=self.kwargs['sprint_id']).orden)
 
 class FlujoSprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView):
     """
@@ -528,6 +544,66 @@ class SprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView)
                                   'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
                                  {'nombre': 'Sprint %d' % sprint.orden, 'url': reverse('proyecto_sprint_administrar',kwargs=self.kwargs)},
                                  {'nombre': 'Eliminar Sprint %d' % sprint.orden,
+                                  'url': '#'}
+                                 ]
+
+        return context
+
+class BurdownChartSprintView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
+    """
+           Vista Basada en Clases para la visualizacion del perfil de un sprint
+    """
+    model = Sprint
+    context_object_name = 'sprint'
+    template_name = 'proyecto/sprint/burdown_chart_sprint.html'
+    pk_url_kwarg = 'sprint_id'
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
+        context = super(BurdownChartSprintView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
+        context['titulo'] = 'Burdown Chart Sprint'
+        datos_grafica = Actividad.objects.filter(usSprint__sprint_id=sprint.id).values('dia_sprint').annotate(
+            cantidad=models.Count('dia_sprint'), total_por_dia=models.Sum('horasTrabajadas')).order_by('dia_sprint')
+
+        x_real = [0]
+        y_real = [sprint.total_horas_planificadas]
+        total_dias = sprint.duracion*sprint.cant_dias_habiles
+        y_ideal = []
+        x_ideal = []
+        total_a_trabajar = sprint.total_horas_planificadas
+        acumulado = 0
+        for dato in datos_grafica:
+            x_real.append(dato['dia_sprint'])
+            acumulado = ( acumulado + dato['total_por_dia'] )
+            y_real.append(y_real[0] - acumulado)
+
+        for dia in range(0, total_dias+1):
+            x_ideal.append(dia)
+            y_ideal.append(total_a_trabajar - dia*( total_a_trabajar / total_dias ))
+
+        context['total'] = total_a_trabajar
+        context['grafica'] = {'datos_en_x':x_real,'datos_en_y':y_real,'ideal_y':y_ideal,'ideal_x':x_ideal}
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre,
+                                  'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Sprints',
+                                  'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Sprint %d' % sprint.orden, 'url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs)},
+                                 {'nombre': 'Burdown Chart',
                                   'url': '#'}
                                  ]
 

@@ -104,6 +104,7 @@ class Sprint(models.Model):
         help_text='Este valor nos dice cuántas horas de trabajo disponible hay en el sprint'
     )
     fecha_fin = models.DateField(verbose_name='fecha de finalizacion', null=True, help_text='La fecha en la que finaliza un sprint')
+    total_horas_planificadas = models.PositiveIntegerField(default=0, help_text='El total de las horas planificadas de todos los user stories en un sprint')
 
     class Meta:
         default_permissions =  ()
@@ -459,6 +460,11 @@ class Actividad(models.Model):
             anterior = 0
         else:
             anterior = Actividad.objects.get(pk=self.id).horasTrabajadas
+        #EL DIA DEL SPRINT EMPIEZA DESDE 1
+        diasHabiles = numpy.zeros(7, dtype=int)
+        for i in range(0, self.usSprint.sprint.cant_dias_habiles):
+            diasHabiles[i] = 1
+        self.dia_sprint = numpy.busday_count(self.usSprint.sprint.fechaInicio, datetime.date.today(),diasHabiles)+1
 
         super(Actividad, self).save(*args, **kwargs)
 

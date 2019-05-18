@@ -32,7 +32,7 @@ class UsuarioForm(ModelForm):
         self.success_url = kwargs.pop('success_url')
 
         super(UsuarioForm, self).__init__(*args, **kwargs)
-
+        self.fields['email'].required = True
         layout = [
             'username',
             'groups',
@@ -71,7 +71,7 @@ class EditarUsuarioForm(ModelForm):
         self.success_url = kwargs.pop('success_url')
 
         super(EditarUsuarioForm, self).__init__(*args, **kwargs)
-
+        self.fields['email'].required = True
         layout = [
             'username',
             'groups',
