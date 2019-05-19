@@ -514,7 +514,7 @@ class SprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView)
                 for us in user_sprint:
                     user_story=UserStory.objects.get(pk=us.us.id)
                     user_story.estadoProyecto=1
-                    user_story.flujo = None
+                    user_story.flujo = user_story.fase = user_story.estadoFase = None
                     user_story.save()
                     us.delete()
             messages.add_message(self.request, messages.SUCCESS, 'Sprint Eliminado')
