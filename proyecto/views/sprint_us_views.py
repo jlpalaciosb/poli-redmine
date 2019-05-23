@@ -117,7 +117,13 @@ class UserStorySprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
     """
     Vista para ver el sprint backlog
     """
-    template_name = 'change_list.html'
+    template_name = 'proyecto/usp/usp_list.html'
+    filtro = '*'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.filtro = request.GET.get('filtro', '*')
+        self.filtro = '*' if self.filtro not in ['1', '2', '3'] else self.filtro
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         """
@@ -138,7 +144,7 @@ class UserStorySprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
         context['nombres_columnas'] = ['id', 'Nombre', 'Priorización', 'Encargado']
         context['order'] = [2, "desc"]
         context['datatable_row_link'] = reverse('sprint_us_ver', args=(proyecto.id, sprint.id, 7483900))
-        context['list_json'] = reverse('sprint_us_list_json', kwargs=kwargs)
+        context['list_json'] = reverse('sprint_us_list_json', kwargs=kwargs) + '?filtro=' + self.filtro
         context['usp'] = True
 
         # Breadcrumbs
@@ -150,6 +156,8 @@ class UserStorySprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
             {'nombre': 'Sprint %d' % sprint.orden, 'url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs)},
             {'nombre': 'Sprint Backlog', 'url': '#'},
         ]
+
+        context['selected'] = self.filtro
 
         return context
 
@@ -168,7 +176,15 @@ class UserStorySprintListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, Ba
         Se obtiene una lista de los elementos correspondientes
         :return:
         """
-        return UserStorySprint.objects.filter(sprint__id=self.kwargs['sprint_id'])
+        filtro = self.request.GET.get('filtro', '*')
+        qs = UserStorySprint.objects.filter(sprint__id=self.kwargs['sprint_id'])
+        if filtro == '3': # terminado
+            qs = qs.filter(us__estadoProyecto=5)
+        elif filtro == '2': # en revisión
+            qs = qs.filter(us__estadoProyecto=6)
+        elif filtro == '1': # en progreso
+            qs = qs.exclude(us__estadoProyecto__in=[5, 6])
+        return qs
 
     def render_column(self, usp, column):
         """
