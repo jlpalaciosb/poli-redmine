@@ -4,7 +4,7 @@ from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 import datetime
 import numpy
-from django.core.validators import MinValueValidator
+from django.core.validators import  MaxValueValidator
 def validar_mayor_a_cero(value):
     if value == 0:
         raise ValidationError(
@@ -52,7 +52,7 @@ class Proyecto(models.Model):
     fechaInicioEstimada = models.DateField(verbose_name='inicio', help_text='fecha de inicio estimada', null=True, blank=True)
     fechaFinEstimada = models.DateField(verbose_name='finalización', help_text='fecha de finalización estimada', null=True, blank=True)
     duracionSprint = models.PositiveIntegerField(verbose_name='duración del sprint', help_text='duración estimada para los sprints (en semanas)', default=2, validators=[validar_mayor_a_cero])
-    diasHabiles = models.PositiveIntegerField(verbose_name='días hábiles', help_text='cantidad de días hábiles en la semana', default=6, validators=[validar_mayor_a_cero])
+    diasHabiles = models.PositiveIntegerField(verbose_name='días hábiles', help_text='cantidad de días hábiles en la semana', default=6, validators=[validar_mayor_a_cero,MaxValueValidator(limit_value=7)])
     estado = models.CharField(choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
     justificacion = models.TextField(verbose_name='justificación', null=True, blank=True, default="", max_length=500)
     scrum_master = models.ForeignKey(User, verbose_name='scrum master')
@@ -160,11 +160,9 @@ class Sprint(models.Model):
         Metodo que verifica si el dia actual es un dia habil
         :return: Verdadero si el dia actual es habil falso de lo contrario
         """
-        diasHabiles = numpy.zeros(7, dtype=int)
-        for i in range(0, self.cant_dias_habiles):
-            diasHabiles[i] = 1
-        index = datetime.date.today().weekday()
-        return diasHabiles[index] == 1
+        today = datetime.date.today().weekday() #EMPIEZA DESDE LUNES. VA DESDE 0 A 6
+        bussy = self.cant_dias_habiles - 1 #EMPIEZA DESDE LUNES. VA DESDE 1 A 7.
+        return bussy >= today
 
 
 
@@ -458,14 +456,15 @@ class Actividad(models.Model):
     def save(self, *args, **kwargs):
         if self.id is None:
             anterior = 0
+            # EL PRIMER DIA DEL SPRINT EMPIEZA DESDE 1
+            diasHabiles = numpy.zeros(7,
+                                      dtype=int)  # UN VECTOR NUMERICO DE SIETE ELEMENTOS. DONDE CADA POSICION REPRESENTA UN DIA DE LA SEMANA. EL VALOR DE CADA ELEMENTO ES UNO SI ES DIA LABORAL Y CERO SI NO LO ES
+            for i in range(0, self.usSprint.sprint.cant_dias_habiles):
+                diasHabiles[i] = 1
+            self.dia_sprint = numpy.busday_count(self.usSprint.sprint.fechaInicio, datetime.date.today(),
+                                                 diasHabiles) + 1
         else:
             anterior = Actividad.objects.get(pk=self.id).horasTrabajadas
-        #EL DIA DEL SPRINT EMPIEZA DESDE 1
-        diasHabiles = numpy.zeros(7, dtype=int)
-        for i in range(0, self.usSprint.sprint.cant_dias_habiles):
-            diasHabiles[i] = 1
-        self.dia_sprint = numpy.busday_count(self.usSprint.sprint.fechaInicio, datetime.date.today(),diasHabiles)+1
-
         super(Actividad, self).save(*args, **kwargs)
 
         self.acumular_horas_user_story(anterior)
