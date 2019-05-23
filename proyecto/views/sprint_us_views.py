@@ -175,11 +175,15 @@ class UserStorySprintListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, Ba
         :type usp: UserStorySprint
         """
         if column == 'us.nombre' and usp.sprint.estado != 'CERRADO':
-            suffix = ' (no terminado en sprint anterior)' if usp.us.prioridad_suprema else ''
+            suffix = '¡NT!' if usp.us.prioridad_suprema else ''
             return usp.us.nombre + suffix
         elif column == 'us.priorizacion': return "{0:.2f}".format(usp.us.get_priorizacion())
         elif column == 'asignee': return usp.asignee.miembro.user.get_full_name()
         else: return super().render_column(usp, column)
+
+    def filter_queryset(self, qs):
+        search = self._querydict.get('search[value]', '')
+        return qs.filter(us__nombre__icontains=search)
 
 
 class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):

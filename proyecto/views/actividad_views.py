@@ -188,6 +188,9 @@ class ActividadListJsonView(ActividadBaseView, PermisosEsMiembroMixin, BaseDatat
         else:
             return super().render_column(row, column)
 
+    def filter_queryset(self, qs):
+        search = self._querydict.get('search[value]', '')
+        return qs.filter(nombre__icontains=search)
 
 class ActividadPerfilView(ActividadBaseView, PermisosEsMiembroMixin, DetailView):
     """
