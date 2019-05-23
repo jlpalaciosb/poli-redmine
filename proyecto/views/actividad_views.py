@@ -57,6 +57,10 @@ class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
             elif self.usp.estado_fase_sprint != 'DOING':
                 messages.add_message(self.request, messages.WARNING, 'Es user story debe estar en la etapa DOING')
                 self.redirect = True
+            elif not self.sprint.es_dia_permitido():
+                messages.add_message(self.request, messages.WARNING,
+                                     'No se puede realizar esta operacion debido a que no es un dia habil de la semana!')
+                self.redirect = True
             return self.redirect == False
         else:
             return False
@@ -266,6 +270,10 @@ class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
                 self.redirect = True
             elif self.usp.fase_sprint.es_ultima_fase() and self.usp.estado_fase_sprint == 'DONE':
                 messages.add_message(self.request, messages.WARNING, 'No se puede modificar la actividad de un user story cuando el user story esta DONE en la última fase')
+                self.redirect = True
+            elif not self.sprint.es_dia_permitido():
+                messages.add_message(self.request, messages.WARNING,
+                                     'No se puede realizar esta operacion debido a que no es un dia habil de la semana!')
                 self.redirect = True
             return self.redirect == False
         else:

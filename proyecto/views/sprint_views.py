@@ -88,6 +88,9 @@ def iniciar_sprint(request, proyecto_id, sprint_id):
     elif UserStorySprint.objects.filter(sprint=sprint_id).count()==0:
         messages.add_message(request, messages.WARNING, 'Se debe tener al menos un US en el Sprint!')
         return HttpResponseRedirect(reverse('proyecto_sprint_administrar', args=(proyecto_id, sprint.id)))
+    elif not sprint.es_dia_permitido():
+        messages.add_message(request, messages.WARNING, 'No se puede realizar esta operacion debido a que no es un dia habil de la semana!')
+        return HttpResponseRedirect(reverse('proyecto_sprint_administrar', args=(proyecto_id, sprint.id)))
     try:
         sprint.estado='EN_EJECUCION'
         sprint.fechaInicio=datetime.date.today()
@@ -217,6 +220,35 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Spri
     template_name = 'change_form.html'
     pk_url_kwarg = 'sprint_id'
     permission_required = 'proyecto.administrar_sprint'
+
+    def get(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['sprint_id']
+            sprint = Sprint.objects.get(pk = id)
+            if not sprint.es_dia_permitido():
+                messages.add_message(request, messages.WARNING,
+                                     'No se puede realizar esta operacion debido a que no es un dia habil de la semana!')
+                return HttpResponseRedirect(reverse('proyecto_sprint_administrar',args=(sprint.proyecto.id, sprint.id)))
+            return super(SprintCambiarEstadoView, self).get(request, *args, **kwargs)
+        except:
+            messages.add_message(request, messages.ERROR,
+                                 'Ha ocurrido un error!')
+            return HttpResponseRedirect(reverse('proyectos'))
+
+    def post(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['sprint_id']
+            sprint = Sprint.objects.get(pk = id)
+            if not sprint.es_dia_permitido():
+                messages.add_message(request, messages.WARNING,
+                                     'No se puede realizar esta operacion debido a que no es un dia habil de la semana!')
+                return HttpResponseRedirect(reverse('proyecto_sprint_administrar',args=(sprint.proyecto.id, sprint.id)))
+            return super(SprintCambiarEstadoView, self).post(request, *args, **kwargs)
+        except:
+            messages.add_message(request, messages.ERROR,
+                                 'Ha ocurrido un error!')
+            return HttpResponseRedirect(reverse('proyectos'))
+
 
     def get_success_url(self):
         """
@@ -431,6 +463,11 @@ def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
             messages.add_message(request,messages.WARNING,
                                  'El sprint aun no inicio!'
                                  )
+            return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
+        if not sprint.es_dia_permitido():
+            #SI NO ES UN DIA HABIL NO SE PUEDE MOVER
+            messages.add_message(request, messages.WARNING,
+                                 'No se puede realizar esta operacion debido a que no es un dia habil de la semana!')
             return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
 
         cantidad_en_doing = user_story_sprint.asignee.userstorysprint_set.filter(estado_fase_sprint='DOING').exclude(id=user_story_sprint.id).count()
