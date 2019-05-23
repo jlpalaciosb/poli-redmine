@@ -12,6 +12,9 @@ from proyecto.models import Proyecto, Sprint, UserStorySprint, Actividad
 
 
 class ActividadBaseView(LoginRequiredMixin):
+    """
+    Carga el proyecto, sprint, usp y actividad para las vistas
+    """
     proyecto = None
     sprint = None
     usp = None
