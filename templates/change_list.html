@@ -96,7 +96,22 @@
                 "ajax": '{{ list_json }}',
                 language: {
                     url: "{% static 'libs/jquery/datatables/dist/localization/Spanish.json' %}"
-                }
+                },
+
+                {% if usp %}
+                    "drawCallback": function(settings) {
+                        $('.datatable td').each(function(index) {
+                            if(index % 3 === 0 && $(this).text().slice(-4) === '¡NT!') {
+                                $(this).text($(this).text().slice(0, -4));
+                                $(
+                                '<span class="label label-default" style="margin-left: 5px">' +
+                                    'no terminado en sprint anterior' +
+                                '</span>'
+                                ).appendTo($(this));
+                            }
+                        });
+                    },
+                {% endif %}
             });
 
             $('.datatable tbody').on('click', 'tr', function () {
