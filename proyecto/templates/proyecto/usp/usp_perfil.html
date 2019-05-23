@@ -56,9 +56,17 @@
                             </form>
                         {% endif %}
                     {% endif %}
+
                     <a href="{% url 'proyecto_sprint_tablero' usp.us.proyecto.id usp.sprint.id usp.us.flujo.id %}">
                         <button class="btn m-b-xs btn-default btn-addon ">
                             <i class="fa fa-table"></i> Tablero Kanban
+                        </button>
+                    </a>
+
+                    <a href="{% url 'proyecto_us_ver' usp.us.proyecto.id usp.us.id %}"
+                    alt="assdf">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-pencil"></i> Ver US
                         </button>
                     </a>
 

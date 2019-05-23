@@ -174,7 +174,7 @@ class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         us = context['object']
 
-        context['titulo'] = 'Ver US'
+        context['titulo'] = 'User Story'
 
         # Breadcrumbs
         context['breadcrumb'] = [
