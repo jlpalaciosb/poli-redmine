@@ -94,7 +94,7 @@ class Sprint(models.Model):
     """
     proyecto = models.ForeignKey(Proyecto)
     orden = models.PositiveIntegerField(validators=[validar_mayor_a_cero])
-    duracion = models.PositiveIntegerField(verbose_name='duración del sprint (en semanas)', validators=[validar_mayor_a_cero])
+    duracion = models.PositiveIntegerField(verbose_name='duración del sprint (en semanas)', validators=[validar_mayor_a_cero], default=1)
     cant_dias_habiles = models.PositiveIntegerField(verbose_name='Cantidad de dias habiles',help_text='La cantidad de dias habiles tomando al lunes como el dia inicial', default=6)
     fechaInicio = models.DateField(verbose_name='fecha de inicio', null=True)
     estado = models.CharField(choices=ESTADOS_SPRINT, default='PLANIFICADO', max_length=15)
