@@ -66,6 +66,8 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
         if us.estadoProyecto == 3 :#SI el estado del US a asignar es NO TERMINADO entonces se copia las fases y estados al User Story Sprint actual
             form.instance.fase_sprint = us.fase
             form.instance.estado_fase_sprint = us.estadoFase
+            if us.estadoFase == 'DOING':#SI SE QUEDO EN EL DOING ENTONCES VUELVE AL TO DO DE SU FASE ACTUAL
+                form.instance.estado_fase_sprint = 'TODO'
             # form.instance.prioridad_suprema = True
         us.estadoProyecto = 2
         us.save()
