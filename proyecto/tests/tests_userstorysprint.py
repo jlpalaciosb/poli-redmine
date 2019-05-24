@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 
-from proyecto.models import Proyecto, Cliente, MiembroProyecto, TipoUS, UserStory, UserStorySprint, Sprint
+from proyecto.models import Proyecto, Cliente, MiembroProyecto, TipoUS, UserStory, UserStorySprint, Sprint, Flujo, MiembroSprint
 
 EMAIL = 'email@email.com'
 PWD = '12345'
@@ -31,13 +31,17 @@ class UserStorySprintTestsBase(TestCase):
 
         p1 = Proyecto.objects.create(nombre='proyecto_1', cliente=ca, scrum_master=ua, estado='EN EJECUCION')
 
-        MiembroProyecto.objects.create(user=ub, proyecto=p1)
-        MiembroProyecto.objects.create(user=uc, proyecto=p1)
+        m1 = MiembroProyecto.objects.create(user=ub, proyecto=p1)
+        m2 = MiembroProyecto.objects.create(user=uc, proyecto=p1)
 
         t1 = TipoUS.objects.create(nombre='tipo_1', proyecto=p1)
-
+        f1= Flujo.objects.create(nombre='Flujo', proyecto=p1)
+        fase1=f1.fase_set.create(nombre='Fase 1')
         self.proyecto = p1
         self.sprint = Sprint.objects.create(proyecto=p1, duracion=p1.duracionSprint, estado='PLANIFICADO', orden=1)
+        self.user_Story = UserStory.objects.create(nombre='US2',descripcion='saddsa',criteriosAceptacion='saddsa',tipo=t1,proyecto=p1,tiempoPlanificado=1)
+        MiembroSprint.objects.create(miembro=m1, sprint=self.sprint, horasAsignadas=2)
+        MiembroSprint.objects.create(miembro=m2, sprint=self.sprint, horasAsignadas=2)
 
 
 class PermisosEsMiembroTest(UserStorySprintTestsBase):
@@ -100,22 +104,23 @@ class UserStorySprintCreateViewTest(UserStorySprintTestsBase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 403)
 
-    # def test_agregar_us(self):
-    #     print('Testing {} : si agregar el US correctamente'.format(self.vista))
-    # 
-    #     self.client.login(username='user_a', password=PWD)
-    # 
-    #     c = UserStory.objects.filter(nombre='us_test_2', proyecto__nombre='proyecto_1').count()
-    #     self.assertEqual(c, 0)
-    # 
-    #     response = self.client.post(self.url, data={
-    #         'nombre':'us_test_2', 'descripcion':'d', 'criteriosAceptacion':'ca',
-    #         'tipo':TipoUS.objects.get(nombre='tipo_1', proyecto__nombre='proyecto_1').id,
-    #         'prioridad':3, 'valorNegocio':3, 'valorTecnico':3, 'tiempoPlanificado':24,
-    #     })
-    # 
-    #     c = UserStory.objects.filter(nombre='us_test_2', proyecto__nombre='proyecto_1').count()
-    #     self.assertEqual(c, 1)
+    def test_agregar_us(self):
+        print('Testing {} : si agregar el US al sprint correctamente'.format(self.vista))
+
+        self.client.login(username='user_a', password=PWD)
+
+        c = UserStorySprint.objects.all().count()
+        self.assertEqual(c, 0)
+
+        response = self.client.post(self.url, data={
+            'us':1,
+            'flujo':1,
+            'asignee':1
+
+        })
+
+        c = UserStorySprint.objects.all().count()
+        self.assertEqual(c, 1)
 
 
 class UserStorySprintListViewTest(PermisosEsMiembroTest):
@@ -212,8 +217,13 @@ class UserStorySprintUpdateViewTest(UserStorySprintTestsBase):
         super().setUp()
         self.vista = 'UserStorySprintUpdateView'
 
-        self.url = reverse('sprint_us_editar', args=(self.proyecto.id, self.sprint.id, 1))
+
         ub = User.objects.get(username='user_b')
+
+        self.user_Story.flujo = Flujo.objects.first()
+        self.user_Story.save()
+        self.usp=UserStorySprint.objects.create(asignee=MiembroSprint.objects.first(),us=self.user_Story,sprint=self.sprint)
+        self.url = reverse('usp_change_assignee', args=(self.proyecto.id, self.sprint.id, self.usp.id))
         assign_perm('proyecto.administrar_sprint', ub, self.proyecto)
 
 
@@ -222,11 +232,11 @@ class UserStorySprintUpdateViewTest(UserStorySprintTestsBase):
 
         self.client.login(username='user_a', password=PWD)
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 404) # recordar que no tenemos el usp creado
+        self.assertEqual(response.status_code, 200) # recordar que no tenemos el usp creado
 
         self.client.login(username='user_b', password=PWD)
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 200)
 
     def test_sin_permiso_no_puede_ver(self):
         print('Testing {} : si no tiene permiso no puede ver'.format(self.vista))
@@ -239,15 +249,13 @@ class UserStorySprintUpdateViewTest(UserStorySprintTestsBase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 403)
 
-    # def test_editar_us(self):
-    #     print('Testing {} : si edita el US correctamente'.format(self.vista))
-    #
-    #     self.client.login(username='user_b', password=PWD)
-    #     self.assertEqual(self.us.nombre, 'us_test')
-    #     self.client.post(self.url, data={
-    #         'nombre': 'us_cambiado', 'descripcion': 'd', 'criteriosAceptacion': 'ca',
-    #         'tipo': TipoUS.objects.get(nombre='tipo_1', proyecto__nombre='proyecto_1').id,
-    #         'prioridad': 3, 'valorNegocio': 3, 'valorTecnico': 3, 'tiempoPlanificado': 24,
-    #     })
-    #     self.us.refresh_from_db()
-    #     self.assertEqual(self.us.nombre, 'us_cambiado')
+    def test_editar_us(self):
+        print('Testing {} : si edita el US sprint correctamente'.format(self.vista))
+
+        self.client.login(username='user_a', password=PWD)
+        self.assertEqual(self.usp.asignee.id, MiembroSprint.objects.first().id)
+        self.client.post(self.url, data={
+            'asignee':MiembroSprint.objects.last().id
+        })
+        self.usp.refresh_from_db()
+        self.assertEqual(self.usp.asignee.id, MiembroSprint.objects.last().id)

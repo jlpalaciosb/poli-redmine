@@ -101,10 +101,10 @@ def iniciar_sprint(request, proyecto_id, sprint_id):
         sprint.total_horas_planificadas = horas
         sprint.save()
         messages.add_message(request, messages.SUCCESS, 'Se inicio el sprint Nro '+str(sprint.orden))
-        return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
+        return HttpResponseRedirect(reverse('proyecto_sprint_administrar', args=(proyecto_id,sprint_id)))
     except:
         messages.add_message(request, messages.ERROR, 'Ha ocurrido un error!')
-        return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
+        return HttpResponseRedirect(reverse('proyecto_sprint_administrar', args=(proyecto_id,sprint_id)))
 
 
 class SprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView):
@@ -183,6 +183,14 @@ class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         context = super(SprintPerfilView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
+        uss_total = UserStorySprint.objects.filter(sprint=sprint).count()
+        uss_iniciados = uss_total - UserStorySprint.objects.filter(estado_fase_sprint='TODO', fase_sprint__orden=1, sprint=sprint).count()#CANTIDAD DE USER STORIES AUN SIN INICIAR
+        uss_revision = UserStorySprint.objects.filter(us__estadoProyecto=6, sprint=sprint).count()
+        uss_terminados = UserStorySprint.objects.filter(us__estadoProyecto=5, sprint=sprint).count()
+        context['uss_total'] = uss_total
+        context['uss_iniciados'] = uss_iniciados
+        context['uss_revision'] = uss_revision
+        context['uss_terminados'] = uss_terminados
         context['titulo'] = 'Administrar Sprint'
         context['titulo_form_editar'] = 'Datos del Sprint'
         context['titulo_form_editar_nombre'] = context[SprintPerfilView.context_object_name].orden

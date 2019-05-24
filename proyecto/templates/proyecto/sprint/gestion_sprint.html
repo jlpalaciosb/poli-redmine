@@ -110,4 +110,28 @@
               </div>
         </div>
     </div>
+
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            <div class="row">
+                <div class="col-xs-4">
+                <h3>Información acerca de los User Stories</h3>
+                </div>
+            </div>
+              <div class="row">
+                  <div class="col-xs-6">
+                    <strong>Cantidad total de user stories:</strong> {{ uss_total }}
+                  </div>
+                  <div class="col-xs-6">
+                    <strong>Cantidad de user stories ya iniciados:</strong> {{uss_iniciados }}
+                  </div>
+                  <div class="col-xs-6">
+                    <strong>Cantidad de user stories pendiente de revision:</strong> {{uss_revision }}
+                  </div>
+                  <div class="col-xs-6">
+                    <strong>Cantidad de user stories terminados:</strong> {{uss_terminados }}
+                  </div>
+              </div>
+        </div>
+    </div>
 {% endblock %}
