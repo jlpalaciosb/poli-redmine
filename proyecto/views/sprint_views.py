@@ -485,6 +485,12 @@ def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
 
             elif user_story_sprint.estado_fase_sprint == 'DOING':
                 user_story_sprint.estado_fase_sprint = 'DONE'
+                if not Actividad.objects.filter(fase=user_story_sprint.fase_sprint,usSprint=user_story_sprint).count()>0:#SI NO HAY NINGUN ACTIVIDAD REGISTRADA EN SU FASE. NO PUEDE LLEGAR AL DONE
+                    messages.add_message(request, messages.WARNING,
+                                         'Al menos debe cargar una actividad para avanzar al DONE'
+                                         )
+                    return HttpResponseRedirect(
+                        reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
 
                 if user_story_sprint.fase_sprint.orden == user_story_sprint.fase_sprint.flujo.cantidadFases:
                     notificar_revision(user_story_sprint)

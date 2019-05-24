@@ -437,7 +437,7 @@ class Actividad(models.Model):
     # este atributo
     responsable = models.ForeignKey(MiembroProyecto)
 
-    horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=0)
+    horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=1, validators=[validar_mayor_a_cero])
     fase = models.ForeignKey(Fase)
 
     archivoAdjunto = models.FileField(upload_to='archivos_adjuntos/', help_text='El archivo adjunto de la actividad', null=True, blank=True)
