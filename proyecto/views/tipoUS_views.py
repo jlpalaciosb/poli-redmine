@@ -358,6 +358,7 @@ class TipoUsEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoE
     def eliminable(self):
         """
         Si un tipo de us esta asociado con al menos un user story entonces no se puede eliminar.
+
         :return:
         """
         return not self.get_object().userstory_set.all()
@@ -380,6 +381,7 @@ class ImportarTipoUsListView(LoginRequiredMixin, PermisosPorProyectoMixin,Proyec
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -421,6 +423,7 @@ class ImportarTipoUsListJson(LoginRequiredMixin, PermisosPorProyectoMixin,Proyec
     def get_initial_queryset(self):
         """
         Se sobreescribe el metodo para que la lista sean todos los tipos de us de un proyecto en particular
+
         :return:
         """
         proyecto=Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -441,6 +444,7 @@ class ImportarTipoUSPerfilView(LoginRequiredMixin,  PermisosPorProyectoMixin,Pro
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -470,6 +474,7 @@ class ImportarTipoUSPerfilView(LoginRequiredMixin,  PermisosPorProyectoMixin,Pro
 def importar_tus(request, proyecto_id, tipous_id):
     """
     Vista para agregar un tipo de us a un proyecto dado un modelo de tipo de us incluido campos personalizados
+
     :param request:
     :param proyecto_id:
     :param tipous_id:
@@ -494,6 +499,14 @@ def importar_tus(request, proyecto_id, tipous_id):
 
 
 def getTUS(request, proyecto_id, tipous_id):
+    """
+    Vista para devolver los campos personalizados de un tipo de user story dado en formato JSON
+
+    :param request:
+    :param proyecto_id:
+    :param tipous_id:
+    :return:
+    """
     tus = TipoUS.objects.get(pk=tipous_id)
     tusDic = {}
     for cp in tus.campopersonalizado_set.all():

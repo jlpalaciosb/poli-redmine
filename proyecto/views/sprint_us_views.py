@@ -27,6 +27,7 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
     def get_success_url(self):
         """
         El sitio donde se redirige al crear correctamente
+
         :return:
         """
         return reverse('sprint_us_list', kwargs=self.kwargs)
@@ -34,6 +35,7 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de creacion
+
         :return:
         """
         kwargs = super().get_form_kwargs()
@@ -47,6 +49,7 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
     def form_valid(self, form):
         """
         Se cambia las fases y estados del user story sprint al valor inicial o en caso de ser uno que continua al valor dejado en el sprint anterior
+
         :param form:
         :return:
         """
@@ -91,6 +94,7 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -130,6 +134,7 @@ class UserStorySprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -176,6 +181,7 @@ class UserStorySprintListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, Ba
     def get_initial_queryset(self):
         """
         Se obtiene una lista de los elementos correspondientes
+
         :return:
         """
         filtro = self.request.GET.get('filtro', '*')
@@ -190,6 +196,7 @@ class UserStorySprintListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, Ba
 
     def render_column(self, usp, column):
         """
+
         :type usp: UserStorySprint
         """
         if column == 'us.nombre' and usp.sprint.estado != 'CERRADO':
@@ -216,6 +223,7 @@ class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -274,6 +282,7 @@ class UserStorySprintChangeAssigneeView(SuccessMessageMixin, LoginRequiredMixin,
     def get_success_url(self):
         """
         El sitio donde se redirige al cargar correctamente
+
         :return:
         """
         pid = self.kwargs['proyecto_id']
@@ -284,6 +293,7 @@ class UserStorySprintChangeAssigneeView(SuccessMessageMixin, LoginRequiredMixin,
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de creacion
+
         :return:
         """
         kwargs = super().get_form_kwargs()
@@ -297,6 +307,7 @@ class UserStorySprintChangeAssigneeView(SuccessMessageMixin, LoginRequiredMixin,
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -332,6 +343,7 @@ class UserStorySprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, De
     def get_success_url(self):
         """
         El sitio donde se redirige al eliminar correctamente
+
         :return:
         """
         return reverse('sprint_us_list', args=(self.kwargs['proyecto_id'], self.kwargs['sprint_id']))
@@ -339,6 +351,7 @@ class UserStorySprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, De
     def delete(self, request, *args, **kwargs):
         """
         Para eliminar se comprueba cual sera su estado de proyecto pudiendo ser PENDIENTE o NO TERMINADO
+
         :param request:
         :param args:
         :param kwargs:
@@ -367,6 +380,7 @@ class UserStorySprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, De
 def aprobar_user_story(request, proyecto_id, sprint_id, usp_id):
     """
     Vista para culminar definitavemente un user story. Es decir colocarle el estado terminado
+
     :param request:
     :param proyecto_id: el id del proyecto
     :param sprint_id: el id del sprint

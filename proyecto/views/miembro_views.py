@@ -40,6 +40,7 @@ class MiembroProyectoCreateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
     def get_success_url(self):
         """
         El sitio donde se redirige al agregar correctamente
+
         :return:
         """
         return reverse('proyecto_miembro_list',kwargs=self.kwargs)
@@ -47,6 +48,7 @@ class MiembroProyectoCreateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de creacion
+
         :return:
         """
         kwargs = super(MiembroProyectoCreateView, self).get_form_kwargs()
@@ -59,6 +61,7 @@ class MiembroProyectoCreateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -80,6 +83,12 @@ class MiembroProyectoCreateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
         return context
 
     def form_valid(self, form):
+        """
+        Se le notifica al momento de agregarle
+
+        :param form:
+        :return:
+        """
         miembro = form.instance
         notificar_nuevo_miembro(miembro)
         messages.add_message(self.request, messages.INFO, 'Se notificó al nuevo miembro')
@@ -96,6 +105,7 @@ class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -146,6 +156,7 @@ class MiembroProyectoListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, Ba
     def get_initial_queryset(self):
         """
         Se obtiene una lista de los elementos correspondientes
+
         :return:
         """
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -154,6 +165,7 @@ class MiembroProyectoListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, Ba
     def filter_queryset(self, qs):
         """
         Se obtiene los elementos de la busqueda ya que son de las entidades relacionadas
+
         :param qs:
         :return:
         """
@@ -177,6 +189,7 @@ class MiembroProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -229,6 +242,7 @@ class MiembroProyectoUpdateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
     def get_success_url(self):
         """
         El sitio donde se redirige al editar correctamente
+
         :return:
         """
         pid = self.kwargs['proyecto_id']
@@ -238,6 +252,7 @@ class MiembroProyectoUpdateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de edicion
+
         :return:
         """
         kwargs = super().get_form_kwargs()
@@ -250,6 +265,7 @@ class MiembroProyectoUpdateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -303,6 +319,7 @@ class MiembroProyectoDeleteView(PermisosPorProyectoMixin, DeleteView):
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -341,6 +358,7 @@ class MiembroProyectoDeleteView(PermisosPorProyectoMixin, DeleteView):
         - Si no es Scrum MAster
         - Si no esta vinculado con algun sprint
         - SI no es el mismo usuario
+
         :return:
         """
         if self.miembro.roles.filter(nombre='Scrum Master').count() == 1:
@@ -355,6 +373,7 @@ class MiembroProyectoDeleteView(PermisosPorProyectoMixin, DeleteView):
     def get_success_url(self):
         """
         El sitio donde se redirige al eliminar correctamente
+
         :return:
         """
         return reverse('proyecto_miembro_list', args=(self.proyecto.id,))

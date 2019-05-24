@@ -47,6 +47,7 @@ class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
     def has_permission(self):
         """
         Se controla que el permiso sea de acuerdo al encargado del user story
+
         :return:
         """
         parcial = self.usp.asignee.miembro.user == self.request.user
@@ -68,6 +69,7 @@ class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
     def handle_no_permission(self):
         """
         En caso de que no tenga permiso se tira 403.
+
         :return:
         """
         if self.redirect:
@@ -87,6 +89,7 @@ class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
     def get_success_url(self):
         """
         El sitio donde se redirige al crear correctamente
+
         :return:
         """
         return reverse('actividad_list', kwargs=self.kwargs)
@@ -94,6 +97,7 @@ class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de creacion
+
         :return:
         """
         kwargs = super().get_form_kwargs()
@@ -106,6 +110,7 @@ class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -135,6 +140,7 @@ class ActividadListView(ActividadBaseView, PermisosEsMiembroMixin, TemplateView)
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -182,6 +188,7 @@ class ActividadListJsonView(ActividadBaseView, PermisosEsMiembroMixin, BaseDatat
     def get_initial_queryset(self):
         """
         Se obtiene una lista de los elementos correspondientes
+
         :return:
         """
         return Actividad.objects.filter(usSprint__us=self.usp.us, usSprint__sprint__orden__lte=self.usp.sprint.orden)
@@ -215,6 +222,7 @@ class ActividadPerfilView(ActividadBaseView, PermisosEsMiembroMixin, DetailView)
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -297,6 +305,7 @@ class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
     def get_success_url(self):
         """
         El sitio donde se redirige al editar correctamente
+
         :return:
         """
         return reverse('actividad_ver', args=(self.proyecto.id, self.sprint.id, self.usp.id, self.actividad.id))
@@ -304,6 +313,7 @@ class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de edicion
+
         :return:
         """
         kwargs = super().get_form_kwargs()
@@ -316,6 +326,7 @@ class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """

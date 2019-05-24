@@ -32,6 +32,7 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     def get_success_url(self):
         """
         El sitio donde se redirige al crear correctamente
+
         :return:
         """
         return reverse('proyecto_us_list', kwargs=self.kwargs)
@@ -39,6 +40,7 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de creacion
+
         :return:
         """
         kwargs = super().get_form_kwargs()
@@ -52,6 +54,7 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -89,6 +92,7 @@ class USListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -133,6 +137,7 @@ class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
     def get_initial_queryset(self):
         """
         Se obtiene una lista de los elementos correspondientes
+
         :return:
         """
         iqs = Proyecto.objects.get(pk=self.kwargs['proyecto_id']).userstory_set.all()
@@ -170,6 +175,7 @@ class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -216,6 +222,7 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     def get_success_url(self):
         """
         El sitio donde se redirige al modificar correctamente
+
         :return:
         """
         pid = self.kwargs['proyecto_id']
@@ -225,6 +232,7 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de edicion
+
         :return:
         """
         kwargs = super().get_form_kwargs()
@@ -238,6 +246,7 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -301,6 +310,7 @@ class USCancelarView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyect
         def get_success_url(self):
             """
             El sitio donde se redirige al cancelar correctamente
+
             :return:
             """
             return reverse('proyecto_us_ver', args=(self.proyecto.id, self.us.id))
@@ -308,6 +318,7 @@ class USCancelarView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyect
         def get_context_data(self, **kwargs):
             """
             Las variables de contexto del template
+
             :param kwargs:
             :return:
             """

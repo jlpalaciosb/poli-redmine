@@ -222,7 +222,9 @@ class ClienteDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
 
 
 class ReporteClientePDF(View):
-
+    """
+    Vista que construye un pdf
+    """
     def cabecera(self, pdf):
         # Utilizamos el archivo logo_django.png que está guardado en la carpeta media/imagenes
         archivo_imagen = settings.STATICFILES_DIRS[0] + '/img/logo.png'

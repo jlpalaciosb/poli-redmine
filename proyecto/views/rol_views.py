@@ -105,6 +105,7 @@ class RolProyectoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de creacion
+
         :return:
         """
         kwargs = super(RolProyectoCreateView, self).get_form_kwargs()
@@ -117,6 +118,7 @@ class RolProyectoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -138,6 +140,7 @@ class RolProyectoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
     def form_valid(self, form):
         """
         Se actualiza el nombre del group asociado para que no genere conflictos de unicidad
+
         :param form:
         :return:
         """
@@ -164,6 +167,7 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
     def check_permissions(self, request):
         """
         Se sobreescribe el metodo para evitar que los roles que sean por defecto no puedan ser editados
+
         :param request:
         :return:
         """
@@ -187,6 +191,7 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
     def get_success_url(self):
         """
         El sitio donde se redirige al editar correctamente
+
         :return:
         """
         return reverse('proyecto_rol_list', args=(self.kwargs['proyecto_id'],))
@@ -194,6 +199,7 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de edicion
+
         :return:
         """
         kwargs = super(RolProyectoUpdateView, self).get_form_kwargs()
@@ -206,6 +212,7 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -229,6 +236,7 @@ class RolProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
     def form_valid(self, form):
         """
         Se actualiza el nombre del group asociado para que no genere conflictos de unicidad
+
         :param form:
         :return:
         """
@@ -257,6 +265,7 @@ class RolPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -297,6 +306,7 @@ class RolEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessa
     def get_success_url(self):
         """
         El sitio donde se redirige al eliminar correctamente
+
         :return:
         """
         return reverse('proyecto_rol_list', args=(self.kwargs['proyecto_id'],))
@@ -304,6 +314,7 @@ class RolEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessa
     def check_permissions(self, request):
         """
         Se sobreescribe el metodo para evitar que los roles que sean por defecto no puedan ser eliminados
+
         :param request:
         :return:
         """
@@ -329,6 +340,7 @@ class RolEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessa
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -348,6 +360,7 @@ class RolEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMessa
     def eliminable(self):
         """
         Si un rol de proyecto esta asociado con un miembro de algun proyecto entonces no se puede eliminar.
+
         :return:
         """
         return not self.get_object().miembroproyecto_set.all()

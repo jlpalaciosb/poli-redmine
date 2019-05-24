@@ -39,6 +39,7 @@ class SprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -121,6 +122,7 @@ class SprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
     def get_initial_queryset(self):
         """
         Se sobreescribe el metodo para que la lista sean todos los sprints de un proyecto en particular
+
         :return:
         """
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -138,6 +140,7 @@ def crear_sprint(request, proyecto_id):
     Vista para crear un sprint en caso de que se cumpla que a lo sumo exista un sprint planificado en el proyecto.
     El sprint a crear tendra la duracion que tiene el proyecto
     Se redirecciona a la lista de sprint
+
     :param request:
     :param proyecto_id: El id del proyecto
     :return:
@@ -173,6 +176,7 @@ class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -253,6 +257,7 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Spri
     def get_success_url(self):
         """
         El sitio donde se redirige al actualizar correctamente
+
         :return:
         """
         return reverse('proyecto_sprint_administrar', kwargs=self.kwargs)
@@ -260,6 +265,7 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Spri
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de edicion
+
         :return:
         """
         kwargs = super(SprintCambiarEstadoView, self).get_form_kwargs()
@@ -271,6 +277,7 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Spri
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -321,6 +328,7 @@ class FlujoSprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatata
     def get_initial_queryset(self):
         """
         Se obtiene una lista de los elementos correspondientes
+
         :return:
         """
         try:
@@ -343,6 +351,7 @@ class FlujoSprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateVi
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -391,6 +400,7 @@ class TableroKanbanView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -426,6 +436,7 @@ class TableroKanbanView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
 def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
     """
     Vista para mover un user story a un estado. Recibe como parametro de GET, movimiento que puede tener valor 1 o -1.Que signfica avanzar o retroceder respectivamente
+
     :param request:
     :param proyecto_id: El id del proyecto
     :return:
@@ -543,6 +554,7 @@ class SprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView)
     def get_success_url(self):
         """
         El sitio donde se redirige al eliminar correctamente
+
         :return:
         """
         return reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))
@@ -570,6 +582,7 @@ class SprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView)
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -609,6 +622,7 @@ class BurdownChartSprintView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailV
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """

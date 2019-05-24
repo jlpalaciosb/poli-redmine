@@ -181,6 +181,7 @@ class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
     def get_success_url(self):
         """
         El sitio donde se redirige al crear correctamente
+
         :return:
         """
         return reverse('proyectos')
@@ -188,6 +189,7 @@ class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de creacion
+
         :return:
         """
         kwargs = super(ProyectoCreateView, self).get_form_kwargs()
@@ -199,6 +201,7 @@ class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -242,6 +245,7 @@ class ProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMe
     def get_success_url(self):
         """
         El sitio donde se redirige al editar correctamente
+
         :return:
         """
         return reverse('perfil_proyecto', kwargs=self.kwargs)
@@ -249,6 +253,7 @@ class ProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMe
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de edicion
+
         :return:
         """
         kwargs = super(ProyectoUpdateView, self).get_form_kwargs()
@@ -260,6 +265,7 @@ class ProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMe
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -294,6 +300,7 @@ class ProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView)
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -346,6 +353,7 @@ class ProyectoCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Up
     def get_success_url(self):
         """
         El sitio donde se redirige al cambiar correctamente
+
         :return:
         """
         return reverse('perfil_proyecto', args=(self.proyecto.id,))
@@ -353,6 +361,7 @@ class ProyectoCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Up
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
@@ -372,6 +381,7 @@ class ProyectoCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Up
     def get_form_kwargs(self):
         """
         Las variables que maneja el form de edicion
+
         :return:
         """
         kwargs = super().get_form_kwargs()
@@ -381,6 +391,7 @@ class ProyectoCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Up
     def form_valid(self, form):
         """
         Se controla la coherencia de los cambios de estado de un proyecto.
+
         :param form:
         :return:
         """
@@ -416,6 +427,7 @@ class BurdownChartProyectoView(LoginRequiredMixin, PermisosEsMiembroMixin, Detai
     def get_context_data(self, **kwargs):
         """
         Las variables de contexto del template
+
         :param kwargs:
         :return:
         """
