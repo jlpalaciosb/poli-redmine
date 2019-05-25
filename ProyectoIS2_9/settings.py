@@ -168,3 +168,4 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'poliredmine@gmail.com'
 EMAIL_HOST_PASSWORD = 'equipo9is2'
+DEFAULT_FILE_STORAGE = 'db_file_storage.storage.DatabaseFileStorage'

@@ -2,6 +2,7 @@ from django.contrib.auth.models import User, Group
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
+from db_file_storage.model_utils import delete_file, delete_file_if_needed
 import datetime
 import numpy
 from django.core.validators import  MaxValueValidator
@@ -440,7 +441,7 @@ class Actividad(models.Model):
     horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=1, validators=[validar_mayor_a_cero])
     fase = models.ForeignKey(Fase)
 
-    archivoAdjunto = models.FileField(upload_to='archivos_adjuntos/', help_text='El archivo adjunto de la actividad', null=True, blank=True)
+    archivoAdjunto = models.FileField(upload_to='proyecto.ArchivosActividad/bytes/filename/mimetype', help_text='El archivo adjunto de la actividad', null=True, blank=True)
 
     # especifica en que estado estaba el US cuando la actividad fue agregada
     estado = models.CharField(choices=ESTADOS_US_FASE, default='DOING', max_length=10)
@@ -465,9 +466,14 @@ class Actividad(models.Model):
                                                  diasHabiles) + 1
         else:
             anterior = Actividad.objects.get(pk=self.id).horasTrabajadas
+        delete_file_if_needed(self, 'archivoAdjunto')
         super(Actividad, self).save(*args, **kwargs)
 
         self.acumular_horas_user_story(anterior)
+
+    def delete(self, *args, **kwargs):
+        super(Actividad, self).delete(*args, **kwargs)
+        delete_file(self, 'archivoAdjunto')
 
     def acumular_horas_user_story(self, anterior):
         """
@@ -483,3 +489,9 @@ class Actividad(models.Model):
                 us.tiempoEjecutado = us.tiempoEjecutado - anterior# EN CASO DE QUE SE MODIFIQUE. SE DESCARTA LAS HORAS ANTERIORES
                 us.tiempoEjecutado = us.tiempoEjecutado + self.horasTrabajadas
                 us.save()
+
+
+class ArchivosActividad(models.Model):
+    bytes = models.TextField()
+    filename = models.CharField(max_length=255)
+    mimetype = models.CharField(max_length=50)

@@ -19,7 +19,10 @@
                   <p>
                       <strong>Estado:</strong>   {{ sprint.get_estado_display |default_if_none:"" }}<br>
                       <strong>Duración:</strong>   {{ sprint.duracion|default_if_none:"" }} semanas<br>
-                      <strong>Capacidad:</strong>   {{ sprint.capacidad|default_if_none:"" }} horas<br>
+                      <strong>Capacidad Total:</strong>   {{ sprint.capacidad|default_if_none:"" }} horas<br>
+                      {% if not sprint.estado == 'PLANIFICADO' %}
+                          <strong>Total de horas a trabajar :</strong>   {{ sprint.total_horas_planificadas }} horas<br>
+                      {% endif %}
                       {% if sprint.estado == 'CERRADO' %}
                           <strong>Justificación :</strong>   {{ sprint.justificacion|default:"" }}<br>
                       {% endif %}

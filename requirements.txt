@@ -16,3 +16,4 @@ reportlab
 docutils
 numpy
 Sphinx
+django-db-file-storage
