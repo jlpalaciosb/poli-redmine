@@ -12,4 +12,8 @@ psycopg2-binary==2.7.5
 pytz==2018.5
 six==1.11.0
 django-guardian
+reportlab
 docutils
+numpy
+Sphinx
+django-db-file-storage

@@ -10,7 +10,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
     flujo = forms.ModelChoiceField(
         queryset=Flujo.objects.all(),
         required=False,
-        help_text='Seleccione el flujo que seguirá el US. Se ignorará si el US seleccionado ya está en algún flujo',
+        help_text='seleccione el flujo que seguirá el US',
     )
 
     class Meta:
@@ -34,7 +34,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
 
         self.fields['us'].label_from_instance = lambda us :\
             '{} (Priorización = {:.2f}) (Estado General = {}) (Trabajo Restante = {:.2f} horas)'.\
-                format(us.nombre, us.priorizacion, us.get_estadoProyecto_display(), us.tiempoPlanificado - us.tiempoEjecutado)
+                format(us.nombre, us.get_priorizacion(), us.get_estadoProyecto_display(), us.tiempoPlanificado - us.tiempoEjecutado)
 
         if self.instance.id is None:
             self.instance.sprint = self.sprint
@@ -63,7 +63,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
         return flujo
 
 
-class UserStorySprintEditarForm(forms.ModelForm):
+class UserStorySprintChangeAssigneeForm(forms.ModelForm):
     class Meta:
         model = UserStorySprint
         fields = ['asignee']

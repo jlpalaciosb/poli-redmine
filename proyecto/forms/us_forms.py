@@ -10,8 +10,7 @@ from proyecto.models import Proyecto, UserStory, TipoUS
 class USForm(ModelForm):
     class Meta:
         model = UserStory
-        fields = ['nombre', 'descripcion', 'criteriosAceptacion',
-                  'tipo', # que pasa cuando se esta editando (puede que ya tenga valores para los campos personalizados)
+        fields = ['nombre', 'descripcion', 'criteriosAceptacion', 'tipo', 'valoresCPs',
                   'prioridad', 'valorNegocio', 'valorTecnico', 'tiempoPlanificado']
 
     def __init__(self, *args, **kwargs):
@@ -30,16 +29,18 @@ class USForm(ModelForm):
         )
 
         layout = [
-            'nombre', 'descripcion', 'criteriosAceptacion', 'tipo', 'prioridad',
-            'valorNegocio', 'valorTecnico', 'tiempoPlanificado',
+            'nombre', 'descripcion', 'criteriosAceptacion', 'tipo', 'valoresCPs',
+            'prioridad', 'valorNegocio', 'valorTecnico', 'tiempoPlanificado',
             FormActions(
                 Submit('guardar', 'Guardar'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
             ),
         ]
 
-        # SI EL USER STORY A MODIFICAR ESTA EN UN SPRINT ENTONCES NO SE MUESTRA EL CAMPO DE TIEMPO PLANIFICADO, NI LOS VALORES DE PRIORIZACION
-        if self.instance is not None and self.instance.id is not None and self.instance.estadoProyecto == 2:
+        # SI EL USER STORY A MODIFICAR ESTA EN UN SPRINT EN EJECUCIÓN ENTONCES NO SE MUESTRA EL CAMPO
+        # DE TIEMPO PLANIFICADO, NI LOS VALORES DE PRIORIZACION
+        if self.instance is not None and self.instance.id is not None and \
+           self.instance.userstorysprint_set.filter(sprint__estado='EN_EJECUCION').count() > 0:
             del self.fields['tiempoPlanificado']
             del self.fields['prioridad']
             del self.fields['valorNegocio']

@@ -2,8 +2,10 @@ from django.contrib.auth.models import User, Group
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
+from db_file_storage.model_utils import delete_file, delete_file_if_needed
 import datetime
-from django.core.validators import MinValueValidator
+import numpy
+from django.core.validators import  MaxValueValidator
 def validar_mayor_a_cero(value):
     if value == 0:
         raise ValidationError(
@@ -50,8 +52,8 @@ class Proyecto(models.Model):
     cliente = models.ForeignKey(Cliente)
     fechaInicioEstimada = models.DateField(verbose_name='inicio', help_text='fecha de inicio estimada', null=True, blank=True)
     fechaFinEstimada = models.DateField(verbose_name='finalización', help_text='fecha de finalización estimada', null=True, blank=True)
-    duracionSprint = models.PositiveIntegerField(verbose_name='duración del sprint', help_text='duración estimada para los sprints (en semanas)', default=4, validators=[validar_mayor_a_cero])
-    diasHabiles = models.PositiveIntegerField(verbose_name='días hábiles', help_text='cantidad de días hábiles en la semana', default=5, validators=[validar_mayor_a_cero])
+    duracionSprint = models.PositiveIntegerField(verbose_name='duración del sprint', help_text='duración estimada para los sprints (en semanas)', default=1, validators=[validar_mayor_a_cero])
+    diasHabiles = models.PositiveIntegerField(verbose_name='días hábiles', help_text='cantidad de días hábiles en la semana', default=6, validators=[validar_mayor_a_cero,MaxValueValidator(limit_value=7)])
     estado = models.CharField(choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
     justificacion = models.TextField(verbose_name='justificación', null=True, blank=True, default="", max_length=500)
     scrum_master = models.ForeignKey(User, verbose_name='scrum master')
@@ -93,7 +95,8 @@ class Sprint(models.Model):
     """
     proyecto = models.ForeignKey(Proyecto)
     orden = models.PositiveIntegerField(validators=[validar_mayor_a_cero])
-    duracion = models.PositiveIntegerField(verbose_name='duración del sprint (en semanas)', validators=[validar_mayor_a_cero])
+    duracion = models.PositiveIntegerField(verbose_name='duración del sprint (en semanas)', validators=[validar_mayor_a_cero], default=1)
+    cant_dias_habiles = models.PositiveIntegerField(verbose_name='Cantidad de dias habiles',help_text='La cantidad de dias habiles tomando al lunes como el dia inicial', default=6)
     fechaInicio = models.DateField(verbose_name='fecha de inicio', null=True)
     estado = models.CharField(choices=ESTADOS_SPRINT, default='PLANIFICADO', max_length=15)
     justificacion= models.CharField(verbose_name='Justificacion', null=True,blank=True,default="",max_length=300)
@@ -102,6 +105,7 @@ class Sprint(models.Model):
         help_text='Este valor nos dice cuántas horas de trabajo disponible hay en el sprint'
     )
     fecha_fin = models.DateField(verbose_name='fecha de finalizacion', null=True, help_text='La fecha en la que finaliza un sprint')
+    total_horas_planificadas = models.PositiveIntegerField(default=0, help_text='El total de las horas planificadas de todos los user stories en un sprint')
 
     class Meta:
         default_permissions =  ()
@@ -136,16 +140,31 @@ class Sprint(models.Model):
             for user_story_sprint in self.userstorysprint_set.all():
                 if user_story_sprint.us.estadoProyecto != 5:#Entonces todos los user stories que no este terminados se les coloca el estado no terminado
                     user_story_sprint.us.estadoProyecto = 3 # Se coloca en el estado de No Terminado
+                    user_story_sprint.us.prioridad_suprema += 1 # incrementar la prioridad suprema
                     user_story_sprint.us.save()
 
     def tiempo_restante(self):
         """
-        Metodo para calcular el tiempo restante del sprint si es que esta en ejecucion. Se tiene en cuenta todos los dias de la semana
+        Metodo para calcular el tiempo restante del sprint si es que esta en ejecucion. Se tiene en cuenta los dias habiles
         :return: La cantidad en dias del tiempo restante o None si no es posible hallar
         """
         if self.estado == 'EN_EJECUCION' and self.fechaInicio is not None:
-            return self.duracion * 7 - (datetime.date.today() - self.fechaInicio).days
+            diasHabiles = numpy.zeros(7, dtype=int)
+            for i in range(0,self.cant_dias_habiles):
+                diasHabiles[i] = 1
+            restante = (self.cant_dias_habiles * self.duracion) - numpy.busday_count(self.fechaInicio, datetime.date.today(), diasHabiles)
+            return restante
         return None
+
+    def es_dia_permitido(self):
+        """
+        Metodo que verifica si el dia actual es un dia habil
+        :return: Verdadero si el dia actual es habil falso de lo contrario
+        """
+        today = datetime.date.today().weekday() #EMPIEZA DESDE LUNES. VA DESDE 0 A 6
+        bussy = self.cant_dias_habiles - 1 #EMPIEZA DESDE LUNES. VA DESDE 1 A 7.
+        return bussy >= today
+
 
 
 class Flujo(models.Model):
@@ -217,7 +236,7 @@ ESTADOS_US_PROYECTO = (
     (3, 'No Terminado'), # estado cuando el us fue parte del sprint anterior pero no se termino
     (4, 'Cancelado'),
     (5, 'Terminado'),
-    (6, 'En Revision')
+    (6, 'En Revisión')
 )
 PRIORIDADES_US = (
     (1, 'Muy Bajo'),
@@ -226,7 +245,7 @@ PRIORIDADES_US = (
     (4, 'Alto'),
     (5, 'Muy Alto'),
 )
-def default_vals(): return {'c1': 'v1', 'c2': 2}
+def default_vals(): return {}
 class UserStory(models.Model):
     """
     La clase UserStory representa a un User Story de un proyecto específico
@@ -239,7 +258,7 @@ class UserStory(models.Model):
     )
 
     tipo = models.ForeignKey(TipoUS)
-    valoresCPs = JSONField(default=default_vals) # Será un diccionario donde la clave de los items es el nombre del campo pers. y el valor es el valor del campo pers.
+    valoresCPs = JSONField(default=default_vals, blank=True) # Será un diccionario donde la clave de los items es el nombre del campo pers. y el valor es el valor del campo pers.
 
     proyecto = models.ForeignKey(Proyecto)
     estadoProyecto = models.IntegerField(
@@ -257,6 +276,7 @@ class UserStory(models.Model):
     valorNegocio = models.PositiveIntegerField(verbose_name='valor de negocio', choices=PRIORIDADES_US, default=3)
     valorTecnico = models.PositiveIntegerField(verbose_name='valor técnico', choices=PRIORIDADES_US, default=3)
     priorizacion = models.FloatField(default=1)
+    prioridad_suprema = models.PositiveIntegerField(default=0, help_text='Campo que determina si un user story no culmino en un sprint anterior')
 
     tiempoPlanificado = models.PositiveIntegerField(
         verbose_name='tiempo planificado (en horas)',
@@ -275,7 +295,8 @@ class UserStory(models.Model):
         return self.nombre
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        self.priorizacion = (4 * self.prioridad + self.valorTecnico + self.valorNegocio) / 6
+        self.priorizacion = (4 * self.prioridad + self.valorTecnico + self.valorNegocio) / 6 + \
+                            self.prioridad_suprema * 5
         self.pasar_a_revision()
         super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
@@ -290,10 +311,11 @@ class UserStory(models.Model):
         :return:
         """
         if self.estadoProyecto == 3:
-            return not self.tiempoPlanificado>self.tiempoEjecutado
+            return not self.tiempoPlanificado > self.tiempoEjecutado
         return False
 
-
+    def get_priorizacion(self):
+        return self.priorizacion
 
 class RolProyecto(Group):
     """
@@ -368,7 +390,6 @@ class UserStorySprint(models.Model):
     us = models.ForeignKey(UserStory, verbose_name='User Story')
     sprint = models.ForeignKey(Sprint)
     asignee = models.ForeignKey(MiembroSprint, null=True, verbose_name='Encargado')
-
     fase_sprint = models.ForeignKey(Fase, verbose_name='fase en la que se encuentra el US', null=True, help_text='Fase en la que se encuentra un user story en un sprint')
 
     estado_fase_sprint = models.CharField(
@@ -417,10 +438,10 @@ class Actividad(models.Model):
     # este atributo
     responsable = models.ForeignKey(MiembroProyecto)
 
-    horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=0)
+    horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=1, validators=[validar_mayor_a_cero])
     fase = models.ForeignKey(Fase)
 
-    archivoAdjunto = models.FileField(upload_to='archivos_adjuntos/', help_text='El archivo adjunto de la actividad', null=True, blank=True)
+    archivoAdjunto = models.FileField(upload_to='proyecto.ArchivosActividad/bytes/filename/mimetype', help_text='El archivo adjunto de la actividad', null=True, blank=True)
 
     # especifica en que estado estaba el US cuando la actividad fue agregada
     estado = models.CharField(choices=ESTADOS_US_FASE, default='DOING', max_length=10)
@@ -428,18 +449,31 @@ class Actividad(models.Model):
     # especifica la fecha y hora en la que se agregó la actividad
     fechaHora = models.DateTimeField(verbose_name='fecha y hora de registro', auto_now=True, null=False)
 
+    dia_sprint = models.PositiveIntegerField(help_text='La cantidad de dias que pasaron desde que inicio el sprint hasta que se cargo esta actividad', null=True)
+
     class Meta:
         default_permissions = ()
 
     def save(self, *args, **kwargs):
         if self.id is None:
             anterior = 0
+            # EL PRIMER DIA DEL SPRINT EMPIEZA DESDE 1
+            diasHabiles = numpy.zeros(7,
+                                      dtype=int)  # UN VECTOR NUMERICO DE SIETE ELEMENTOS. DONDE CADA POSICION REPRESENTA UN DIA DE LA SEMANA. EL VALOR DE CADA ELEMENTO ES UNO SI ES DIA LABORAL Y CERO SI NO LO ES
+            for i in range(0, self.usSprint.sprint.cant_dias_habiles):
+                diasHabiles[i] = 1
+            self.dia_sprint = numpy.busday_count(self.usSprint.sprint.fechaInicio, datetime.date.today(),
+                                                 diasHabiles) + 1
         else:
             anterior = Actividad.objects.get(pk=self.id).horasTrabajadas
-
+        delete_file_if_needed(self, 'archivoAdjunto')
         super(Actividad, self).save(*args, **kwargs)
 
         self.acumular_horas_user_story(anterior)
+
+    def delete(self, *args, **kwargs):
+        super(Actividad, self).delete(*args, **kwargs)
+        delete_file(self, 'archivoAdjunto')
 
     def acumular_horas_user_story(self, anterior):
         """
@@ -448,8 +482,16 @@ class Actividad(models.Model):
         :return:
         """
         if self.usSprint is not None and self.usSprint.us is not None:
+            #Actividad.objects.filter(usSprint__sprint_id=1).values('dia_sprint').annotate(cantidad=models.Count('dia_sprint'),total_por_dia=models.Sum('horasTrabajadas'))
+            #Actividad.objects.filter(usSprint__sprint__proyecto_id=1).values('usSprint__sprint__orden').annotate(cantidad=models.Count('usSprint__sprint__orden'),total_por_dia=models.Sum('horasTrabajadas'))
             us = self.usSprint.us
             if us.tiempoEjecutado >= 0 and self.horasTrabajadas>=0:
                 us.tiempoEjecutado = us.tiempoEjecutado - anterior# EN CASO DE QUE SE MODIFIQUE. SE DESCARTA LAS HORAS ANTERIORES
                 us.tiempoEjecutado = us.tiempoEjecutado + self.horasTrabajadas
                 us.save()
+
+
+class ArchivosActividad(models.Model):
+    bytes = models.TextField()
+    filename = models.CharField(max_length=255)
+    mimetype = models.CharField(max_length=50)

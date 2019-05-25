@@ -31,8 +31,8 @@
                     <br>
                     <strong>Archivo adjunto:</strong>
                     {% if actividad.archivoAdjunto %}
-                        <a href="{{ actividad.archivoAdjunto.url }}" style="text-decoration: underline">
-                            {{ actividad.archivoAdjunto.name }}
+                        <a href="{% url "db_file_storage.download_file" %}?name={{ actividad.archivoAdjunto }}" style="text-decoration: underline">
+                            {{ actividad.archivoAdjunto.file.filename }}
                         </a>
                     {% else %}
                         <i>Sin archivo adjunto</i>

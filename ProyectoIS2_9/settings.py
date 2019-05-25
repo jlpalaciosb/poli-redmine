@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.admindocs',
     'roles_sistema',
     'usuario',
-    'cliente',
+    'cliente'
 
 ]
 
@@ -162,3 +162,10 @@ CRONJOBS = [
 
     # Para agregar al contrab: python manage.py crontab add
 ]
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'poliredmine@gmail.com'
+EMAIL_HOST_PASSWORD = 'equipo9is2'
+DEFAULT_FILE_STORAGE = 'db_file_storage.storage.DatabaseFileStorage'

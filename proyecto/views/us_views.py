@@ -16,17 +16,33 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     Vista para crear un US para el proyecto
     """
     model = UserStory
-    template_name = "change_form.html"
+    template_name = 'proyecto/us/us_change_form.html'
     form_class = USForm
     permission_required = 'proyecto.add_us'
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se crea correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "US creado exitosamente"
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al crear correctamente
+
+        :return:
+        """
         return reverse('proyecto_us_list', kwargs=self.kwargs)
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de creacion
+
+        :return:
+        """
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'success_url': reverse('proyecto_us_list', kwargs=self.kwargs),
@@ -36,6 +52,12 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
 
         context = super().get_context_data(**kwargs)
@@ -50,6 +72,8 @@ class USCreateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
             {'nombre': 'Product Backlog', 'url': reverse('proyecto_us_list', kwargs=self.kwargs)},
             {'nombre': 'Crear US', 'url': '#'}
         ]
+
+        context['proyecto_id'] = p.id
 
         return context
 
@@ -66,6 +90,12 @@ class USListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
 
         context = super().get_context_data(**kwargs)
@@ -105,6 +135,11 @@ class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
     max_display_length = 100
 
     def get_initial_queryset(self):
+        """
+        Se obtiene una lista de los elementos correspondientes
+
+        :return:
+        """
         iqs = Proyecto.objects.get(pk=self.kwargs['proyecto_id']).userstory_set.all()
         st = self.request.GET.get('estado', '*')
         if st == '1' or st == '2' or st == '3' or st == '4' or st == '5' or st == '6':
@@ -113,7 +148,7 @@ class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
 
     def render_column(self, row, column):
         if column == 'priorizacion':
-            return "{0:.2f}".format(row.priorizacion)
+            return "{0:.2f}".format(row.get_priorizacion())
         if column == 'comentarios':
             #SI EL US NO TERMINO EN UN SPRINT Y SU TIEMPO PLANIFICADO EXCEDE AL TIEMPO EJECUTADO ENTONCES ADVERTIR AL USUARIO
             if row.tiene_tiempo_excedido() and row.estadoProyecto==3:
@@ -122,6 +157,10 @@ class USListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
                 return ''
         else:
             return super().render_column(row, column)
+
+    def filter_queryset(self, qs):
+        search = self._querydict.get('search[value]', '')
+        return qs.filter(nombre__icontains=search)
 
 
 class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
@@ -134,12 +173,18 @@ class USPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
     pk_url_kwarg = 'us_id'
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
 
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         us = context['object']
 
-        context['titulo'] = 'Ver US'
+        context['titulo'] = 'User Story'
 
         # Breadcrumbs
         context['breadcrumb'] = [
@@ -161,19 +206,35 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
     """
     model = UserStory
     form_class = USForm
-    template_name = 'change_form.html'
+    template_name = 'proyecto/us/us_change_form.html'
     pk_url_kwarg = 'us_id'
     permission_required = 'proyecto.change_us'
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se edita correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "US editado exitosamente"
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al modificar correctamente
+
+        :return:
+        """
         pid = self.kwargs['proyecto_id']
         uid = self.kwargs['us_id']
         return reverse('proyecto_us_ver', args=(pid, uid))
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+
+        :return:
+        """
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'success_url': self.get_success_url(),
@@ -183,6 +244,12 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
 
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -201,6 +268,8 @@ class USUpdateView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoM
             {'nombre': us.nombre, 'url': reverse('proyecto_us_ver', args=(p.id, us.id))},
             {'nombre': 'Editar', 'url': '#'}
         ]
+
+        context['proyecto_id'] = p.id
 
         return context
 
@@ -230,12 +299,29 @@ class USCancelarView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyect
             return super().dispatch(request, *args, **kwargs)
 
         def get_success_message(self, cleaned_data):
+            """
+            El mensaje que aparece cuando se cancela correctamente
+
+            :param cleaned_data:
+            :return:
+            """
             return "User Story cancelado"
 
         def get_success_url(self):
+            """
+            El sitio donde se redirige al cancelar correctamente
+
+            :return:
+            """
             return reverse('proyecto_us_ver', args=(self.proyecto.id, self.us.id))
 
         def get_context_data(self, **kwargs):
+            """
+            Las variables de contexto del template
+
+            :param kwargs:
+            :return:
+            """
             context = super().get_context_data(**kwargs)
             context['titulo'] = 'Cancelar User Story'
             context['breadcrumb'] = [
@@ -250,6 +336,12 @@ class USCancelarView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyect
 
         # retorna 'yes' o el motivo de por qué no se puede cancelar
         def cancelable(self):
+            """
+            Controla si se puede cancelar el user story
+
+            ``return:``
+                retorna 'yes' o el motivo de por qué no se puede cancelar
+            """
             if self.proyecto.estado != 'EN EJECUCION':
                 return 'el proyecto debe estar en ejecución'
             elif self.us.estadoProyecto not in [1, 3]:

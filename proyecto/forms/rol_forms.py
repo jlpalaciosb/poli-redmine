@@ -32,6 +32,7 @@ class RolProyectoForm(ModelForm):
     def validate_unique(self):
         """
         La validacion del unique_together no muestra debido a que el campo proyecto no se muestra. Se excluye
+
         :return:
         """
         exclude = self._get_validation_exclusions()

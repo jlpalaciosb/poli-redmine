@@ -12,6 +12,9 @@ from proyecto.models import Proyecto, Sprint, UserStorySprint, Actividad
 
 
 class ActividadBaseView(LoginRequiredMixin):
+    """
+    Carga el proyecto, sprint, usp y actividad para las vistas
+    """
     proyecto = None
     sprint = None
     usp = None
@@ -42,6 +45,11 @@ class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
     redirect = False # si en principio el usuario tiene permiso para agregar una actividad pero no puede por las restricciones del sistema
 
     def has_permission(self):
+        """
+        Se controla que el permiso sea de acuerdo al encargado del user story
+
+        :return:
+        """
         parcial = self.usp.asignee.miembro.user == self.request.user
         if parcial:
             if self.usp.sprint.estado != 'EN_EJECUCION':
@@ -50,23 +58,48 @@ class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
             elif self.usp.estado_fase_sprint != 'DOING':
                 messages.add_message(self.request, messages.WARNING, 'Es user story debe estar en la etapa DOING')
                 self.redirect = True
+            elif not self.sprint.es_dia_permitido():
+                messages.add_message(self.request, messages.WARNING,
+                                     'No se puede realizar esta operacion debido a que no es un dia habil de la semana!')
+                self.redirect = True
             return self.redirect == False
         else:
             return False
 
     def handle_no_permission(self):
+        """
+        En caso de que no tenga permiso se tira 403.
+
+        :return:
+        """
         if self.redirect:
             return HttpResponseRedirect(self.get_success_url())
         else:
             return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se crea correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Actividad agregada exitosamente"
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al crear correctamente
+
+        :return:
+        """
         return reverse('actividad_list', kwargs=self.kwargs)
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de creacion
+
+        :return:
+        """
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'success_url': reverse('actividad_list', kwargs=self.kwargs),
@@ -75,6 +108,12 @@ class ActividadCreateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
         context['titulo'] = 'Agregar Actividad'
         context['titulo_form_crear'] = 'Insertar Datos de la Actividad'
@@ -99,9 +138,15 @@ class ActividadListView(ActividadBaseView, PermisosEsMiembroMixin, TemplateView)
     template_name = 'change_list.html'
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
 
-        context['titulo'] = 'Actividades'
+        context['titulo'] = 'Actividades del User Story'
 
         if self.usp.asignee.miembro.user == self.request.user:
             context['crear_button'] = True
@@ -141,7 +186,12 @@ class ActividadListJsonView(ActividadBaseView, PermisosEsMiembroMixin, BaseDatat
     max_display_length = 100
 
     def get_initial_queryset(self):
-        return Actividad.objects.filter(usSprint=self.usp)
+        """
+        Se obtiene una lista de los elementos correspondientes
+
+        :return:
+        """
+        return Actividad.objects.filter(usSprint__us=self.usp.us, usSprint__sprint__orden__lte=self.usp.sprint.orden)
 
     def render_column(self, row, column):
         if column == 'fechaHora':
@@ -149,6 +199,9 @@ class ActividadListJsonView(ActividadBaseView, PermisosEsMiembroMixin, BaseDatat
         else:
             return super().render_column(row, column)
 
+    def filter_queryset(self, qs):
+        search = self._querydict.get('search[value]', '')
+        return qs.filter(nombre__icontains=search)
 
 class ActividadPerfilView(ActividadBaseView, PermisosEsMiembroMixin, DetailView):
     """
@@ -159,7 +212,20 @@ class ActividadPerfilView(ActividadBaseView, PermisosEsMiembroMixin, DetailView)
     template_name = 'proyecto/actividad/actividad_perfil.html'
     pk_url_kwarg = 'actividad_id'
 
+    def dispatch(self, request, *args, **kwargs):
+        incons = self.inconsistente()
+        if incons:
+            return incons
+        else:
+            return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
         context['titulo'] = 'Ver Actividad'
         context['breadcrumb'] = [
@@ -173,8 +239,19 @@ class ActividadPerfilView(ActividadBaseView, PermisosEsMiembroMixin, DetailView)
             {'nombre': 'Actividades', 'url': reverse('actividad_list', args=(self.proyecto.id, self.sprint.id, self.usp.id))},
             {'nombre': self.actividad.nombre, 'url': '#'},
         ]
-        context['puedeEditar'] = self.usp.asignee.miembro.user == self.request.user
+        context['puedeEditar'] = self.usp.asignee.miembro.user == self.request.user and self.usp.sprint.estado == 'EN_EJECUCION'
         return context
+
+    def inconsistente(self):
+        actividad = self.get_object()
+        actividad_proyecto_id = str(actividad.usSprint.sprint.proyecto.id)
+        actividad_sprint_id = str(actividad.usSprint.sprint.id)
+        actividad_usp_id = str(actividad.usSprint.id)
+        if actividad_proyecto_id != self.kwargs['proyecto_id'] or \
+           actividad_sprint_id != self.kwargs['sprint_id'] or \
+           actividad_usp_id != self.kwargs['usp_id']:
+            return HttpResponseRedirect(reverse('actividad_ver',
+                args=(actividad_proyecto_id, actividad_sprint_id, actividad_usp_id, actividad.id)))
 
 
 class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequiredMixin, UpdateView):
@@ -202,6 +279,10 @@ class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
             elif self.usp.fase_sprint.es_ultima_fase() and self.usp.estado_fase_sprint == 'DONE':
                 messages.add_message(self.request, messages.WARNING, 'No se puede modificar la actividad de un user story cuando el user story esta DONE en la última fase')
                 self.redirect = True
+            elif not self.sprint.es_dia_permitido():
+                messages.add_message(self.request, messages.WARNING,
+                                     'No se puede realizar esta operacion debido a que no es un dia habil de la semana!')
+                self.redirect = True
             return self.redirect == False
         else:
             return False
@@ -213,12 +294,28 @@ class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
             return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se edita correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Actividad editada exitosamente"
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al editar correctamente
+
+        :return:
+        """
         return reverse('actividad_ver', args=(self.proyecto.id, self.sprint.id, self.usp.id, self.actividad.id))
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+
+        :return:
+        """
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'success_url': self.get_success_url(),
@@ -227,6 +324,12 @@ class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
         context['titulo'] = 'Editar la Actividad'
         context['titulo_form_editar'] = 'Actividad'

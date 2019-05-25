@@ -22,6 +22,11 @@ class FlujoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEsta
     template_name = 'proyecto/flujo/change_form.html'
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de creacion
+
+        :return:
+        """
         try:
             kwargs = super().get_form_kwargs()
             # La instancia del flujo va ser uno cuyo proyecto sea aquel que le corresponda el id del request
@@ -34,12 +39,29 @@ class FlujoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEsta
             raise Http404('no existe proyecto con el id en la url')
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al crear correctamente
+
+        :return:
+        """
         return reverse('proyecto_flujo_list', kwargs=self.kwargs)
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se crea correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Flujo '{}' creado exitosamente.".format(cleaned_data['nombre'])
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Flujo'
@@ -59,6 +81,12 @@ class FlujoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEsta
         return context
 
     def form_valid(self, form):
+        """
+        Se sobreescribe para que al guardar un flujo tambien guarde sus fases
+
+        :param form:
+        :return:
+        """
         context = self.get_context_data()
         fase = context['fases']
         with transaction.atomic():
@@ -83,6 +111,7 @@ class FlujoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEsta
     def check_permissions(self, request):
         """
         Se sobreescribe el metodo para no permitir la modificacion de un flujo si algun user story ya tiene asociado el flujo
+
         :param request:
         :return:
         """
@@ -96,12 +125,29 @@ class FlujoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEsta
             raise Http404('no existe flujo con el id en la url')
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al editado correctamente
+
+        :return:
+        """
         return reverse('proyecto_flujo_ver', kwargs=self.kwargs)
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se edita correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Flujo '{}' editado exitosamente.".format(cleaned_data['nombre'])
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(FlujoUpdateView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Editar Flujo'
@@ -125,7 +171,12 @@ class FlujoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEsta
         return context
 
     def form_valid(self, form):
+        """
+        Se sobreescribe para que al guardar un flujo tambien guarde sus fases
 
+        :param form:
+        :return:
+        """
         context = self.get_context_data()
         fase = context['fases']
         with transaction.atomic():
@@ -136,6 +187,11 @@ class FlujoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEsta
         return super(FlujoUpdateView, self).form_valid(form)
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+
+        :return:
+        """
         try:
             kwargs = super().get_form_kwargs()
             # La instancia del flujo va ser uno cuyo proyecto sea aquel que le corresponda el id del request
@@ -158,6 +214,12 @@ class FlujoListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(FlujoListView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
         context['titulo'] = 'Lista de Flujo ' + proyecto.nombre
@@ -195,6 +257,7 @@ class FlujoListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVie
     def get_initial_queryset(self):
         """
         Se sobreescribe el metodo para que la lista sean todos los Flujo de un proyecto en particular
+
         :return:
         """
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -215,6 +278,12 @@ class FlujoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(FlujoPerfilView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Ver flujo'
@@ -250,12 +319,29 @@ class FlujoEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEs
         return HttpResponseForbidden()
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al eliminar correctamente
+
+        :return:
+        """
         return reverse('proyecto_flujo_list', args=(self.kwargs['proyecto_id'],))
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se elimina correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Flujo eliminado exitosamente."
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(FlujoEliminarView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         context['titulo'] = 'Eliminar flujo'
@@ -276,6 +362,7 @@ class FlujoEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEs
     def eliminable(self):
         """
         Si un flujo esta asociado con al menos un user story entonces no se puede eliminar.
+
         :return:
         """
         flujo = Flujo.objects.get(pk=self.kwargs['flujo_id'])
@@ -285,6 +372,14 @@ class FlujoEliminarView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEs
         return True
 
     def post(self, request, *args, **kwargs):
+        """
+        Si se puede eliminar se procesa sino se redirige
+
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
         if self.eliminable():
             return super(FlujoEliminarView, self).post(request, *args, **kwargs)
         else:

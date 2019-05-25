@@ -51,12 +51,12 @@ def cargar_user(username, first_name, last_name, email):
 def cargar_users():
     cargar_admin()
     poner_staff_a_anonymous()
-    cargar_user('javier', 'Javier', 'Adorno', 'javier@gmail.com')
-    cargar_user('ingrid', 'Ingrid', 'López', 'ingrid@gmail.com')
-    cargar_user('moises', 'Moisés', 'Cabrera', 'moises@gmail.com')
-    cargar_user('jose', 'Jose', 'Palacios', 'jose@gmail.com')
-    cargar_user('joel', 'Joel', 'Florentin', 'joel@gmail.com')
-    cargar_user('enzo', 'Enzo', 'Galeano', 'enzo@gmail.com')
+    cargar_user('javier', 'Javier', 'Adorno', 'jflor999@gmail.com')
+    cargar_user('ingrid', 'Ingrid', 'López', 'jflor999@gmail.com')
+    cargar_user('moises', 'Moisés', 'Cabrera', 'joseluis19397@gmail.com')
+    cargar_user('jose', 'Jose', 'Palacios', 'jflor999@gmail.com')
+    cargar_user('joel', 'Joel', 'Florentin', 'jflor999@gmail.com')
+    cargar_user('enzo', 'Enzo', 'Galeano', 'jflor999@gmail.com')
 
 
 # CARGAR CLIENTES
@@ -136,9 +136,9 @@ def cargar_proyectos():
     cliente = Cliente.objects.get(ruc='1846374-1')
 
     #crea proyectos
-    proyecto1 = cargar_proyecto('Proyecto de Javier', cliente, user1)
-    proyecto2 = cargar_proyecto('Proyecto de Ingrid', cliente, user2)
-    proyecto3 = cargar_proyecto('Proyecto de Moises', cliente, user3)
+    proyecto1 = cargar_proyecto('Proyecto de Javier', cliente, user1, 'EN EJECUCION')
+    proyecto2 = cargar_proyecto('Proyecto de Ingrid', cliente, user2, 'EN EJECUCION')
+    proyecto3 = cargar_proyecto('Proyecto de Moises', cliente, user3, 'EN EJECUCION')
 
 
     #asigna miembros a cada proyecto con el rol de desarrollador
@@ -175,25 +175,40 @@ def cargar_proyectos():
     flujo32 = cargar_flujo('Flujo 2 de Proyecto 3', proyecto3, ['Fase 1', 'Fase 2', 'Fase 3'])
     flujo33 = cargar_flujo('Flujo 3 de Proyecto 3', proyecto3, ['Fase 1', 'Fase 2', 'Fase 3'])
 
+    #asignar roles de proyecto(developer team)
+    rol_dev_pro_2 = RolProyecto.objects.get(nombre='Developer Team', proyecto=proyecto2)
+    miembro_pro_2 = MiembroProyecto.objects.get(user=user2, proyecto=proyecto2)
+    miembro_pro_2.roles.add(rol_dev_pro_2)
+
     #crea us
-    us11 = cargar_us('User Story 1 de proyecto 1','Descripcion blabla', 'Criterio de Aceptacion', tipous11, 1, proyecto1 )
-    us12 = cargar_us('User Story 2 de proyecto 1','Descripcion blabla', 'Criterio de Aceptacion', tipous12, 2, proyecto1 )
-    us13 = cargar_us('User Story 3 de proyecto 1','Descripcion blabla', 'Criterio de Aceptacion', tipous13, 3, proyecto1 )
+    us11 = cargar_us('User Story 1 de proyecto 1','Descripcion blabla', 'Criterio de Aceptacion', tipous11, 15, proyecto1 )
+    us12 = cargar_us('User Story 2 de proyecto 1','Descripcion blabla', 'Criterio de Aceptacion', tipous12, 5, proyecto1 )
+    us13 = cargar_us('User Story 3 de proyecto 1','Descripcion blabla', 'Criterio de Aceptacion', tipous13, 10, proyecto1 )
 
-    us21 = cargar_us('User Story 1 de proyecto 2', 'Descripcion blabla', 'Criterio de Aceptacion', tipous21, 1, proyecto2)
-    us22 = cargar_us('User Story 2 de proyecto 2', 'Descripcion blabla', 'Criterio de Aceptacion', tipous22, 2, proyecto2)
-    us23 = cargar_us('User Story 3 de proyecto 2', 'Descripcion blabla', 'Criterio de Aceptacion', tipous23, 3, proyecto2)
+    us21 = cargar_us('User Story 1 de proyecto 2', 'Descripcion blabla', 'Criterio de Aceptacion', tipous21, 15, proyecto2, flujo21)
+    us22 = cargar_us('User Story 2 de proyecto 2', 'Descripcion blabla', 'Criterio de Aceptacion', tipous22, 20, proyecto2)
+    us23 = cargar_us('User Story 3 de proyecto 2', 'Descripcion blabla', 'Criterio de Aceptacion', tipous23, 10, proyecto2)
 
-    us31 = cargar_us('User Story 1 de proyecto 3', 'Descripcion blabla', 'Criterio de Aceptacion', tipous31, 1, proyecto3)
-    us32 = cargar_us('User Story 2 de proyecto 3', 'Descripcion blabla', 'Criterio de Aceptacion', tipous32, 2, proyecto3)
-    us33 = cargar_us('User Story 3 de proyecto 3', 'Descripcion blabla', 'Criterio de Aceptacion', tipous33, 3, proyecto3)
+    us31 = cargar_us('User Story 1 de proyecto 3', 'Descripcion blabla', 'Criterio de Aceptacion', tipous31, 10, proyecto3)
+    us32 = cargar_us('User Story 2 de proyecto 3', 'Descripcion blabla', 'Criterio de Aceptacion', tipous32, 20, proyecto3)
+    us33 = cargar_us('User Story 3 de proyecto 3', 'Descripcion blabla', 'Criterio de Aceptacion', tipous33, 30, proyecto3)
 
     #crea sprint
+    sp = Sprint.objects.create(proyecto=proyecto2, orden=1, duracion=1, cant_dias_habiles=6)
+
 
 
     #agrega miembro a sprint
+    msp = MiembroSprint.objects.create(miembro=MiembroProyecto.objects.get(user=user2, proyecto=proyecto2), sprint=sp,
+                                       horasAsignadas=2)
+    sp.capacidad = sp.capacidad + 2 * sp.cant_dias_habiles * sp.duracion#Se aumenta la capacidad del sprint luego de agregarle un miembro
+    sp.save()
 
     #agrega us a sprint
+    usp = UserStorySprint.objects.create(asignee=msp, us=us21, fase_sprint=flujo21.fase_set.get(orden=1),
+                                         estado_fase_sprint='TODO', sprint=sp)
+    us21.estadoProyecto = 2#SE COLOCA EL USER STORY EN SPRINT
+    us21.save()
 
 def cargar_tipo_us(nombre, proyecto):
     print('+ Se agrego tipo de user story al proyecto {}'.format(proyecto.nombre))
@@ -214,9 +229,9 @@ def cargar_flujo(nombre, proyecto, fases):
     print('+ Se agrego flujo al proyecto {}'.format(proyecto.nombre))
     return flujo
 
-def cargar_us(nombre, descripcion, criterioAceptacion, tipoUS,tiempoPlanificado, proyecto):
+def cargar_us(nombre, descripcion, criterioAceptacion, tipoUS,tiempoPlanificado, proyecto, flujo=None):
     print('+ Se agrego user story al proyecto {}'.format(proyecto.nombre))
-    return UserStory.objects.create(nombre=nombre, descripcion=descripcion, criteriosAceptacion=criterioAceptacion, tiempoPlanificado=tiempoPlanificado, tipo=tipoUS, proyecto=proyecto)
+    return UserStory.objects.create(nombre=nombre, descripcion=descripcion, criteriosAceptacion=criterioAceptacion, tiempoPlanificado=tiempoPlanificado, tipo=tipoUS, proyecto=proyecto, flujo=flujo)
 
 def cargar_sprint(proyecto, orden, duracion):
     return Sprint.objects.create(proyecto=proyecto, orden=orden, duracion=duracion)

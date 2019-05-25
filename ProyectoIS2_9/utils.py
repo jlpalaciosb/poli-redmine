@@ -1,5 +1,12 @@
 from __future__ import unicode_literals
 
+import threading
+
+from proyecto.models import UserStorySprint
+from django.core.mail import send_mail
+from django.conf import settings
+from django.urls import reverse
+
 import logging
 import os
 
@@ -10,7 +17,7 @@ from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render
 from guardian.conf import settings as guardian_settings
 
-from proyecto.models import UserStorySprint
+from proyecto.models import UserStorySprint, MiembroProyecto
 
 logger = logging.getLogger(__name__)
 abspath = lambda *p: os.path.abspath(os.path.join(*p))
@@ -135,3 +142,89 @@ def cambiable_estado_proyecto(proyecto, newst):
             return 'tiene un sprint en ejecución'
         else:
             return 'yes'
+
+
+class EmailThread(threading.Thread):
+    def __init__(self, subject, message, from_email, recipient_list):
+        self.subject = subject
+        self.message = message
+        self.recipient_list = recipient_list
+        self.from_email = from_email
+        threading.Thread.__init__(self)
+
+    def run (self):
+        send_mail(self.subject, self.message, self.from_email, self.recipient_list)
+
+def notificar_revision(usp):
+    """
+    :type usp: UserStorySprint
+    """
+    sprint = usp.sprint
+    proyecto = sprint.proyecto
+    assignee = usp.asignee.miembro.user
+    scrum_master = proyecto.miembroproyecto_set.filter(roles__nombre='Scrum Master').first().user
+    url_revisar = 'http://example.com' + reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))
+    EmailThread(
+        'Revisión de User Story',
+        'El miembro %s finalizó el user story "%s". Haga click en el siguiente enlace para '
+        'aceptar o rechazar la finalización: %s.' % ('%s (%s)' % (assignee.username, assignee.get_full_name()),
+        usp.us.nombre, url_revisar),
+        settings.EMAIL_HOST_USER, [scrum_master.email,],
+    ).start()
+
+def notificar_asignacion(usp):
+    """
+    Cuando se agrega un user story a un sprint, se le notifica al asignado del user story
+    :type usp: UserStorySprint
+    """
+    sprint = usp.sprint
+    proyecto = sprint.proyecto
+    assignee = usp.asignee.miembro.user
+    url_ver = 'http://example.com' + reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))
+    EmailThread(
+        'Asignación de User Story',
+        'Has sido asignado para el user story "%s" para el sprint %d del proyecto "%s". Haz click en el '
+        'siguiente enlace para ver el user story: %s' % (usp.us.nombre, sprint.orden, proyecto.nombre, url_ver),
+        settings.EMAIL_HOST_USER, [assignee.email,]
+    ).start()
+
+def notificar_nuevo_miembro(miembro):
+    """
+    Se le notifica al usuario cuando se le agrega como miembro de un proyecto
+    :type miembro: MiembroProyecto
+    """
+    url_ver = 'http://example.com' + reverse('perfil_proyecto', args=(miembro.proyecto.id,))
+    EmailThread(
+        'Miembro de Proyecto',
+        'Ahora eres miembro del proyecto "%s". Haz click en el siguiente enlace para ver '
+        'el proyecto: %s' % (miembro.proyecto.nombre, url_ver),
+        settings.EMAIL_HOST_USER, [miembro.user.email,]
+    ).start()
+
+def notificar_aceptacion(usp):
+    """
+    Se le notifica al usuario cuando su user story se acepta
+    :type usp: UserStorySprint
+    """
+    assignee = usp.asignee.miembro.user
+    EmailThread(
+        'User Story Aceptado',
+        'Tu user story "%s" fue aceptado por el scrum master!' % (usp.us.nombre,),
+        settings.EMAIL_HOST_USER, [assignee.email, ]
+    ).start()
+
+def notificar_rechazo(usp):
+    """
+    Se le notifica al usuario cuando su user story se rechaza
+    :type usp: UserStorySprint
+    """
+    sprint = usp.sprint
+    proyecto = sprint.proyecto
+    assignee = usp.asignee.miembro.user
+    url_ver = 'http://example.com' + reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))
+    EmailThread(
+        'User Story Rechazado',
+        'Tu user story "%s" fue rechazado por el scrum master. Haga click en el siguiente enlace para '
+        'ver el user story: %s' % (usp.us.nombre, url_ver),
+        settings.EMAIL_HOST_USER, [assignee.email, ]
+    ).start()

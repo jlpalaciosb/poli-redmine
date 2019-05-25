@@ -5,12 +5,15 @@ from django import forms
 from django.forms import ModelForm
 from django.forms import  ModelChoiceField
 from proyecto.models import Proyecto, UserStory, TipoUS, Actividad, UserStorySprint
+from db_file_storage.form_widgets import DBClearableFileInput
 
 
 class ActividadForm(ModelForm):
     class Meta:
         model = Actividad
         fields = ['nombre', 'descripcion', 'horasTrabajadas', 'archivoAdjunto']
+
+
 
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')

@@ -40,7 +40,6 @@ class ProyectoForm(ModelForm):
             AppendedText('fechaFinEstimada',
                          '<span class="glyphicon glyphicon-calendar"></span>'),
             'scrum_master',
-            'estado',
             FormActions(
                 Submit('guardar', 'Guardar'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),

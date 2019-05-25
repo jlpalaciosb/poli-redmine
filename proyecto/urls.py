@@ -1,15 +1,15 @@
 from django.conf.urls import url
 
 from proyecto.views import \
-    ProyectoListView, ProyectoCreateView, ProyectoUpdateView, ProyectoPerfilView, ProyectoListJson, ProyectoCambiarEstadoView, \
+    ProyectoListView, ProyectoCreateView, ProyectoUpdateView, ProyectoPerfilView, ProyectoListJson, ProyectoCambiarEstadoView, BurdownChartProyectoView, \
     RolListView, RolListJson, RolProyectoCreateView, RolProyectoUpdateView, RolPerfilView, RolEliminarView, \
     MiembroProyectoCreateView, MiembroProyectoListJsonView, MiembroProyectoListView, MiembroProyectoUpdateView, MiembroProyectoPerfilView, MiembroProyectoDeleteView, \
-    TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView, ImportarTipoUsListJson, ImportarTipoUsListView, ImportarTipoUSPerfilView, importar_tus,\
+    TipoUsCreateView, TipoUsUpdateView, TipoUsListJson, TipoUsListView, TipoUSPerfilView, TipoUsEliminarView, ImportarTipoUsListJson, ImportarTipoUsListView, ImportarTipoUSPerfilView, importar_tus, getTUS, \
     USCreateView, USListView, USListJsonView, USPerfilView, USUpdateView, USCancelarView,\
-    SprintListView, SprintListJson, crear_sprint, SprintPerfilView,\
+    SprintListView, SprintListJson, crear_sprint, SprintPerfilView, BurdownChartSprintView,\
     MiembroSprintListJson, MiembroSprintListView, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint, MiembroSprintIntercambiarView,\
     FlujoCreateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoUpdateView, FlujoEliminarView, \
-    UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintUpdateView, UserStorySprintDeleteView, aprobar_user_story, UserStorySprintRechazarView,\
+    UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintChangeAssigneeView, UserStorySprintDeleteView, aprobar_user_story, UserStorySprintRechazarView,\
     FlujoSprintListJson, FlujoSprintListView, TableroKanbanView, mover_us_kanban, \
     ActividadCreateView, ActividadListView, ActividadListJsonView, ActividadPerfilView, ActividadUpdateView
 
@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'^list/$', ProyectoListJson.as_view(), name='proyecto_list_json'),
     url(r'^(?P<proyecto_id>\d+)/editar/$', ProyectoUpdateView.as_view(), name='editar_proyecto'),
     url(r'^(?P<proyecto_id>\d+)/perfil/$', ProyectoPerfilView.as_view(), name='perfil_proyecto'),
+    url(r'^(?P<proyecto_id>\d+)/burdownchart/$', BurdownChartProyectoView.as_view(), name='burdownchart_proyecto'),
     url(r'^(?P<proyecto_id>\d+)/cambiarestado/$', ProyectoCambiarEstadoView.as_view(), name='cambiarestado_proyecto'),
     url(r'^(?P<proyecto_id>\d+)/roles/$', RolListView.as_view(), name='proyecto_rol_list'),
     url(r'^(?P<proyecto_id>\d+)/roles/list$', RolListJson.as_view(), name='proyecto_rol_list_json'),
@@ -51,6 +52,7 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/tiposus/$', TipoUsListView.as_view(), name='proyecto_tipous_list'),
     url(r'^(?P<proyecto_id>\d+)/tiposus/list$', TipoUsListJson.as_view(), name='proyecto_tipous_list_json'),
     url(r'^(?P<proyecto_id>\d+)/tipous/(?P<tipous_id>\d+)/ver$', TipoUSPerfilView.as_view(), name='proyecto_tipous_ver'),
+    url(r'^(?P<proyecto_id>\d+)/tipous/(?P<tipous_id>\d+)/json$', getTUS, name='proyecto_tipous_json'),
     url(r'^(?P<proyecto_id>\d+)/tipous/(?P<tipous_id>\d+)/eliminar$', TipoUsEliminarView.as_view(), name='proyecto_tipous_eliminar'),
     url(r'^(?P<proyecto_id>\d+)/userstories/crear$', USCreateView.as_view(), name='proyecto_us_crear'),
     url(r'^(?P<proyecto_id>\d+)/userstories/$', USListView.as_view(), name='proyecto_us_list'),
@@ -62,6 +64,7 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/sprints/list$', SprintListJson.as_view(), name='proyecto_sprint_list_json'),
     url(r'^(?P<proyecto_id>\d+)/sprints/crear$', crear_sprint, name='proyecto_sprint_crear'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/administrar$', SprintPerfilView.as_view(), name='proyecto_sprint_administrar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/burdownchart$', BurdownChartSprintView.as_view(), name='proyecto_sprint_burndownchart'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/flujos$', FlujoSprintListView.as_view(), name='proyecto_sprint_flujos'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/tablero/(?P<flujo_id>\d+)$', TableroKanbanView.as_view(), name='proyecto_sprint_tablero'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/tablero/(?P<flujo_id>\d+)/mover/(?P<us_id>\d+)$', mover_us_kanban, name='proyecto_sprint_mover_us'),
@@ -82,7 +85,7 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/ver$', UserStorySprintPerfilView.as_view(), name='sprint_us_ver'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/aprobar$', aprobar_user_story, name='sprint_us_aprobar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/rechazar$', UserStorySprintRechazarView.as_view(), name='sprint_us_rechazar'),
-    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/editar$', UserStorySprintUpdateView.as_view(), name='sprint_us_editar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/changeassignee$', UserStorySprintChangeAssigneeView.as_view(), name='usp_change_assignee'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/eliminar$', UserStorySprintDeleteView.as_view(), name='sprint_us_eliminar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/actividades/agregar$', ActividadCreateView.as_view(), name='actividad_agregar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/actividades$', ActividadListView.as_view(), name='actividad_list'),

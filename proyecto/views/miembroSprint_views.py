@@ -26,6 +26,12 @@ class MiembroSprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, Template
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(MiembroSprintListView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
@@ -73,6 +79,7 @@ class MiembroSprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseData
     def get_initial_queryset(self):
         """
         Se sobreescribe el metodo para que la lista sean todos los miembros sean de un sprint en un proyecto en particular
+
         :return:
         """
         try:
@@ -94,6 +101,7 @@ class MiembroSprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Proy
     def check_permissions(self, request):
         """
         Si el sprint no esta PLANIFICADO no se puede acceder a esta vista
+
         :param request:
         :return:
         """
@@ -112,12 +120,28 @@ class MiembroSprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Proy
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se crea correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Miembro de Sprint agregado exitosamente."
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al agregar correctamente
+
+        :return:
+        """
         return reverse('proyecto_sprint_miembros',kwargs=self.kwargs)
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de creacion
+
+        :return:
+        """
         kwargs = super(MiembroSprintCreateView, self).get_form_kwargs()
         kwargs.update({
             'success_url': reverse('proyecto_sprint_miembros',kwargs=self.kwargs),
@@ -127,6 +151,12 @@ class MiembroSprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Proy
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(MiembroSprintCreateView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
@@ -149,6 +179,12 @@ class MiembroSprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Proy
         return context
 
     def form_valid(self, form):
+        """
+        Se actualiza la capacidad del sprint cuando se agrega correctamente
+
+        :param form:
+        :return:
+        """
         response = super(MiembroSprintCreateView, self).form_valid(form)
         sprint = form.instance.sprint
         sprint.capacidad = sprint.capacidad + sprint.duracion*sprint.proyecto.diasHabiles*form.cleaned_data['horasAsignadas']
@@ -170,6 +206,11 @@ class MiembroSprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Detail
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+        :param kwargs:
+        :return:
+        """
         context = super(MiembroSprintPerfilView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
@@ -207,6 +248,7 @@ class MiembroSprintUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Proy
     def check_permissions(self, request):
         """
         Si el sprint no esta PLANIFICADO no se puede acceder a esta vista
+
         :param request:
         :return:
         """
@@ -225,21 +267,43 @@ class MiembroSprintUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Proy
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se crea correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Miembro de Sprint agregado exitosamente."
 
     def get_success_url(self):
-        return reverse('proyecto_sprint_miembros',args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id']))
+        """
+        El sitio donde se redirige al modificar correctamente
+
+        :return:
+        """
+        return reverse('proyecto_sprint_miembros_ver',args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id'], self.kwargs['miembroSprint_id']))
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+
+        :return:
+        """
         kwargs = super(MiembroSprintUpdateView, self).get_form_kwargs()
         kwargs.update({
-            'success_url': reverse('proyecto_sprint_miembros',args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id'])),
+            'success_url': self.get_success_url(),
             'proyecto_id': self.kwargs['proyecto_id'],
             'sprint_id': self.kwargs['sprint_id'],
         })
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(MiembroSprintUpdateView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
@@ -268,6 +332,12 @@ class MiembroSprintUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, Proy
         return context
 
     def form_valid(self, form):
+        """
+        Se actualiza la capacidad del sprint cuando se modifica las horas asignadas de un miembro
+
+        :param form:
+        :return:
+        """
         response = super(MiembroSprintUpdateView, self).form_valid(form)
         sprint = form.instance.sprint
         sprint.capacidad = sprint.capacidad - sprint.duracion * sprint.proyecto.diasHabiles * form.initial['horasAsignadas']
@@ -290,6 +360,7 @@ class MiembroSprintIntercambiarView(LoginRequiredMixin, PermisosPorProyectoMixin
     def check_permissions(self, request):
         """
         Si el sprint no esta EN EJECUCION no se puede acceder a esta vista
+
         :param request:
         :return:
         """
@@ -308,12 +379,28 @@ class MiembroSprintIntercambiarView(LoginRequiredMixin, PermisosPorProyectoMixin
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se intercambia correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Miembro de Sprint intercambiado exitosamente."
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al cambiar correctamente
+
+        :return:
+        """
         return reverse('proyecto_sprint_miembros',args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id']))
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+
+        :return:
+        """
         kwargs = super(MiembroSprintIntercambiarView, self).get_form_kwargs()
         kwargs.update({
             'success_url': reverse('proyecto_sprint_miembros',args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id'])),
@@ -323,6 +410,13 @@ class MiembroSprintIntercambiarView(LoginRequiredMixin, PermisosPorProyectoMixin
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
+
         context = super(MiembroSprintIntercambiarView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
@@ -357,6 +451,7 @@ class MiembroSprintIntercambiarView(LoginRequiredMixin, PermisosPorProyectoMixin
 def excluir_miembro_sprint(request, miembroSprint_id, sprint_id, proyecto_id):
     """
     Vista para excluir a un miembro de un sprint que esta planficado
+
     :param request:
     :param miembroSprint_id:
     :param sprint_id:

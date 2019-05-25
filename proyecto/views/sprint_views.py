@@ -1,4 +1,6 @@
 import datetime
+
+from ProyectoIS2_9.utils import notificar_revision
 from proyecto.forms.sprint_us_forms import SprintCambiarEstadoForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
 from guardian.mixins import LoginRequiredMixin
@@ -15,6 +17,9 @@ from django.http import HttpResponseRedirect
 from guardian.decorators import permission_required
 from django.contrib.auth.decorators import login_required
 from proyecto.decorators import proyecto_en_ejecucion
+from django.db import models
+from proyecto.models import Actividad
+from django.contrib.messages.views import SuccessMessageMixin
 
 class SprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
     """
@@ -32,6 +37,12 @@ class SprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(SprintListView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
         context['titulo'] = 'Lista de Sprints de '+ proyecto.nombre
@@ -78,15 +89,22 @@ def iniciar_sprint(request, proyecto_id, sprint_id):
     elif UserStorySprint.objects.filter(sprint=sprint_id).count()==0:
         messages.add_message(request, messages.WARNING, 'Se debe tener al menos un US en el Sprint!')
         return HttpResponseRedirect(reverse('proyecto_sprint_administrar', args=(proyecto_id, sprint.id)))
+    elif not sprint.es_dia_permitido():
+        messages.add_message(request, messages.WARNING, 'No se puede realizar esta operacion debido a que no es un dia habil de la semana!')
+        return HttpResponseRedirect(reverse('proyecto_sprint_administrar', args=(proyecto_id, sprint.id)))
     try:
         sprint.estado='EN_EJECUCION'
         sprint.fechaInicio=datetime.date.today()
+        horas = 0
+        for usp in sprint.userstorysprint_set.all():
+            horas = horas + usp.us.tiempoPlanificado - usp.us.tiempoEjecutado
+        sprint.total_horas_planificadas = horas
         sprint.save()
         messages.add_message(request, messages.SUCCESS, 'Se inicio el sprint Nro '+str(sprint.orden))
-        return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
+        return HttpResponseRedirect(reverse('proyecto_sprint_administrar', args=(proyecto_id,sprint_id)))
     except:
         messages.add_message(request, messages.ERROR, 'Ha ocurrido un error!')
-        return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
+        return HttpResponseRedirect(reverse('proyecto_sprint_administrar', args=(proyecto_id,sprint_id)))
 
 
 class SprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView):
@@ -104,6 +122,7 @@ class SprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableVi
     def get_initial_queryset(self):
         """
         Se sobreescribe el metodo para que la lista sean todos los sprints de un proyecto en particular
+
         :return:
         """
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -121,6 +140,7 @@ def crear_sprint(request, proyecto_id):
     Vista para crear un sprint en caso de que se cumpla que a lo sumo exista un sprint planificado en el proyecto.
     El sprint a crear tendra la duracion que tiene el proyecto
     Se redirecciona a la lista de sprint
+
     :param request:
     :param proyecto_id: El id del proyecto
     :return:
@@ -131,7 +151,7 @@ def crear_sprint(request, proyecto_id):
         messages.add_message(request, messages.WARNING, 'Ya hay un sprint en planificación!')
         return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
     try:
-        sprint = Sprint.objects.create(proyecto=proyecto, duracion=proyecto.duracionSprint, estado='PLANIFICADO', orden=orden+1)
+        sprint = Sprint.objects.create(proyecto=proyecto, duracion=proyecto.duracionSprint, estado='PLANIFICADO', orden=orden+1, cant_dias_habiles=proyecto.diasHabiles)
         messages.add_message(request, messages.SUCCESS, 'Se creó el sprint Nro '+str(orden+1))
         return HttpResponseRedirect(reverse('proyecto_sprint_list', args=(proyecto_id,)))
     except:
@@ -154,9 +174,23 @@ class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(SprintPerfilView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
+        uss_total = UserStorySprint.objects.filter(sprint=sprint).count()
+        uss_iniciados = uss_total - UserStorySprint.objects.filter(estado_fase_sprint='TODO', fase_sprint__orden=1, sprint=sprint).count()#CANTIDAD DE USER STORIES AUN SIN INICIAR
+        uss_revision = UserStorySprint.objects.filter(us__estadoProyecto=6, sprint=sprint).count()
+        uss_terminados = UserStorySprint.objects.filter(us__estadoProyecto=5, sprint=sprint).count()
+        context['uss_total'] = uss_total
+        context['uss_iniciados'] = uss_iniciados
+        context['uss_revision'] = uss_revision
+        context['uss_terminados'] = uss_terminados
         context['titulo'] = 'Administrar Sprint'
         context['titulo_form_editar'] = 'Datos del Sprint'
         context['titulo_form_editar_nombre'] = context[SprintPerfilView.context_object_name].orden
@@ -188,9 +222,9 @@ class SprintNoSePuedeCerrar(object):
             raise Http404('No existe dicho sprint')
 
 
-class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, SprintNoSePuedeCerrar, UpdateView):
+class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, SprintNoSePuedeCerrar,SuccessMessageMixin, UpdateView):
     """
-    Vista Basada en Clases para la actualizacion de los proyectos
+    Vista Basada en Clases para la cerrar un sprint
     """
     model = Sprint
     form_class = SprintCambiarEstadoForm
@@ -199,10 +233,49 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Spri
     pk_url_kwarg = 'sprint_id'
     permission_required = 'proyecto.administrar_sprint'
 
+    def get(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['sprint_id']
+            sprint = Sprint.objects.get(pk = id)
+            if not sprint.es_dia_permitido():
+                messages.add_message(request, messages.WARNING,
+                                     'No se puede realizar esta operacion debido a que no es un dia habil de la semana!')
+                return HttpResponseRedirect(reverse('proyecto_sprint_administrar',args=(sprint.proyecto.id, sprint.id)))
+            return super(SprintCambiarEstadoView, self).get(request, *args, **kwargs)
+        except:
+            messages.add_message(request, messages.ERROR,
+                                 'Ha ocurrido un error!')
+            return HttpResponseRedirect(reverse('proyectos'))
+
+    def post(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['sprint_id']
+            sprint = Sprint.objects.get(pk = id)
+            if not sprint.es_dia_permitido():
+                messages.add_message(request, messages.WARNING,
+                                     'No se puede realizar esta operacion debido a que no es un dia habil de la semana!')
+                return HttpResponseRedirect(reverse('proyecto_sprint_administrar',args=(sprint.proyecto.id, sprint.id)))
+            return super(SprintCambiarEstadoView, self).post(request, *args, **kwargs)
+        except:
+            messages.add_message(request, messages.ERROR,
+                                 'Ha ocurrido un error!')
+            return HttpResponseRedirect(reverse('proyectos'))
+
+
     def get_success_url(self):
+        """
+        El sitio donde se redirige al actualizar correctamente
+
+        :return:
+        """
         return reverse('proyecto_sprint_administrar', kwargs=self.kwargs)
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+
+        :return:
+        """
         kwargs = super(SprintCambiarEstadoView, self).get_form_kwargs()
         kwargs.update({
             'success_url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs),
@@ -210,6 +283,12 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Spri
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(SprintCambiarEstadoView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
@@ -235,6 +314,15 @@ class SprintCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Spri
 
         return context
 
+    def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se cierra correctamente
+
+        :param cleaned_data:
+        :return:
+        """
+        return "Sprint Nro {} cerrado exitosamente.".format(Sprint.objects.get(pk=self.kwargs['sprint_id']).orden)
+
 class FlujoSprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatatableView):
     """
     Vista para devolver todos los flujos de un sprint en un proyecto en formato JSON
@@ -246,6 +334,11 @@ class FlujoSprintListJson(LoginRequiredMixin, PermisosEsMiembroMixin, BaseDatata
     permission_denied_message = 'No tiene permiso para ver Proyectos.'
 
     def get_initial_queryset(self):
+        """
+        Se obtiene una lista de los elementos correspondientes
+
+        :return:
+        """
         try:
             sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
             return sprint.flujos_sprint()
@@ -264,6 +357,12 @@ class FlujoSprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateVi
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(FlujoSprintListView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
@@ -307,6 +406,12 @@ class TableroKanbanView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(TableroKanbanView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         try:
@@ -339,6 +444,7 @@ class TableroKanbanView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
 def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
     """
     Vista para mover un user story a un estado. Recibe como parametro de GET, movimiento que puede tener valor 1 o -1.Que signfica avanzar o retroceder respectivamente
+
     :param request:
     :param proyecto_id: El id del proyecto
     :return:
@@ -377,6 +483,11 @@ def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
                                  'El sprint aun no inicio!'
                                  )
             return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
+        if not sprint.es_dia_permitido():
+            #SI NO ES UN DIA HABIL NO SE PUEDE MOVER
+            messages.add_message(request, messages.WARNING,
+                                 'No se puede realizar esta operacion debido a que no es un dia habil de la semana!')
+            return HttpResponseRedirect(reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
 
         cantidad_en_doing = user_story_sprint.asignee.userstorysprint_set.filter(estado_fase_sprint='DOING').exclude(id=user_story_sprint.id).count()
         if movimiento == 1:
@@ -393,6 +504,17 @@ def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
 
             elif user_story_sprint.estado_fase_sprint == 'DOING':
                 user_story_sprint.estado_fase_sprint = 'DONE'
+                if not Actividad.objects.filter(fase=user_story_sprint.fase_sprint,usSprint=user_story_sprint).count()>0:#SI NO HAY NINGUN ACTIVIDAD REGISTRADA EN SU FASE. NO PUEDE LLEGAR AL DONE
+                    messages.add_message(request, messages.WARNING,
+                                         'Al menos debe cargar una actividad para avanzar al DONE'
+                                         )
+                    return HttpResponseRedirect(
+                        reverse('proyecto_sprint_tablero', args=(proyecto_id, sprint_id, flujo_id)))
+
+                if user_story_sprint.fase_sprint.orden == user_story_sprint.fase_sprint.flujo.cantidadFases:
+                    notificar_revision(user_story_sprint)
+                    messages.add_message(request, messages.INFO, 'Se notificó al Scrum Master para su '
+                                         'revisión.')
 
             elif user_story_sprint.estado_fase_sprint == 'DONE':
                 user_story_sprint.fase_sprint = Fase.objects.get(flujo = user_story_sprint.us.flujo, orden = user_story_sprint.fase_sprint.orden + 1)
@@ -438,6 +560,11 @@ class SprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView)
     template_name = 'proyecto/sprint/sprint_confirm_delete.html'
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al eliminar correctamente
+
+        :return:
+        """
         return reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))
 
     def delete(self, request, *args, **kwargs):
@@ -450,7 +577,7 @@ class SprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView)
                 for us in user_sprint:
                     user_story=UserStory.objects.get(pk=us.us.id)
                     user_story.estadoProyecto=1
-                    user_story.flujo = None
+                    user_story.flujo = user_story.fase = user_story.estadoFase = None
                     user_story.save()
                     us.delete()
             messages.add_message(self.request, messages.SUCCESS, 'Sprint Eliminado')
@@ -461,6 +588,12 @@ class SprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView)
         return super().delete(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(SprintDeleteView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
@@ -475,6 +608,67 @@ class SprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView)
                                   'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
                                  {'nombre': 'Sprint %d' % sprint.orden, 'url': reverse('proyecto_sprint_administrar',kwargs=self.kwargs)},
                                  {'nombre': 'Eliminar Sprint %d' % sprint.orden,
+                                  'url': '#'}
+                                 ]
+
+        return context
+
+class BurdownChartSprintView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
+    """
+           Vista Basada en Clases para la visualizacion del perfil de un sprint
+    """
+    model = Sprint
+    context_object_name = 'sprint'
+    template_name = 'proyecto/sprint/burdown_chart_sprint.html'
+    pk_url_kwarg = 'sprint_id'
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
+        context = super(BurdownChartSprintView, self).get_context_data(**kwargs)
+        proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
+        sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
+        context['titulo'] = 'Burdown Chart Sprint'
+        datos_grafica = Actividad.objects.filter(usSprint__sprint_id=sprint.id).values('dia_sprint').annotate(
+            cantidad=models.Count('dia_sprint'), total_por_dia=models.Sum('horasTrabajadas')).order_by('dia_sprint')
+
+        x_real = [0]
+        y_real = [sprint.total_horas_planificadas]
+        total_dias = sprint.duracion*sprint.cant_dias_habiles
+        y_ideal = []
+        x_ideal = []
+        total_a_trabajar = sprint.total_horas_planificadas
+        acumulado = 0
+        for dato in datos_grafica:
+            x_real.append(dato['dia_sprint'])
+            acumulado = ( acumulado + dato['total_por_dia'] )
+            y_real.append(y_real[0] - acumulado)
+
+        for dia in range(0, total_dias+1):
+            x_ideal.append(dia)
+            y_ideal.append(total_a_trabajar - dia*( total_a_trabajar / total_dias ))
+
+        context['total'] = total_a_trabajar
+        context['grafica'] = {'datos_en_x':x_real,'datos_en_y':y_real,'ideal_y':y_ideal,'ideal_x':x_ideal}
+
+        # Breadcrumbs
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': proyecto.nombre,
+                                  'url': reverse('perfil_proyecto', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Sprints',
+                                  'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
+                                 {'nombre': 'Sprint %d' % sprint.orden, 'url': reverse('proyecto_sprint_administrar', kwargs=self.kwargs)},
+                                 {'nombre': 'Burdown Chart',
                                   'url': '#'}
                                  ]
 

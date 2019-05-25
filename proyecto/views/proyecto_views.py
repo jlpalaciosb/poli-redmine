@@ -1,5 +1,5 @@
 from django.db.models.query_utils import Q
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseRedirect
 from guardian.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
 from django.contrib.auth.mixins import  PermissionRequiredMixin
@@ -10,7 +10,8 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 
 from ProyectoIS2_9.utils import cambiable_estado_proyecto
 from proyecto.forms import ProyectoForm, ProyectoCambiarEstadoForm
-from proyecto.models import Proyecto, MiembroProyecto
+from proyecto.models import Proyecto, MiembroProyecto,Actividad, UserStory
+from proyecto.models import models
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
 
 
@@ -111,6 +112,12 @@ class ProyectoListView(LoginRequiredMixin, TemplateView):
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(ProyectoListView, self).get_context_data(**kwargs)
         context['titulo'] = 'Lista de Proyectos'
         context['crear_button'] = self.request.user.has_perm('proyecto.add_proyecto')
@@ -143,6 +150,7 @@ class ProyectoListJson(LoginRequiredMixin, CustomFilterBaseDatatableView, ):
     def get_initial_queryset(self):
         """
         Un usuario es miembro de distintos proyectos. Se obtiene todos los proyectos con los que esta relacionados a traves de la lista de Miembro del user
+
         :return:
         """
         return Proyecto.objects.filter(id__in = list(map(lambda x: x.proyecto_id, MiembroProyecto.objects.filter(user=self.request.user))))
@@ -162,12 +170,28 @@ class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se crea correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Proyecto '{}' creado exitosamente.".format(cleaned_data['nombre'])
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al crear correctamente
+
+        :return:
+        """
         return reverse('proyectos')
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de creacion
+
+        :return:
+        """
         kwargs = super(ProyectoCreateView, self).get_form_kwargs()
         kwargs.update({
             'success_url': reverse('proyectos'),
@@ -175,8 +199,14 @@ class ProyectoCreateView(LoginRequiredMixin, PermissionRequiredMixin, SuccessMes
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(ProyectoCreateView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Proyectos'
+        context['titulo'] = 'Nuevo Proyecto'
         context['titulo_form_crear'] = 'Insertar Datos del Nuevo Proyecto'
 
         # Breadcrumbs
@@ -204,12 +234,28 @@ class ProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMe
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se edita correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Proyecto '{}' editado exitosamente.".format(cleaned_data['nombre'])
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al editar correctamente
+
+        :return:
+        """
         return reverse('perfil_proyecto', kwargs=self.kwargs)
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+
+        :return:
+        """
         kwargs = super(ProyectoUpdateView, self).get_form_kwargs()
         kwargs.update({
             'success_url': self.get_success_url(),
@@ -217,6 +263,12 @@ class ProyectoUpdateView(LoginRequiredMixin, PermisosPorProyectoMixin, SuccessMe
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(ProyectoUpdateView, self).get_context_data(**kwargs)
         context['titulo'] = 'Editar Proyecto'
         context['titulo_form_editar'] = 'Datos del Proyecto'
@@ -246,6 +298,12 @@ class ProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView)
         return HttpResponseForbidden()
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super(ProyectoPerfilView, self).get_context_data(**kwargs)
         context['titulo'] = 'Perfil del Proyecto'
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
@@ -273,45 +331,136 @@ class ProyectoCambiarEstadoView(LoginRequiredMixin, PermisosPorProyectoMixin, Up
     - Para pasar a terminado no debe tener ningún user story pendiente o no terminado.
     """
     model = Proyecto
+    proyecto = None # el proyecto en cuestión
+    newst = None # el nuevo estado del proyecto
     form_class = ProyectoCambiarEstadoForm
     context_object_name = 'proyecto'
     template_name = 'proyecto/proyecto/cambiarestado.html'
     pk_url_kwarg = 'proyecto_id'
     permission_required = 'proyecto.change_proyecto'
 
+    def dispatch(self, request, *args, **kwargs):
+        self.proyecto = self.get_object()
+        self.newst = request.GET.get('estado', '') # **
+        camb = cambiable_estado_proyecto(self.proyecto, self.newst)
+        if camb != 'yes':
+            messages.add_message(request, messages.WARNING,
+                'No se puede %s el proyecto porque %s' % (self.get_verbo(), camb))
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return super().dispatch(request, *args, **kwargs)
+
     def get_success_url(self):
-        return reverse('perfil_proyecto', kwargs=self.kwargs)
+        """
+        El sitio donde se redirige al cambiar correctamente
+
+        :return:
+        """
+        return reverse('perfil_proyecto', args=(self.proyecto.id,))
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['titulo'] = 'Cambiar Estado del Proyecto'
+        """
+        Las variables de contexto del template
 
-        # Breadcrumbs
+        :param kwargs:
+        :return:
+        """
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = '%s el Proyecto' % self.get_verbo().capitalize()
         context['breadcrumb'] = [
             {'nombre': 'Inicio', 'url': '/'},
             {'nombre': 'Proyectos', 'url': reverse('proyectos')},
             {'nombre': context['proyecto'].nombre, 'url': reverse('perfil_proyecto', kwargs=self.kwargs)},
-            {'nombre': 'Cambiar Estado', 'url': '#'},
+            {'nombre': self.get_verbo().capitalize(), 'url': '#'},
         ]
-
-        camb = cambiable_estado_proyecto(self.get_object(), self.request.GET.get('estado', ''))
-        context['cambiable'] = camb == 'yes'
-        context['motivo'] = camb
-
         context['currentst'] = self.get_object().estado
-        context['newst'] = self.request.GET.get('estado', '')
-
+        context['newst'] = self.newst
+        context['verbo'] = self.get_verbo()
         return context
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+
+        :return:
+        """
         kwargs = super().get_form_kwargs()
         kwargs.update({'estado': self.request.GET.get('estado', '')})
         return kwargs
 
     def form_valid(self, form):
-        newst = form.cleaned_data['estado']
-        if cambiable_estado_proyecto(self.get_object(), newst) == 'yes':
-            messages.add_message(self.request, messages.SUCCESS, 'Ahora el proyecto está {}'.format(newst))
-            return super().form_valid(form)
+        """
+        Se controla la coherencia de los cambios de estado de un proyecto.
+
+        :param form:
+        :return:
+        """
+        messages.add_message(self.request, messages.SUCCESS, 'Ahora el proyecto está %s' % self.newst)
+        return super().form_valid(form)
+
+    def get_verbo(self):
+        if self.newst == 'EN EJECUCION':
+            return 'iniciar'
+        elif self.newst == 'TERMINADO':
+            return 'terminar'
+        elif self.newst == 'CANCELADO':
+            return 'cancelar'
+        elif self.newst == 'SUSPENDIDO':
+            return 'supender'
         else:
-            return HttpResponseForbidden()
+            return ''
+
+
+class BurdownChartProyectoView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
+    """
+    Vista Basada en Clases para la visualizacion del burdown chart de un proyecto
+    """
+    model = Proyecto
+    context_object_name = 'proyecto'
+    template_name = 'proyecto/proyecto/burdown_chart_proyecto.html'
+    pk_url_kwarg = 'proyecto_id'
+    permission_denied_message = 'No tiene permiso para ver Proyectos.'
+
+    def handle_no_permission(self):
+        return HttpResponseForbidden()
+
+    def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
+        context = super(BurdownChartProyectoView, self).get_context_data(**kwargs)
+        proyecto = context['proyecto']
+        context['titulo'] = 'Burdown Chart del Proyecto {}'.format(proyecto.nombre)
+        datos_grafica = Actividad.objects.filter(usSprint__sprint__proyecto_id=proyecto.id).values('usSprint__sprint__orden'
+                                                                                         ).annotate(cantidad=models.Count('usSprint__sprint__orden'),total_por_sprint=models.Sum('horasTrabajadas'))
+        total_a_trabajar = UserStory.objects.filter(proyecto=proyecto).exclude(estadoProyecto=4).aggregate(total_planificado=models.Sum('tiempoPlanificado'))['total_planificado']
+        #AQUELLOS USER STORIES QUE FUERON CANCELADOS PERO SE REALIZARON TRABAJOS EN LOS MISMOS. SE ACUMULAN ESAS HORAS PARA TENER EN CUENTA
+        adicional = UserStory.objects.filter(proyecto=proyecto, estadoProyecto=4).aggregate(total_ejecutado_cancelado=models.Sum('tiempoEjecutado'))['total_ejecutado_cancelado']
+        if adicional is not None:
+            total_a_trabajar += adicional
+        x_real = [0]
+        y_real = [total_a_trabajar]
+
+
+
+        acumulado = 0
+        for dato in datos_grafica:
+            x_real.append(dato['usSprint__sprint__orden'])
+            acumulado = (acumulado + dato['total_por_sprint'])
+            y_real.append(y_real[0] - acumulado)
+
+        context['grafica'] = {'datos_en_x': x_real, 'datos_en_y': y_real}
+
+        context['total'] = total_a_trabajar
+
+        context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
+                                 {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+                                 {'nombre': context['proyecto'].nombre,'url': reverse('perfil_proyecto',kwargs=self.kwargs)},
+                                 {'nombre': 'Burdown Chart',
+                                  'url': '#'}
+                                 ]
+
+        return context

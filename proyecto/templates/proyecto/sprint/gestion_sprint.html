@@ -19,7 +19,10 @@
                   <p>
                       <strong>Estado:</strong>   {{ sprint.get_estado_display |default_if_none:"" }}<br>
                       <strong>Duración:</strong>   {{ sprint.duracion|default_if_none:"" }} semanas<br>
-                      <strong>Capacidad:</strong>   {{ sprint.capacidad|default_if_none:"" }} horas<br>
+                      <strong>Capacidad Total:</strong>   {{ sprint.capacidad|default_if_none:"" }} horas<br>
+                      {% if not sprint.estado == 'PLANIFICADO' %}
+                          <strong>Total de horas a trabajar :</strong>   {{ sprint.total_horas_planificadas }} horas<br>
+                      {% endif %}
                       {% if sprint.estado == 'CERRADO' %}
                           <strong>Justificación :</strong>   {{ sprint.justificacion|default:"" }}<br>
                       {% endif %}
@@ -27,7 +30,11 @@
                           <strong>Fecha de Inicio:</strong>   {{ sprint.fechaInicio|default:"" }}<br>
                       {% endif %}
                       {% if sprint.estado == 'EN_EJECUCION' %}
-                          <strong>Tiempo Restante:</strong>   {{ sprint.tiempo_restante |default:"" }} dias<br>
+                          {% if sprint.tiempo_restante >= 0%}
+                            <strong>Tiempo Restante:</strong>   {{ sprint.tiempo_restante  }} dias<br>
+                          {% elif sprint.tiempo_restante < 0 %}
+                            <strong>Tiempo Excedido:</strong>   {{ sprint.tiempo_restante | slice:"1:" |default:"" }} dias<br>
+                          {% endif %}
                       {% endif %}
                       {% if sprint.estado == 'CERRADO' %}
                           <strong>Fecha de Finalizacion:</strong>   {{ sprint.fecha_fin | default:"" }}<br>
@@ -96,13 +103,37 @@
                   </div>
               {% endif %}
               <div class="col-xs-3">
-                  <a href="#">
+                  <a href="{% url 'proyecto_sprint_burndownchart' sprint.proyecto.id sprint.id %}">
                       <button class="btn m-b-xs btn-default btn-addon ">
                           <i class="fa fa-line-chart" aria-hidden="true"></i> Burdown Chart
                       </button>
                   </a>
                   </div>
 
+              </div>
+        </div>
+    </div>
+
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            <div class="row">
+                <div class="col-xs-4">
+                <h3>Información acerca de los User Stories</h3>
+                </div>
+            </div>
+              <div class="row">
+                  <div class="col-xs-6">
+                    <strong>Cantidad total de user stories:</strong> {{ uss_total }}
+                  </div>
+                  <div class="col-xs-6">
+                    <strong>Cantidad de user stories ya iniciados:</strong> {{uss_iniciados }}
+                  </div>
+                  <div class="col-xs-6">
+                    <strong>Cantidad de user stories pendiente de revision:</strong> {{uss_revision }}
+                  </div>
+                  <div class="col-xs-6">
+                    <strong>Cantidad de user stories terminados:</strong> {{uss_terminados }}
+                  </div>
               </div>
         </div>
     </div>

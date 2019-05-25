@@ -8,7 +8,9 @@ from guardian.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.contrib import messages
 
+from ProyectoIS2_9.utils import notificar_nuevo_miembro
 from proyecto.forms import CrearMiembroForm, EditarMiembroForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
 from proyecto.models import MiembroProyecto, Proyecto
@@ -27,12 +29,28 @@ class MiembroProyectoCreateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se incorpora correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Miembro de Proyecto '{}' incorporado exitosamente.".format(cleaned_data['user'])
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al agregar correctamente
+
+        :return:
+        """
         return reverse('proyecto_miembro_list',kwargs=self.kwargs)
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de creacion
+
+        :return:
+        """
         kwargs = super(MiembroProyectoCreateView, self).get_form_kwargs()
         kwargs.update({
             'success_url': reverse('proyecto_miembro_list',kwargs=self.kwargs),
@@ -41,10 +59,16 @@ class MiembroProyectoCreateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
 
         context = super(MiembroProyectoCreateView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Miembro de Proyectos'
+        context['titulo'] = 'Agregar miembro al proyecto'
         context['titulo_form_crear'] = 'Insertar Datos del Miembro del Proyecto'
 
         # Breadcrumbs
@@ -58,6 +82,18 @@ class MiembroProyectoCreateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
 
         return context
 
+    def form_valid(self, form):
+        """
+        Se le notifica al momento de agregarle
+
+        :param form:
+        :return:
+        """
+        miembro = form.instance
+        notificar_nuevo_miembro(miembro)
+        messages.add_message(self.request, messages.INFO, 'Se notificó al nuevo miembro')
+        return super().form_valid(form)
+
 
 class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
     """
@@ -67,13 +103,19 @@ class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
     template_name = 'change_list.html'
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
 
         context = super(MiembroProyectoListView, self).get_context_data(**kwargs)
         context['titulo'] = 'Lista de Miembros del Proyecto '+ p.nombre
         context['crear_button'] = self.request.user.has_perm('proyecto.add_miembroproyecto', p)
         context['crear_url'] = reverse('proyecto_miembro_crear', kwargs=self.kwargs)
-        context['crear_button_text'] = 'Crear Miembro'
+        context['crear_button_text'] = 'Agregar Miembro'
 
         # datatables
         context['nombres_columnas'] = ['id', 'Nombre de Usuario', 'Roles']
@@ -112,10 +154,21 @@ class MiembroProyectoListJsonView(LoginRequiredMixin, PermisosEsMiembroMixin, Ba
             return super().render_column(miembro, column)
 
     def get_initial_queryset(self):
+        """
+        Se obtiene una lista de los elementos correspondientes
+
+        :return:
+        """
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         return p.miembroproyecto_set.all()
 
     def filter_queryset(self, qs):
+        """
+        Se obtiene los elementos de la busqueda ya que son de las entidades relacionadas
+
+        :param qs:
+        :return:
+        """
         search = self.request.GET.get('search[value]', '')
         qs_params = Q(user__username__icontains=search) | Q(user__first_name__icontains=search) | Q(user__last_name__icontains=search)
         return qs.filter(qs_params)
@@ -134,6 +187,12 @@ class MiembroProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
     pk_url_kwarg = 'miembro_id'
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
 
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -172,14 +231,30 @@ class MiembroProyectoUpdateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
         return HttpResponseForbidden()
 
     def get_success_message(self, cleaned_data):
+        """
+        El mensaje que aparece cuando se edita correctamente
+
+        :param cleaned_data:
+        :return:
+        """
         return "Roles del miembro editado exitosamente"
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al editar correctamente
+
+        :return:
+        """
         pid = self.kwargs['proyecto_id']
         mid = self.kwargs['miembro_id']
         return reverse('proyecto_miembro_perfil', args=(pid, mid))
 
     def get_form_kwargs(self):
+        """
+        Las variables que maneja el form de edicion
+
+        :return:
+        """
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'success_url': self.get_success_url(),
@@ -188,6 +263,12 @@ class MiembroProyectoUpdateView(SuccessMessageMixin, LoginRequiredMixin, Permiso
         return kwargs
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
 
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
@@ -236,6 +317,12 @@ class MiembroProyectoDeleteView(PermisosPorProyectoMixin, DeleteView):
         return super(MiembroProyectoDeleteView, self).dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
+        """
+        Las variables de contexto del template
+
+        :param kwargs:
+        :return:
+        """
         context = super().get_context_data(**kwargs)
 
         context['titulo'] = 'Excluir Miembro'
@@ -264,6 +351,16 @@ class MiembroProyectoDeleteView(PermisosPorProyectoMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
     def eliminable(self):
+        """
+        Se comprueba si el miembro puede ser eliminado.
+
+        **Condiciones**
+        - Si no es Scrum MAster
+        - Si no esta vinculado con algun sprint
+        - SI no es el mismo usuario
+
+        :return:
+        """
         if self.miembro.roles.filter(nombre='Scrum Master').count() == 1:
             return 'es Scrum Master'
         if self.miembro.miembrosprint_set.all().count() > 0:
@@ -274,4 +371,9 @@ class MiembroProyectoDeleteView(PermisosPorProyectoMixin, DeleteView):
         return 'Yes'
 
     def get_success_url(self):
+        """
+        El sitio donde se redirige al eliminar correctamente
+
+        :return:
+        """
         return reverse('proyecto_miembro_list', args=(self.proyecto.id,))
