@@ -52,7 +52,7 @@ class Proyecto(models.Model):
     cliente = models.ForeignKey(Cliente)
     fechaInicioEstimada = models.DateField(verbose_name='inicio', help_text='fecha de inicio estimada', null=True, blank=True)
     fechaFinEstimada = models.DateField(verbose_name='finalización', help_text='fecha de finalización estimada', null=True, blank=True)
-    duracionSprint = models.PositiveIntegerField(verbose_name='duración del sprint', help_text='duración estimada para los sprints (en semanas)', default=2, validators=[validar_mayor_a_cero])
+    duracionSprint = models.PositiveIntegerField(verbose_name='duración del sprint', help_text='duración estimada para los sprints (en semanas)', default=1, validators=[validar_mayor_a_cero])
     diasHabiles = models.PositiveIntegerField(verbose_name='días hábiles', help_text='cantidad de días hábiles en la semana', default=6, validators=[validar_mayor_a_cero,MaxValueValidator(limit_value=7)])
     estado = models.CharField(choices=ESTADOS_PROYECTO, max_length=30, default='PENDIENTE')
     justificacion = models.TextField(verbose_name='justificación', null=True, blank=True, default="", max_length=500)
