@@ -397,6 +397,10 @@ class UserStorySprint(models.Model):
         choices=ESTADOS_US_FASE, null=True, help_text='Estado en el que se encuentra un user story en un sprint'
     )
 
+    tiempo_planificado_sprint = models.PositiveIntegerField(verbose_name="Tiempo Planificado",
+        help_text="Especifique cuántas horas de trabajo se le dedicará al user story en este sprint.",
+        blank=False, default=1, validators=[validar_mayor_a_cero])
+
     class Meta:
         default_permissions = ()
         unique_together = ('us', 'sprint')
@@ -423,6 +427,13 @@ class UserStorySprint(models.Model):
             self.us.fase = self.fase_sprint
             self.us.estadoFase = self.estado_fase_sprint
             self.us.save()
+
+    def get_tiempo_planificado_sprint_string(self):
+        """
+        :return: '1 hora' o '2 horas' o '3 horas' o '4 horas' ...
+        """
+        horas = 'horas' if self.tiempo_planificado_sprint > 1 else 'hora'
+        return '%d %s para este sprint' % (self.tiempo_planificado_sprint, horas)
 
 
 class Actividad(models.Model):

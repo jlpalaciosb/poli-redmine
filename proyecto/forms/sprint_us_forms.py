@@ -1,8 +1,9 @@
 from django import forms
-from proyecto.models import Sprint, MiembroSprint, MiembroProyecto, UserStorySprint, UserStory, Proyecto, Flujo, Fase
-from crispy_forms.bootstrap import FormActions, AppendedText
+from proyecto.models import Sprint, MiembroSprint, UserStorySprint, UserStory, Proyecto, Flujo, Fase
+from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, HTML, Layout, Field
+from crispy_forms.layout import Submit, HTML, Layout
+from django.core.exceptions import ValidationError
 import datetime
 from django.db.models import F
 
@@ -15,7 +16,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
 
     class Meta:
         model = UserStorySprint
-        fields = ['us', 'flujo', 'asignee']
+        fields = ['us', 'flujo', 'asignee', 'tiempo_planificado_sprint']
 
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
@@ -43,6 +44,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
             'us',
             'flujo',
             'asignee',
+            'tiempo_planificado_sprint',
             FormActions(
                 Submit('guardar', 'Guardar'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
@@ -59,14 +61,14 @@ class UserStorySprintCrearForm(forms.ModelForm):
         us = self.cleaned_data['us']
         flujo = self.cleaned_data['flujo']
         if us.flujo is None and flujo is None:
-            raise forms.ValidationError('Se necesita especificar el flujo que seguirá el US seleccionado')
+            raise forms.ValidationError('')
         return flujo
 
 
-class UserStorySprintChangeAssigneeForm(forms.ModelForm):
+class UserStorySprintEditarForm(forms.ModelForm):
     class Meta:
         model = UserStorySprint
-        fields = ['asignee']
+        fields = ['asignee', 'tiempo_planificado_sprint']
 
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
@@ -78,7 +80,7 @@ class UserStorySprintChangeAssigneeForm(forms.ModelForm):
         self.fields['asignee'].queryset = MiembroSprint.objects.filter(sprint=self.sprint)
 
         self.layout = [
-            'asignee',
+            'asignee', 'tiempo_planificado_sprint',
             FormActions(
                 Submit('guardar', 'Guardar'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
@@ -90,6 +92,15 @@ class UserStorySprintChangeAssigneeForm(forms.ModelForm):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-8'
         self.helper.layout = Layout(*self.layout)
+
+    def clean_tiempo_planificado_sprint(self):
+        if 'tiempo_planificado_sprint' in self.changed_data and \
+            self.instance.sprint.estado != 'PLANIFICADO':
+            raise ValidationError('Solo se puede modificar el tiempo planificado cuando el sprint está '
+                'en planificación. Deje este campo igual a %d.' % self.instance.tiempo_planificado_sprint)
+        else:
+            return self.cleaned_data['tiempo_planificado_sprint']
+
 
 class SprintCambiarEstadoForm(forms.ModelForm):
     """

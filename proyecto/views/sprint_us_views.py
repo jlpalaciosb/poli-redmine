@@ -8,7 +8,7 @@ from django.contrib import messages
 from guardian.mixins import LoginRequiredMixin
 
 from ProyectoIS2_9.utils import notificar_asignacion, notificar_aceptacion, notificar_rechazo
-from proyecto.forms import UserStorySprintCrearForm, UserStorySprintChangeAssigneeForm, UserStoryRechazadoForm
+from proyecto.forms import UserStorySprintCrearForm, UserStorySprintEditarForm, UserStoryRechazadoForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEnEjecucionMixin
 from proyecto.models import Sprint, Proyecto, UserStorySprint
 from guardian.decorators import permission_required
@@ -251,12 +251,12 @@ class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
         return context
 
 
-class UserStorySprintChangeAssigneeView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, UpdateView):
+class UserStorySprintEditarView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, UpdateView):
     """
     Vista que permite modificar un User Story a nivel de sprint (hasta ahora solo se permite cambiar el asignee)
     """
     model = UserStorySprint
-    form_class = UserStorySprintChangeAssigneeForm
+    form_class = UserStorySprintEditarForm
     template_name = 'change_form.html'
     pk_url_kwarg = 'usp_id'
     permission_required = 'proyecto.administrar_sprint'
@@ -272,12 +272,9 @@ class UserStorySprintChangeAssigneeView(SuccessMessageMixin, LoginRequiredMixin,
 
     def get_success_message(self, cleaned_data):
         """
-        El mensaje que aparece cuando se crea correctamente
-
-        :param cleaned_data:
-        :return:
+        :return: el mensaje que aparece cuando se crea correctamente
         """
-        return "Se estableció el encargado exitosamente"
+        return "Se editó exitosamente el user story en sprint"
 
     def get_success_url(self):
         """
@@ -317,8 +314,8 @@ class UserStorySprintChangeAssigneeView(SuccessMessageMixin, LoginRequiredMixin,
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
         usp = context['object']
 
-        context['titulo'] = 'Cambiar Encargado del US en el Sprint'
-        context['titulo_form_editar'] = 'US'
+        context['titulo'] = 'Editar US en Sprint'
+        context['titulo_form_editar'] = 'User Story'
         context['titulo_form_editar_nombre'] = usp.us.nombre
 
         # Breadcrumbs
