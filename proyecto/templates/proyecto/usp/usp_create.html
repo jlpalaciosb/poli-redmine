@@ -3,8 +3,12 @@
 {% block extrajs %}
     <script type="text/javascript">
         $(document).ready(function() {
-            document.getElementById('id_us').onchange = mostrarOcultarFlujo;
+            document.getElementById('id_us').onchange = () => {
+                mostrarOcultarFlujo();
+                tiempoPlanificadoDefault();
+            };
             mostrarOcultarFlujo();
+            tiempoPlanificadoDefault();
         });
 
         function mostrarOcultarFlujo() {
@@ -16,6 +20,29 @@
             } else {
                 document.getElementById('div_id_flujo').style.display = ''
             }
+        }
+
+        function tiempoPlanificadoDefault() {
+            let usSelect = document.getElementById('id_us');
+            let selected = usSelect.options[usSelect.selectedIndex];
+            let trabajoRestante = null;
+            if (selected.value !== '' && selected.value !== null && selected.value !== undefined) {
+                let label = selected.innerText;
+                trabajoRestante = getTrabajoRestante(label);
+            }
+            let tpse = document.getElementById("id_tiempo_planificado_sprint");
+            tpse.value = trabajoRestante;
+        }
+
+        /* Parsea el label del option del US, y retorna el trabajo restante */
+        function getTrabajoRestante(label) {
+            let s = label.indexOf("(Trabajo Restante = ") +"(Trabajo Restante = ".length;
+            let i = s;
+            while("-0123456789".indexOf(label.charAt(i)) !== -1 && i < 10000) i++;
+            let tr = label.substr(s, i - s);
+            tr = parseInt(tr);
+            if (Number.isNaN(tr) || tr < 0) return null;
+            else return tr;
         }
     </script>
 {% endblock %}
