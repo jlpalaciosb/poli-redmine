@@ -48,8 +48,8 @@
                     </div>
                     <br>
                     <div>
-                        <strong>Tiempo Planificado: </strong> {{ us.tiempoPlanificado }} horas <br>
-                        <strong>Tiempo Ejecutado: </strong> {{ us.tiempoEjecutado | floatformat }} horas <br>
+                        <strong>Tiempo Planificado: </strong> {{ us.tiempoPlanificado }} hora{% if us.tiempoPlanificado != 1 %}s{% endif %} <br>
+                        <strong>Tiempo Ejecutado: </strong> {{ us.tiempoEjecutado }} hora{% if us.tiempoEjecutado != 1 %}s{% endif %} <br>
                     </div>
                     <br>
                 </div>
@@ -58,11 +58,11 @@
                     <h4>&nbsp;</h4>
                     <div class="form-group">
                         <label><strong>Descripción</strong></label>
-                        <textarea readonly class="form-control" rows="4">{{ us.descripcion }}</textarea>
+                        <textarea readonly class="form-control" rows="4" style="resize: vertical;">{{ us.descripcion }}</textarea>
                     </div>
                     <div class="form-group">
                         <label><strong>Criterios de Aceptación</strong></label>
-                        <textarea readonly class="form-control" rows="4">{{ us.criteriosAceptacion }}</textarea>
+                        <textarea readonly class="form-control" rows="4" style="resize: vertical;">{{ us.criteriosAceptacion }}</textarea>
                     </div>
                 </div>
             </div>

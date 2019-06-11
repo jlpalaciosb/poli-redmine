@@ -5,7 +5,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, HTML, Layout
 from django.core.exceptions import ValidationError
 import datetime
-from django.db.models import F
+# from django.db.models import F
 
 class UserStorySprintCrearForm(forms.ModelForm):
     flujo = forms.ModelChoiceField(
@@ -26,7 +26,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
         super(UserStorySprintCrearForm, self).__init__(*args, **kwargs)
 
         self.fields['us'].queryset = UserStory.objects.filter(
-            proyecto=self.proyecto, estadoProyecto__in=(1, 3),tiempoPlanificado__gt=F('tiempoEjecutado')
+            proyecto=self.proyecto, estadoProyecto__in=(1, 3) #,tiempoPlanificado__gt=F('tiempoEjecutado')
         ).order_by('-estadoProyecto','-priorizacion')
 
         self.fields['flujo'].queryset = Flujo.objects.filter(proyecto=self.proyecto)
@@ -34,7 +34,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
         self.fields['asignee'].queryset = MiembroSprint.objects.filter(sprint=self.sprint)
 
         self.fields['us'].label_from_instance = lambda us :\
-            '{} (Priorización = {:.2f}) (Estado General = {}) (Trabajo Restante = {:.2f} horas)'.\
+            '{} (Priorización = {:.2f}) (Estado General = {}) (Trabajo Restante = {} horas)'.\
                 format(us.nombre, us.get_priorizacion(), us.get_estadoProyecto_display(), us.tiempoPlanificado - us.tiempoEjecutado)
 
         if self.instance.id is None:

@@ -75,9 +75,9 @@ class USForm(ModelForm):
         """
         us = self.instance
         us.tiempoPlanificado = self.cleaned_data['tiempoPlanificado']
-        if us.id is not None:
-            if us.tiene_tiempo_excedido():
-                raise forms.ValidationError('El tiempo planficicado debe ser superior al tiempo ejecutado({} horas)'.format(us.tiempoEjecutado))
+        # if us.id is not None:
+        #     if us.tiene_tiempo_excedido():
+        #         raise forms.ValidationError('El tiempo planficicado debe ser superior al tiempo ejecutado({} horas)'.format(us.tiempoEjecutado))
         return self.cleaned_data['tiempoPlanificado']
 
 
