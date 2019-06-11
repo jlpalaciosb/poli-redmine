@@ -428,12 +428,13 @@ class UserStorySprint(models.Model):
             self.us.estadoFase = self.estado_fase_sprint
             self.us.save()
 
-    def get_tiempo_planificado_sprint_string(self):
+    def get_tiempo_ejecutado(self):
         """
-        :return: '1 hora' o '2 horas' o '3 horas' o '4 horas' ...
+        :return sumatoria de las horas de las actividades de este userstorysprint
         """
-        horas = 'horas' if self.tiempo_planificado_sprint > 1 else 'hora'
-        return '%d %s para este sprint' % (self.tiempo_planificado_sprint, horas)
+        ejecutado = 0
+        for actividad in self.actividad_set.all(): ejecutado += actividad.horasTrabajadas
+        return ejecutado
 
 
 class Actividad(models.Model):
