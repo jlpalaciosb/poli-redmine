@@ -48,8 +48,8 @@
                     </div>
                     <br>
                     <div>
-                        <strong>Tiempo Planificado: </strong> {{ us.tiempoPlanificado }} horas <br>
-                        <strong>Tiempo Ejecutado: </strong> {{ us.tiempoEjecutado | floatformat }} horas <br>
+                        <strong>Tiempo Planificado: </strong> {{ us.tiempoPlanificado }} hora{% if us.tiempoPlanificado != 1 %}s{% endif %} <br>
+                        <strong>Tiempo Ejecutado: </strong> {{ us.tiempoEjecutado }} hora{% if us.tiempoEjecutado != 1 %}s{% endif %} <br>
                     </div>
                     <br>
                 </div>
