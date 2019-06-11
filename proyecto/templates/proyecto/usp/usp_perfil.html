@@ -19,6 +19,7 @@
                 <div class="col-xs-4">
                     <h4>{{ usp.us.nombre }}</h4>
                     <strong>Encargado: </strong> {{ usp.asignee.miembro.user.username }} ({{ usp.asignee.miembro.user.get_full_name }}) <br><br>
+                    <strong>Tiempo Planificado: </strong> {{ usp.get_tiempo_planificado_sprint_string }}<br> <br>
                     <strong>Priorización: </strong> {{ usp.us.get_priorizacion | floatformat:2 }} <br> <br>
                 </div>
                 <div class="col-xs-6">
@@ -31,6 +32,12 @@
             </div>
             <div class="row">
                 <div class="col-xs-12">
+                    <a href="{% url 'proyecto_sprint_tablero' usp.us.proyecto.id usp.sprint.id usp.us.flujo.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-table"></i> Tablero Kanban
+                        </button>
+                    </a>
+
                     <a href="{% url 'actividad_list' usp.us.proyecto.id usp.sprint.id usp.id %}">
                         <button class="btn m-b-xs btn-default btn-addon ">
                             <i class="fa fa-list"></i> Actividades
@@ -38,9 +45,9 @@
                     </a>
                     {% if puedeEditar %}
                         {% if usp.sprint.estado != 'CERRADO' %}
-                            <a href="{% url 'usp_change_assignee' usp.us.proyecto.id usp.sprint.id usp.id %}">
+                            <a href="{% url 'usp_editar' usp.us.proyecto.id usp.sprint.id usp.id %}">
                                 <button class="btn m-b-xs btn-default btn-addon ">
-                                    <i class="fa fa-pencil"></i> Cambiar Encargado
+                                    <i class="fa fa-pencil"></i> Editar
                                 </button>
                             </a>
                         {% endif %}
@@ -51,22 +58,16 @@
                             >
                                 {% csrf_token %}
                                 <button class="btn m-b-xs btn-danger btn-addon ">
-                                    <i class="fa fa-arrow-left"></i> Quitar del Sprint
+                                    <i class="fa fa-trash"></i> Quitar del Sprint
                                 </button>
                             </form>
                         {% endif %}
                     {% endif %}
 
-                    <a href="{% url 'proyecto_sprint_tablero' usp.us.proyecto.id usp.sprint.id usp.us.flujo.id %}">
-                        <button class="btn m-b-xs btn-default btn-addon ">
-                            <i class="fa fa-table"></i> Tablero Kanban
-                        </button>
-                    </a>
-
                     <a href="{% url 'proyecto_us_ver' usp.us.proyecto.id usp.us.id %}"
-                    alt="assdf">
+                    title="Ver el US a nivel del proyecto">
                         <button class="btn m-b-xs btn-default btn-addon ">
-                            <i class="fa fa-pencil"></i> Ver US
+                            <i class="fa fa-eye"></i> Ver US
                         </button>
                     </a>
 
