@@ -20,6 +20,6 @@ from .miembroSprint_views import MiembroSprintListView, MiembroSprintListJson, M
 
 from .flujo_views import FlujoCreateView, FlujoUpdateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoEliminarView
 
-from .sprint_us_views import UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintEditarView, UserStorySprintDeleteView, aprobar_user_story, UserStorySprintRechazarView
+from .sprint_us_views import UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintEditarView, UserStorySprintDeleteView, aprobar_user_story, UserStorySprintRechazarViewViejo, UserStorySprintRechazarView
 
 from .actividad_views import ActividadCreateView, ActividadListView, ActividadListJsonView, ActividadPerfilView, ActividadUpdateView

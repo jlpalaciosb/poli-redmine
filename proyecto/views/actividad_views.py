@@ -203,6 +203,7 @@ class ActividadListJsonView(ActividadBaseView, PermisosEsMiembroMixin, BaseDatat
         search = self._querydict.get('search[value]', '')
         return qs.filter(nombre__icontains=search)
 
+
 class ActividadPerfilView(ActividadBaseView, PermisosEsMiembroMixin, DetailView):
     """
     Vista para ver una actividad

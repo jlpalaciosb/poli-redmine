@@ -136,8 +136,8 @@ class SprintCambiarEstadoForm(forms.ModelForm):
         self.helper.field_class = 'col-lg-8'
         self.helper.layout = Layout(*self.layout)
 
-class UserStoryRechazadoForm(forms.ModelForm):
 
+class RechazarUSFormViejo(forms.ModelForm):
     class Meta:
         model = UserStorySprint
         fields = ['fase_sprint']
@@ -168,3 +168,39 @@ class UserStoryRechazadoForm(forms.ModelForm):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-8'
         self.helper.layout = Layout(*self.layout)
+
+
+class RechazarUSForm(forms.Form):
+    descripcion = forms.CharField(label='Descripción', help_text='Describa por qué se rechaza el '
+        'user story', max_length=500, min_length=1, widget=forms.widgets.Textarea)
+    fase = forms.ModelChoiceField(label='Fase', queryset=Fase.objects.all(), help_text='La fase en '
+        'la que se moverá el user story (el estado será TO DO)')
+
+    def __init__(self, *args, **kwargs):
+        self.success_url = kwargs.pop('success_url')
+        self.usp = kwargs.pop('usp')
+
+        super().__init__(*args, **kwargs)
+
+        self.fields['fase'].queryset = self.usp.fase_sprint.flujo.fase_set.all()
+        self.fields['fase'].label_from_instance = lambda fase : fase.nombre
+
+        self.usp.estado_fase_sprint = 'TODO'
+
+        self.layout = [
+            'descripcion', 'fase',
+            FormActions(
+                Submit('guardar', 'CONFIRMAR', css_class='btn-danger'),
+                HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
+            ),
+        ]
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
+        self.helper.layout = Layout(*self.layout)
+
+    def is_valid(self):
+        ret = super().is_valid()
+        return ret

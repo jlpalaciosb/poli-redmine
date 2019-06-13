@@ -8,12 +8,13 @@ from proyecto.models import Proyecto, MiembroProyecto, UserStory
 from django.contrib import messages
 from django.views.generic import DeleteView
 
+
 class PermisosPorProyectoMixin(GuardianPermissionRequiredMixin):
     """
     Clase a ser heredada por las vistas que necesitan autorizacion de permisos para un proyecto en particular. Se debe especificar la lista de permisos
     """
     return_403 = True
-    proyecto_param = 'proyecto_id'#El parametro que contiene el id del proyecto a verificar
+    proyecto_param = 'proyecto_id' # El parametro que contiene el id del proyecto a verificar
 
     def get_permission_object(self):
         """
