@@ -166,7 +166,6 @@ class Sprint(models.Model):
         return bussy >= today
 
 
-
 class Flujo(models.Model):
     """
     La clase Flujo representa a un flujo de algun proyecto especifico
@@ -317,6 +316,7 @@ class UserStory(models.Model):
     def get_priorizacion(self):
         return self.priorizacion
 
+
 class RolProyecto(Group):
     """
     """
@@ -450,7 +450,7 @@ class Actividad(models.Model):
     # este atributo
     responsable = models.ForeignKey(MiembroProyecto)
 
-    horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=1, validators=[validar_mayor_a_cero])
+    horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=1)
     fase = models.ForeignKey(Fase)
 
     archivoAdjunto = models.FileField(upload_to='proyecto.ArchivosActividad/bytes/filename/mimetype', help_text='El archivo adjunto de la actividad', null=True, blank=True)

@@ -1,11 +1,8 @@
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, HTML, Layout
-from django import forms
 from django.forms import ModelForm
-from django.forms import  ModelChoiceField
-from proyecto.models import Proyecto, UserStory, TipoUS, Actividad, UserStorySprint
-from db_file_storage.form_widgets import DBClearableFileInput
+from proyecto.models import Actividad
 
 
 class ActividadForm(ModelForm):

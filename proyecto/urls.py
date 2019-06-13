@@ -9,12 +9,11 @@ from proyecto.views import \
     SprintListView, SprintListJson, crear_sprint, SprintPerfilView, BurdownChartSprintView,\
     MiembroSprintListJson, MiembroSprintListView, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint, MiembroSprintIntercambiarView,\
     FlujoCreateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoUpdateView, FlujoEliminarView, \
-    UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintEditarView, UserStorySprintDeleteView, aprobar_user_story, UserStorySprintRechazarView,\
+    UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintEditarView, UserStorySprintDeleteView, aprobar_user_story, UserStorySprintRechazarViewViejo, UserStorySprintRechazarView,\
     FlujoSprintListJson, FlujoSprintListView, TableroKanbanView, mover_us_kanban, \
     ActividadCreateView, ActividadListView, ActividadListJsonView, ActividadPerfilView, ActividadUpdateView
 
 from proyecto.views.sprint_views import iniciar_sprint, SprintCambiarEstadoView, SprintDeleteView
-
 
 
 urlpatterns = [
