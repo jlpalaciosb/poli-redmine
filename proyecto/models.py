@@ -382,6 +382,18 @@ class MiembroSprint(models.Model):
     def __str__(self):
         return self.miembro.user.username
 
+    def capacidad(self):
+        """
+        Se calcula la capacidad total en horas de un miembro en un sprint.
+
+        :return: Un valor si es posible calcular. None si no es posible calcular
+        """
+        dias_habiles = self.sprint.cant_dias_habiles
+        duracion_sprint = self.sprint.duracion # semanas
+        if dias_habiles == None or duracion_sprint == None:#En caso que algunos de los parametros no esten definidos en el sprint no se puede calcular
+            return None
+        return dias_habiles * duracion_sprint * self.horasAsignadas
+
 
 class UserStorySprint(models.Model):
     """
