@@ -17,7 +17,7 @@ from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render
 from guardian.conf import settings as guardian_settings
 
-from proyecto.models import UserStorySprint, MiembroProyecto
+from proyecto.models import UserStorySprint, MiembroProyecto, Sprint
 
 logger = logging.getLogger(__name__)
 abspath = lambda *p: os.path.abspath(os.path.join(*p))
@@ -37,8 +37,8 @@ def es_administrador(user):
 
 
 def get_40x_or_None_ANY(request, perms, obj=None, login_url=None,
-                    redirect_field_name=None, return_403=False,
-                    return_404=False, accept_global_perms=False):
+                        redirect_field_name=None, return_403=False,
+                        return_404=False, accept_global_perms=False):
     """
     Este es un copy paste de guardian.utils.get_40x_or_None que lo que hace es verificar
     que el usuario tenga al menos un permiso de los permisos definidos en perm. Basicamente lo
@@ -62,10 +62,10 @@ def get_40x_or_None_ANY(request, perms, obj=None, login_url=None,
     has_permissions = False
     # global perms check first (if accept_global_perms)
     if accept_global_perms:
-        has_permissions = any(request.user.has_perm(perm) for perm in perms) # AQUI EL CAMBIO DE ALL POR ANY
+        has_permissions = any(request.user.has_perm(perm) for perm in perms)  # AQUI EL CAMBIO DE ALL POR ANY
     # if still no permission granted, try obj perms
     if not has_permissions:
-        has_permissions = any(request.user.has_perm(perm, obj) # AQUI EL CAMBIO DE ALL POR ANY
+        has_permissions = any(request.user.has_perm(perm, obj)  # AQUI EL CAMBIO DE ALL POR ANY
                               for perm in perms)
 
     if not has_permissions:
@@ -90,6 +90,7 @@ def get_40x_or_None_ANY(request, perms, obj=None, login_url=None,
             return redirect_to_login(request.get_full_path(),
                                      login_url,
                                      redirect_field_name)
+
 
 def cambiable_estado_proyecto(proyecto, newst):
     """
@@ -136,7 +137,7 @@ def cambiable_estado_proyecto(proyecto, newst):
             return 'yes'
 
     if newst == 'SUSPENDIDO':
-        if currentst not in ['EN EJECUCION',]:
+        if currentst not in ['EN EJECUCION', ]:
             return 'solo se puede pasar a "SUSPENDIDO" si el proyecto está en ejecución'
         elif proyecto.sprint_set.filter(estado='EN_EJECUCION').count() > 0:
             return 'tiene un sprint en ejecución'
@@ -152,11 +153,13 @@ class EmailThread(threading.Thread):
         self.from_email = from_email
         threading.Thread.__init__(self)
 
-    def run (self):
+    def run(self):
         send_mail(self.subject, self.message, self.from_email, self.recipient_list)
+
 
 def notificar_revision(usp):
     """
+    Notifica al scrum master para que revise un user story
     :type usp: UserStorySprint
     """
     sprint = usp.sprint
@@ -165,12 +168,13 @@ def notificar_revision(usp):
     scrum_master = proyecto.miembroproyecto_set.filter(roles__nombre='Scrum Master').first().user
     url_revisar = 'http://example.com' + reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))
     EmailThread(
-        'Revisión de User Story',
-        'El miembro %s finalizó el user story "%s". Haga click en el siguiente enlace para '
-        'aceptar o rechazar la finalización: %s.' % ('%s (%s)' % (assignee.username, assignee.get_full_name()),
-        usp.us.nombre, url_revisar),
-        settings.EMAIL_HOST_USER, [scrum_master.email,],
+        'Revisión del User Story: "%s"' % usp.us.nombre,
+        'El miembro "%s" finalizó el user story "%s". Por favor, revise el user story para aceptar '
+        'o rechazar su culminación. Siga el siguiente enlace para tal efecto: %s' %
+        (assignee.get_full_name(), usp.us.nombre, url_revisar),
+        settings.EMAIL_HOST_USER, [scrum_master.email, ],
     ).start()
+
 
 def notificar_asignacion(usp):
     """
@@ -182,11 +186,13 @@ def notificar_asignacion(usp):
     assignee = usp.asignee.miembro.user
     url_ver = 'http://example.com' + reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))
     EmailThread(
-        'Asignación de User Story',
-        'Has sido asignado para el user story "%s" para el sprint %d del proyecto "%s". Haz click en el '
-        'siguiente enlace para ver el user story: %s' % (usp.us.nombre, sprint.orden, proyecto.nombre, url_ver),
-        settings.EMAIL_HOST_USER, [assignee.email,]
+        'Asignación del User Story: "%s"' % usp.us.nombre,
+        'Le asignaron el user story "%s" para el sprint %d del proyecto "%s". Le notificaremos cuando'
+        'el sprint inicie. Siga el siguiente enlace para ver los detalles del user story: %s' %
+        (usp.us.nombre, sprint.orden, proyecto.nombre, url_ver),
+        settings.EMAIL_HOST_USER, [assignee.email, ]
     ).start()
+
 
 def notificar_nuevo_miembro(miembro):
     """
@@ -194,12 +200,14 @@ def notificar_nuevo_miembro(miembro):
     :type miembro: MiembroProyecto
     """
     url_ver = 'http://example.com' + reverse('perfil_proyecto', args=(miembro.proyecto.id,))
+    proyecto = miembro.proyecto
     EmailThread(
-        'Miembro de Proyecto',
-        'Ahora eres miembro del proyecto "%s". Haz click en el siguiente enlace para ver '
-        'el proyecto: %s' % (miembro.proyecto.nombre, url_ver),
-        settings.EMAIL_HOST_USER, [miembro.user.email,]
+        'Nuevo Miembro del Proyecto: "%s"' % proyecto.nombre,
+        'Ahora usted es miembro del proyecto "%s". Siga el siguiente enlace para ver el '
+        'proyecto: %s' % (proyecto.nombre, url_ver),
+        settings.EMAIL_HOST_USER, [miembro.user.email, ]
     ).start()
+
 
 def notificar_aceptacion(usp):
     """
@@ -208,10 +216,11 @@ def notificar_aceptacion(usp):
     """
     assignee = usp.asignee.miembro.user
     EmailThread(
-        'User Story Aceptado',
-        'Tu user story "%s" fue aceptado por el scrum master!' % (usp.us.nombre,),
+        'Aceptación del User Story: "%s"' % usp.us.nombre,
+        'Su user story "%s" fue aceptado por el scrum master.' % (usp.us.nombre,),
         settings.EMAIL_HOST_USER, [assignee.email, ]
     ).start()
+
 
 def notificar_rechazo(usp):
     """
@@ -223,8 +232,9 @@ def notificar_rechazo(usp):
     assignee = usp.asignee.miembro.user
     url_ver = 'http://example.com' + reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))
     EmailThread(
-        'User Story Rechazado',
-        'Tu user story "%s" fue rechazado por el scrum master. Haga click en el siguiente enlace para '
-        'ver el user story: %s' % (usp.us.nombre, url_ver),
+        'Rechazo del User Story: "%s"' % usp.us.nombre,
+        'Su user story "%s" fue rechazado por el scrum master. Entre las actividades del user story '
+        'podrá ver la nota del rechazo. Siga el siguiente enlace para ver la página del user story '
+        'en el sprint: %s' % (usp.us.nombre, url_ver),
         settings.EMAIL_HOST_USER, [assignee.email, ]
     ).start()
