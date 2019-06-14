@@ -1,5 +1,7 @@
+from io import BytesIO
+
 from django.db.models.query_utils import Q
-from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponse
 from guardian.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, DetailView, UpdateView, CreateView
 from django.contrib.auth.mixins import  PermissionRequiredMixin
@@ -8,9 +10,16 @@ from django.contrib import messages
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
 
+from reportlab.lib import colors
+from reportlab.lib.units import cm
+from reportlab.pdfgen import canvas
+from django.views.generic import View
+from reportlab.platypus import Table, TableStyle
+
+from ProyectoIS2_9 import settings
 from ProyectoIS2_9.utils import cambiable_estado_proyecto
 from proyecto.forms import ProyectoForm, ProyectoCambiarEstadoForm
-from proyecto.models import Proyecto, MiembroProyecto,Actividad, UserStory
+from proyecto.models import Proyecto, MiembroProyecto, Actividad, UserStory, ESTADOS_US_PROYECTO
 from proyecto.models import models
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin
 
@@ -464,3 +473,71 @@ class BurdownChartProyectoView(LoginRequiredMixin, PermisosEsMiembroMixin, Detai
                                  ]
 
         return context
+
+class ReporteProductBacklogPDF(View):
+    """
+    Vista que construye un pdf
+    """
+    def cabecera(self, pdf):
+        # Utilizamos el archivo logo_django.png que está guardado en la carpeta media/imagenes
+        archivo_imagen = settings.STATICFILES_DIRS[0] + '/img/logo.png'
+        # Definimos el tamaño de la imagen a cargar y las coordenadas correspondientes
+        pdf.drawImage(archivo_imagen, 40, 750, 120, 90, preserveAspectRatio=True)
+
+    def get(self, request, *args, **kwargs):
+        # Indicamos el tipo de contenido a devolver, en este caso un pdf
+        response = HttpResponse(content_type='application/pdf')
+        # La clase io.BytesIO permite tratar un array de bytes como un fichero binario, se utiliza como almacenamiento temporal
+        buffer = BytesIO()
+        # Canvas nos permite hacer el reporte con coordenadas X y Y
+        pdf = canvas.Canvas(buffer)
+        # Llamo al método cabecera donde están definidos los datos que aparecen en la cabecera del reporte.
+        self.cabecera(pdf)
+        # Con show page hacemos un corte de página para pasar a la siguiente
+        # Establecemos el tamaño de letra en 16 y el tipo de letra Helvetica
+        pdf.setFont("Helvetica", 16)
+        # Dibujamos una cadena en la ubicación X,Y especificada
+        proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
+        pdf.drawString(250-2*len(proyecto.nombre), 790, u""+proyecto.nombre)
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(200, 770, u"PRODUCT BACKLOG")
+        user_stories = UserStory.objects.filter(proyecto=kwargs['proyecto_id'])
+        y=730
+        detalles=[]
+        for us in user_stories:
+            detalles.append((us.nombre, ESTADOS_US_PROYECTO[us.estadoProyecto-1][1], '', ''))
+        if not len(user_stories)>=1:
+            detalles=[('Sin User Stories en el Product Backlog','','','')]
+        cant_user_stories=len(detalles)
+        y-=(20+20*cant_user_stories)
+        self.tabla_us(pdf, detalles, y)
+        pdf.showPage()
+        pdf.save()
+        pdf = buffer.getvalue()
+        buffer.close()
+        response.write(pdf)
+        return response
+
+    def tabla_us(self, pdf,detalles, y):
+        # Creamos una tupla de encabezados para neustra tabla
+        encabezados = ('Nombre del User Story', 'Estado')
+        # Establecemos el tamaño de cada una de las columnas de la tabla
+        detalle_orden = Table([encabezados] + detalles, colWidths=[7 * cm, 2 * cm, 0 * cm, 0 * cm])
+        # Aplicamos estilos a las celdas de la tabla
+        detalle_orden.setStyle(TableStyle(
+            [
+                # La primera fila(encabezados) va a estar centrada
+                ('ALIGN', (0, 0), (3, 0), 'CENTER'),
+                # Los bordes de todas las celdas serán de color negro y con un grosor de 1
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                # El tamaño de las letras de cada una de las celdas será de 10
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('TEXTCOLOR', (0, 0), (3, 0), colors.white),
+                ('BACKGROUND', (0, 0), (1, 0), colors.Color(35/256, 48/256, 68/256)),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.white)
+            ]
+        ))
+        # Establecemos el tamaño de la hoja que ocupará la tabla
+        detalle_orden.wrapOn(pdf, 800, 600)
+        # Definimos la coordenada donde se dibujará la tabla
+        detalle_orden.drawOn(pdf, 150, y)

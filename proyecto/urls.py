@@ -12,15 +12,17 @@ from proyecto.views import \
     UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintEditarView, UserStorySprintDeleteView, aprobar_user_story, UserStorySprintRechazarViewViejo, UserStorySprintRechazarView,\
     FlujoSprintListJson, FlujoSprintListView, TableroKanbanView, mover_us_kanban, \
     ActividadCreateView, ActividadListView, ActividadListJsonView, ActividadPerfilView, ActividadUpdateView
+from proyecto.views.proyecto_views import ReporteProductBacklogPDF
 
-from proyecto.views.sprint_views import iniciar_sprint, SprintCambiarEstadoView, SprintDeleteView
-
+from proyecto.views.sprint_views import iniciar_sprint, SprintCambiarEstadoView, SprintDeleteView, \
+    ReporteSprintBacklogPDF
 
 urlpatterns = [
     url(r'^$', ProyectoListView.as_view(), name='proyectos'),
     url(r'^crear/$', ProyectoCreateView.as_view(), name='crear_proyecto'),
     url(r'^list/$', ProyectoListJson.as_view(), name='proyecto_list_json'),
     url(r'^(?P<proyecto_id>\d+)/editar/$', ProyectoUpdateView.as_view(), name='editar_proyecto'),
+    url(r'^(?P<proyecto_id>\d+)/reporte/$', ReporteProductBacklogPDF.as_view(), name='reporte_pb'),
     url(r'^(?P<proyecto_id>\d+)/perfil/$', ProyectoPerfilView.as_view(), name='perfil_proyecto'),
     url(r'^(?P<proyecto_id>\d+)/burdownchart/$', BurdownChartProyectoView.as_view(), name='burdownchart_proyecto'),
     url(r'^(?P<proyecto_id>\d+)/cambiarestado/$', ProyectoCambiarEstadoView.as_view(), name='cambiarestado_proyecto'),
@@ -63,6 +65,7 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/sprints/list$', SprintListJson.as_view(), name='proyecto_sprint_list_json'),
     url(r'^(?P<proyecto_id>\d+)/sprints/crear$', crear_sprint, name='proyecto_sprint_crear'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/administrar$', SprintPerfilView.as_view(), name='proyecto_sprint_administrar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/reporte/$', ReporteSprintBacklogPDF.as_view(), name='reporte_sb'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/burdownchart$', BurdownChartSprintView.as_view(), name='proyecto_sprint_burndownchart'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/flujos$', FlujoSprintListView.as_view(), name='proyecto_sprint_flujos'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/tablero/(?P<flujo_id>\d+)$', TableroKanbanView.as_view(), name='proyecto_sprint_tablero'),
