@@ -1,6 +1,6 @@
 import datetime
 
-from ProyectoIS2_9.utils import notificar_revision
+from ProyectoIS2_9.utils import notificar_revision, notificar_inicio_sprint
 from proyecto.forms.sprint_us_forms import SprintCambiarEstadoForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
 from guardian.mixins import LoginRequiredMixin
@@ -101,6 +101,8 @@ def iniciar_sprint(request, proyecto_id, sprint_id):
         sprint.total_horas_planificadas = horas
         sprint.save()
         messages.add_message(request, messages.SUCCESS, 'Se inicio el sprint Nro '+str(sprint.orden))
+        notificar_inicio_sprint(sprint)
+        messages.add_message(request, messages.SUCCESS, 'Se notificó a los miembros')
         return HttpResponseRedirect(reverse('proyecto_sprint_administrar', args=(proyecto_id,sprint_id)))
     except:
         messages.add_message(request, messages.ERROR, 'Ha ocurrido un error!')

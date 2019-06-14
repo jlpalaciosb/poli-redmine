@@ -187,8 +187,8 @@ def notificar_asignacion(usp):
     url_ver = 'http://example.com' + reverse('sprint_us_ver', args=(proyecto.id, sprint.id, usp.id))
     EmailThread(
         'Asignación del User Story: "%s"' % usp.us.nombre,
-        'Le asignaron el user story "%s" para el sprint %d del proyecto "%s". Le notificaremos cuando'
-        'el sprint inicie. Siga el siguiente enlace para ver los detalles del user story: %s' %
+        'Le asignaron el user story "%s" para el sprint %d del proyecto "%s". Le notificaremos cuando '
+        'inicie el sprint. Siga el siguiente enlace para ver los detalles del user story: %s' %
         (usp.us.nombre, sprint.orden, proyecto.nombre, url_ver),
         settings.EMAIL_HOST_USER, [assignee.email, ]
     ).start()
@@ -238,3 +238,28 @@ def notificar_rechazo(usp):
         'en el sprint: %s' % (usp.us.nombre, url_ver),
         settings.EMAIL_HOST_USER, [assignee.email, ]
     ).start()
+
+def notificar_inicio_sprint(sprint):
+    """
+    Notifica a todos los miembros del sprint que el sprint acaba de iniciar. Detalla a cada miembro
+    los user stories que le fueron asignados.
+    :type sprint: Sprint
+    :return:
+    """
+    subject = 'Inicio del sprint %d del proyecto "%s"' % (sprint.orden, sprint.proyecto.nombre)
+    url_sprint = 'http://example.com' + reverse('proyecto_sprint_administrar',
+                                                args=(sprint.proyecto.id, sprint.id))
+    for miembro_sprint in sprint.miembrosprint_set.all():
+        usps_asignados = miembro_sprint.userstorysprint_set.all()
+        uss_asignados = list(map(lambda usp: usp.us, usps_asignados))
+        uss_asignados_string = 'No le asignaron ningún user story para este sprint. \n'
+        if len(uss_asignados) > 0:
+            uss_asignados_string = 'Le asignaron los siguientes user stories para este sprint: \n'
+            for us in uss_asignados: uss_asignados_string += ' - %s\n' % us.nombre
+
+        EmailThread(
+            subject,
+            'El sprint del cual usted es miembro acaba de iniciar. Siga el siguiente enlace para '
+            'ver la página del sprint: %s' % url_sprint + '\n\n' + uss_asignados_string,
+            settings.EMAIL_HOST_USER, [miembro_sprint.miembro.user.email,]
+        ).start()
