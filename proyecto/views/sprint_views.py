@@ -755,3 +755,74 @@ class ReporteSprintBacklogPDF(View):
         detalle_orden.wrapOn(pdf, 800, 600)
         # Definimos la coordenada donde se dibujará la tabla
         detalle_orden.drawOn(pdf, 70, y)
+
+class ReporteUSPrioridadPDF(View):
+    """
+    Vista que construye un pdf
+    """
+    def cabecera(self, pdf):
+        # Utilizamos el archivo logo_django.png que está guardado en la carpeta media/imagenes
+        archivo_imagen = settings.STATICFILES_DIRS[0] + '/img/logo.png'
+        # Definimos el tamaño de la imagen a cargar y las coordenadas correspondientes
+        pdf.drawImage(archivo_imagen, 40, 750, 120, 90, preserveAspectRatio=True)
+
+    def get(self, request, *args, **kwargs):
+        # Indicamos el tipo de contenido a devolver, en este caso un pdf
+        response = HttpResponse(content_type='application/pdf')
+        # La clase io.BytesIO permite tratar un array de bytes como un fichero binario, se utiliza como almacenamiento temporal
+        buffer = BytesIO()
+        # Canvas nos permite hacer el reporte con coordenadas X y Y
+        pdf = canvas.Canvas(buffer)
+        # Llamo al método cabecera donde están definidos los datos que aparecen en la cabecera del reporte.
+        self.cabecera(pdf)
+        # Con show page hacemos un corte de página para pasar a la siguiente
+        # Establecemos el tamaño de letra en 16 y el tipo de letra Helvetica
+        pdf.setFont("Helvetica", 16)
+        # Dibujamos una cadena en la ubicación X,Y especificada
+        sprint = Sprint.objects.get(pk=kwargs['sprint_id'])
+        proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
+        pdf.drawString(250 - 2 * len(proyecto.nombre), 790, u"" + proyecto.nombre)
+        pdf.drawString(245, 770, u"Sprint"+str(sprint.orden))
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(220, 750, u"US PRIORIDAD")
+        user_stories = UserStorySprint.objects.filter(sprint=kwargs['sprint_id'])
+        y=710
+        detalles=[]
+        for us in user_stories:
+            if ESTADOS_US_PROYECTO[us.us.estadoProyecto-1][1]=='Pendiente':
+                detalles.append((us.us.nombre, ESTADOS_US_PROYECTO[us.us.estadoProyecto-1][1], str(us.get_tiempo_ejecutado()),str(us.asignee.miembro.user.first_name)+" "+str(us.asignee.miembro.user.last_name)))
+        if not len(detalles)>=1:
+            detalles=[('Sin User Stories que mostrar','','','')]
+        cant_user_stories=len(detalles)
+        y-=(20+20*cant_user_stories)
+        self.tabla_us(pdf, detalles, y)
+        pdf.showPage()
+        pdf.save()
+        pdf = buffer.getvalue()
+        buffer.close()
+        response.write(pdf)
+        return response
+
+    def tabla_us(self, pdf,detalles, y):
+        # Creamos una tupla de encabezados para neustra tabla
+        encabezados = ('Nombre del User Story', 'Estado','Horas Ejecutadas','Encargado')
+        # Establecemos el tamaño de cada una de las columnas de la tabla
+        detalle_orden = Table([encabezados] + detalles, colWidths=[7 * cm, 2 * cm, 4 * cm, 4 * cm])
+        # Aplicamos estilos a las celdas de la tabla
+        detalle_orden.setStyle(TableStyle(
+            [
+                # La primera fila(encabezados) va a estar centrada
+                ('ALIGN', (0, 0), (3, 0), 'CENTER'),
+                # Los bordes de todas las celdas serán de color negro y con un grosor de 1
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                # El tamaño de las letras de cada una de las celdas será de 10
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('TEXTCOLOR', (0, 0), (3, 0), colors.white),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.Color(35/256, 48/256, 68/256)),
+                # ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ]
+        ))
+        # Establecemos el tamaño de la hoja que ocupará la tabla
+        detalle_orden.wrapOn(pdf, 800, 600)
+        # Definimos la coordenada donde se dibujará la tabla
+        detalle_orden.drawOn(pdf, 70, y)
