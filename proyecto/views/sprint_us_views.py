@@ -693,7 +693,7 @@ class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, Permi
         )
 
         #invalidar todas las actividades que hayan sido cargadas en las fases igual o superior a la fase seleccionada
-        for act in Actividad.objects.filter(usSprint=form.instance, fase__actividad__orden__gte=form.cleaned_data['fase'].orden):
+        for act in Actividad.objects.filter(usSprint=self.usp, fase__orden__gte=form.cleaned_data['fase'].orden):
             act.es_rechazado = True
             act.save()
 

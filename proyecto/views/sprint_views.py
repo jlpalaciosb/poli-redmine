@@ -656,7 +656,7 @@ class BurdownChartSprintView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailV
         for dia in range(0, total_dias+1):
             x_ideal.append(dia)
             y_ideal.append(total_a_trabajar - dia*( total_a_trabajar / total_dias ))
-
+        context['negativo'] = y_real[y_real.__len__()-1] < 0
         context['total'] = total_a_trabajar
         context['grafica'] = {'datos_en_x':x_real,'datos_en_y':y_real,'ideal_y':y_ideal,'ideal_x':x_ideal}
 
