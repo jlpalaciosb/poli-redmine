@@ -43,19 +43,28 @@
         ]
 
     },
-        axis: {
-        y: {
-            max: {{ total }},
+    axis: {
+    y: {
+        max: {{ total }},
 
-            label: 'Trabajo Pendiente(Horas)'
-            // Range includes padding, set 0 if no padding needed
-            // padding: {top:0, bottom:0}
-        },
-            x: {
-            label: 'Dia del Sprint'
+        label: 'Trabajo Pendiente(Horas)'
+        // Range includes padding, set 0 if no padding needed
+        // padding: {top:0, bottom:0}
+    },
+        x: {
+        label: 'Dia del Sprint'
         }
 
+    },
+    {% if negativo %}
+    grid: {
+        y: {
+            lines: [
+                {value: 0, text: 'Tiempo planificado excedido', position: 'start'}
+            ]
+        }
     }
+    {% endif %}
 });
     </script>
 {% endblock %}

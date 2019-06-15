@@ -138,5 +138,5 @@ sudo service apache2 restart
 
 
 source "$BASEDIR"/"$path_desarrollo"/IS2_Equipo09/venv/bin/activate
-
+cd "$BASEDIR"/"$path_desarrollo"/IS2_Equipo09
 python manage.py runserver

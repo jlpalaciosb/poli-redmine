@@ -22,6 +22,7 @@
                       <strong>Capacidad Total:</strong>   {{ sprint.capacidad|default_if_none:"" }} horas<br>
                       {% if not sprint.estado == 'PLANIFICADO' %}
                           <strong>Total de horas a trabajar :</strong>   {{ sprint.total_horas_planificadas }} horas<br>
+                          <strong>Total de horas trabajadas :</strong>   {{ sprint.total_horas_trabajadas }} horas<br>
                       {% endif %}
                       {% if sprint.estado == 'CERRADO' %}
                           <strong>Justificación :</strong>   {{ sprint.justificacion|default:"" }}<br>
@@ -109,7 +110,22 @@
                       </button>
                   </a>
                   </div>
-
+              <div class="col-xs-3">
+                  <a href="{% url 'reporte_sb' sprint.proyecto.id sprint.id %}">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                        <i class="fa fa-file-pdf-o"></i>
+                        Reporte Sprint Backlog
+                      </button>
+                  </a>
+              </div>
+              <div class="col-xs-3">
+                  <a href="{% url 'reporte_prioridad' sprint.proyecto.id sprint.id %}">
+                      <button class="btn m-b-xs btn-default btn-addon ">
+                        <i class="fa fa-file-pdf-o"></i>
+                        Reporte Sprint US Prioritarios
+                      </button>
+                  </a>
+              </div>
               </div>
         </div>
     </div>

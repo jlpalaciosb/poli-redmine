@@ -9,7 +9,7 @@ from django.contrib.auth.models import User, Group
 from proyecto.models import RolProyecto
 from .forms import UsuarioForm, EditarUsuarioForm
 from ProyectoIS2_9.utils import cualquier_permiso, es_administrador
-
+from django.contrib.auth import update_session_auth_hash
 
 class UsuarioListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'change_list.html'
@@ -162,6 +162,7 @@ class UsuarioUpdateView(SuccessMessageMixin, PermissionRequiredMixin, LoginRequi
         if password:
             usuario.set_password(password)
         response = super().form_valid(form)
+        update_session_auth_hash(self.request, usuario)
         for rol in roles_proyecto:
             usuario.groups.add(rol)
         return response

@@ -10,7 +10,7 @@ from .us_forms import USForm, USCancelarForm
 
 from .miembroSprint_forms import MiembroSprintForm, CambiarMiembroForm
 
-from .sprint_us_forms import UserStorySprintCrearForm, UserStorySprintChangeAssigneeForm, UserStoryRechazadoForm
+from .sprint_us_forms import UserStorySprintCrearForm, UserStorySprintEditarForm, RechazarUSFormViejo, RechazarUSForm
 
 from .flujo_form import FaseFormSet, FlujoForm
 

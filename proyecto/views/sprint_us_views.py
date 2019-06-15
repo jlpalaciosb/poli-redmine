@@ -1,5 +1,4 @@
-
-from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView
+from django.views.generic import CreateView, UpdateView, TemplateView, DetailView, DeleteView, FormView
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.urls import reverse
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -8,12 +7,13 @@ from django.contrib import messages
 from guardian.mixins import LoginRequiredMixin
 
 from ProyectoIS2_9.utils import notificar_asignacion, notificar_aceptacion, notificar_rechazo
-from proyecto.forms import UserStorySprintCrearForm, UserStorySprintChangeAssigneeForm, UserStoryRechazadoForm
+from proyecto.forms import UserStorySprintCrearForm, UserStorySprintEditarForm, RechazarUSFormViejo, RechazarUSForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEnEjecucionMixin
-from proyecto.models import Sprint, Proyecto, UserStorySprint
+from proyecto.models import Sprint, Proyecto, UserStorySprint, Actividad, MiembroProyecto
 from guardian.decorators import permission_required
 from django.contrib.auth.decorators import login_required
 from proyecto.decorators import proyecto_en_ejecucion
+
 
 class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, CreateView):
     """
@@ -87,6 +87,10 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
         else: messages.add_message(self.request, messages.WARNING, 'Capacidad del sprint superada por ' + str(-disponible) + ' horas')
 
         ret = super().form_valid(form)
+
+        if form.instance.asignee.horas_ocupadas_planificadas() > form.instance.asignee.capacidad():#SI SE EXCEDE LA CAPACIDAD DEL MIEMBRO
+            messages.add_message( self.request, messages.WARNING, 'Se ha excedido la capacidad planificada del miembro ' + form.instance.asignee.__str__())
+
         notificar_asignacion(form.instance)
         messages.add_message(self.request, messages.INFO, 'Se notificó al asignado')
         return ret
@@ -251,12 +255,12 @@ class UserStorySprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, Deta
         return context
 
 
-class UserStorySprintChangeAssigneeView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, UpdateView):
+class UserStorySprintEditarView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, UpdateView):
     """
     Vista que permite modificar un User Story a nivel de sprint (hasta ahora solo se permite cambiar el asignee)
     """
     model = UserStorySprint
-    form_class = UserStorySprintChangeAssigneeForm
+    form_class = UserStorySprintEditarForm
     template_name = 'change_form.html'
     pk_url_kwarg = 'usp_id'
     permission_required = 'proyecto.administrar_sprint'
@@ -272,12 +276,9 @@ class UserStorySprintChangeAssigneeView(SuccessMessageMixin, LoginRequiredMixin,
 
     def get_success_message(self, cleaned_data):
         """
-        El mensaje que aparece cuando se crea correctamente
-
-        :param cleaned_data:
-        :return:
+        :return: el mensaje que aparece cuando se crea correctamente
         """
-        return "Se estableció el encargado exitosamente"
+        return "Se editó exitosamente el user story en sprint"
 
     def get_success_url(self):
         """
@@ -317,8 +318,8 @@ class UserStorySprintChangeAssigneeView(SuccessMessageMixin, LoginRequiredMixin,
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
         usp = context['object']
 
-        context['titulo'] = 'Cambiar Encargado del US en el Sprint'
-        context['titulo_form_editar'] = 'US'
+        context['titulo'] = 'Editar US en Sprint'
+        context['titulo_form_editar'] = 'User Story'
         context['titulo_form_editar_nombre'] = usp.us.nombre
 
         # Breadcrumbs
@@ -334,6 +335,7 @@ class UserStorySprintChangeAssigneeView(SuccessMessageMixin, LoginRequiredMixin,
         ]
 
         return context
+
 
 class UserStorySprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, DeleteView):
     model = UserStorySprint
@@ -373,6 +375,7 @@ class UserStorySprintDeleteView(LoginRequiredMixin, PermisosPorProyectoMixin, De
 
         messages.add_message(self.request, messages.SUCCESS, 'User Story quitado del sprint')
         return super().delete(request, *args, **kwargs)
+
 
 @login_required
 @permission_required('proyecto.administrar_sprint',(Proyecto, 'id', 'proyecto_id'), return_403=True)
@@ -418,12 +421,13 @@ def aprobar_user_story(request, proyecto_id, sprint_id, usp_id):
         return HttpResponseRedirect(reverse('sprint_us_list', args=(proyecto_id, sprint_id)))
 
 
-class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, UpdateView):
+class UserStorySprintRechazarViewViejo(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEnEjecucionMixin, UpdateView):
     """
-    Vista que permite a un scrum master rechazar un user story que este en revision. Se le manda al TO DO de alguna fase
+    Vista que permite a un scrum master rechazar un user story que este en revision.
+    Se le manda al TO DO de alguna fase
     """
     model = UserStorySprint
-    form_class = UserStoryRechazadoForm
+    form_class = RechazarUSFormViejo
     template_name = 'change_form.html'
     pk_url_kwarg = 'usp_id'
     permission_required = 'proyecto.administrar_sprint'
@@ -494,14 +498,14 @@ class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, Permi
     def get(self, request, *args, **kwargs):
         response = self.es_valido(request)
         if response is None:
-            return super(UserStorySprintRechazarView, self).get(request, args, kwargs)
+            return super(UserStorySprintRechazarViewViejo, self).get(request, args, kwargs)
         return response
 
 
     def post(self, request, *args, **kwargs):
         response = self.es_valido(request)
         if response is None:
-            return super(UserStorySprintRechazarView, self).post(request, args, kwargs)
+            return super(UserStorySprintRechazarViewViejo, self).post(request, args, kwargs)
         return response
 
 
@@ -552,9 +556,158 @@ class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, Permi
         :param form:
         :return:
         """
-        response = super(UserStorySprintRechazarView, self).form_valid(form)
+        response = super(UserStorySprintRechazarViewViejo, self).form_valid(form)
         form.instance.us.estadoProyecto = 2
         form.instance.us.save()
         notificar_rechazo(form.instance)
         messages.add_message(self.request, messages.INFO, 'Se notificó al encargado')
+        return response
+
+
+class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, PermisosPorProyectoMixin,
+        ProyectoEnEjecucionMixin, FormView):
+    """
+    Vista que permite a un scrum master rechazar un user story que esté en revisión. Se le manda
+    al UserStorySprint al TO DO de alguna fase. Se crea una actividad para la nota de rechazo.
+    """
+    form_class = RechazarUSForm
+    template_name = 'change_form.html'
+    permission_required = 'proyecto.administrar_sprint'
+    proyecto = None # el proyecto en cuestión (se inicializa en el método es_valido)
+    sprint = None # el sprint en cuestión (se inicializa en el método es_valido)
+    usp = None # el userstorysprint en cuestión (se inicializa en el método es_valido)
+
+    def dispatch(self, request, *args, **kwargs):
+        response = self.es_valido(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs) if response is None else response
+
+    def get_success_message(self, cleaned_data):
+        """
+        :return el mensaje que aparece cuando se rechaza correctamente
+        """
+        return "Se rechazó el user story correctamente"
+
+    def get_success_url(self):
+        """
+        :return la url (string) de la página donde se redirige cuando se rechaza correctamente
+        """
+        return reverse('sprint_us_ver', args=(self.proyecto.id, self.sprint.id, self.usp.id))
+
+    def get_form_kwargs(self):
+        """
+        :return las variables que maneja el form
+        """
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'success_url': self.get_success_url(),
+            'usp': self.usp
+        })
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        """
+        :return las variables de contexto del template
+        """
+        context = super().get_context_data(**kwargs)
+
+        context['titulo'] = 'Rechazar culminación del User Story'
+        context['form_rechazar_us'] = True
+        context['titulo_form_editar'] = 'US'
+        context['titulo_form_editar_nombre'] = self.usp.us.nombre
+
+        # Breadcrumbs
+        context['breadcrumb'] = [
+            {'nombre': 'Inicio', 'url': '/'},
+            {'nombre': 'Proyectos', 'url': reverse('proyectos')},
+            {'nombre': self.proyecto.nombre, 'url': reverse('perfil_proyecto', args=(self.proyecto.id,))},
+            {'nombre': 'Sprints', 'url': reverse('proyecto_sprint_list', args=(self.proyecto.id,))},
+            {'nombre': 'Sprint %d' % self.sprint.orden, 'url': reverse('proyecto_sprint_administrar', args=(self.proyecto.id, self.sprint.id))},
+            {'nombre': 'Sprint Backlog', 'url': reverse('sprint_us_list', args=(self.proyecto.id, self.sprint.id))},
+            {'nombre': self.usp.us.nombre, 'url': reverse('sprint_us_ver', args=(self.proyecto.id, self.sprint.id, self.usp.id))},
+            {'nombre': 'Rechazar User Story', 'url': '#'},
+        ]
+
+        return context
+
+    def es_valido(self, request, *args, **kwargs):
+        """
+        Controla si se puede acceder a esta vista. También inicializa los atributos proyecto,
+        sprint y usp
+
+        ** Condiciones **
+        - El Sprint debe estar en ejecucion
+        - El User Story debe estar en el DONE de su ultima fase
+        - El User Story debe estar en revision
+
+        :return la respuesta en caso de invalidez, None si es válido
+        """
+        proyecto_id = kwargs['proyecto_id']
+        sprint_id = kwargs['sprint_id']
+        usp_id = kwargs['usp_id']
+        try:
+            self.sprint = Sprint.objects.get(pk=sprint_id, proyecto_id=proyecto_id)
+            if self.sprint.estado != 'EN_EJECUCION':
+                messages.add_message(request, messages.WARNING, 'El Sprint debe estar en ejecución')
+                return HttpResponseRedirect(reverse('sprint_us_ver', args=(proyecto_id, sprint_id, usp_id)))
+
+            self.usp = UserStorySprint.objects.get(pk=usp_id, sprint_id=sprint_id, sprint__proyecto_id=proyecto_id)
+            us = self.usp.us
+
+            if not (us.estadoFase == 'DONE' and us.fase.orden == us.flujo.cantidadFases):
+                messages.add_message(request, messages.WARNING, 'El User Story debe estar en el DONE de su ultima fase')
+                return HttpResponseRedirect(reverse('sprint_us_ver', args=(proyecto_id, sprint_id, usp_id)))
+
+            if us.estadoProyecto != 6:
+                messages.add_message(request, messages.WARNING, 'El User Story debe estar en revision')
+                return HttpResponseRedirect(reverse('sprint_us_ver', args=(proyecto_id, sprint_id, usp_id)))
+
+            self.proyecto = self.usp.sprint.proyecto
+
+            return None # petición válida
+        except UserStorySprint.DoesNotExist:
+            messages.add_message(request, messages.ERROR, 'El User Story solicitido no existe')
+            return HttpResponseRedirect(reverse('sprint_us_list', args=(proyecto_id, sprint_id)))
+        except Sprint.DoesNotExist:
+            messages.add_message(request, messages.ERROR, 'El Sprint solicitido no existe')
+            return HttpResponseRedirect(reverse('perfil_proyecto', args=(proyecto_id,)))
+        except: # it does not matter if this clause if too broad
+            messages.add_message(request, messages.ERROR, 'Ha ocurrido un error!')
+            return HttpResponseRedirect(reverse('sprint_us_list', args=(proyecto_id, sprint_id)))
+
+    def form_valid(self, form):
+        """
+        Se cambia nuevamente el estado del user story a EN SPRINT
+        """
+        response = super(UserStorySprintRechazarView, self).form_valid(form)
+
+        # generar la actividad
+        Actividad.objects.create(
+            nombre='Rechazo de User Story',
+            descripcion=form.cleaned_data['descripcion'],
+            usSprint=self.usp,
+            responsable=MiembroProyecto.objects.get(user=self.request.user, proyecto=self.proyecto),
+            horasTrabajadas=0,
+            fase=self.usp.fase_sprint,
+            estado=self.usp.estado_fase_sprint,
+            es_rechazado=True
+        )
+
+        #invalidar todas las actividades que hayan sido cargadas en las fases igual o superior a la fase seleccionada
+        for act in Actividad.objects.filter(usSprint=self.usp, fase__orden__gte=form.cleaned_data['fase'].orden):
+            act.es_rechazado = True
+            act.save()
+
+        # modificar el usp
+        self.usp.fase_sprint = form.cleaned_data['fase']
+        self.usp.estado_fase_sprint = 'TODO'
+        self.usp.save()
+
+        # modificar el us
+        self.usp.us.estadoProyecto = 2 # el US estaba en revisión, ahora volverá a estar en sprint
+        self.usp.us.save()
+
+        # notificar por correo al encargado
+        notificar_rechazo(self.usp)
+        messages.add_message(self.request, messages.INFO, 'Se notificó al encargado')
+
         return response

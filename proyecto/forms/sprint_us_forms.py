@@ -1,10 +1,11 @@
 from django import forms
-from proyecto.models import Sprint, MiembroSprint, MiembroProyecto, UserStorySprint, UserStory, Proyecto, Flujo, Fase
-from crispy_forms.bootstrap import FormActions, AppendedText
+from proyecto.models import Sprint, MiembroSprint, UserStorySprint, UserStory, Proyecto, Flujo, Fase
+from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, HTML, Layout, Field
+from crispy_forms.layout import Submit, HTML, Layout
+from django.core.exceptions import ValidationError
 import datetime
-from django.db.models import F
+# from django.db.models import F
 
 class UserStorySprintCrearForm(forms.ModelForm):
     flujo = forms.ModelChoiceField(
@@ -15,7 +16,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
 
     class Meta:
         model = UserStorySprint
-        fields = ['us', 'flujo', 'asignee']
+        fields = ['us', 'flujo', 'asignee', 'tiempo_planificado_sprint']
 
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
@@ -25,7 +26,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
         super(UserStorySprintCrearForm, self).__init__(*args, **kwargs)
 
         self.fields['us'].queryset = UserStory.objects.filter(
-            proyecto=self.proyecto, estadoProyecto__in=(1, 3),tiempoPlanificado__gt=F('tiempoEjecutado')
+            proyecto=self.proyecto, estadoProyecto__in=(1, 3) #,tiempoPlanificado__gt=F('tiempoEjecutado')
         ).order_by('-estadoProyecto','-priorizacion')
 
         self.fields['flujo'].queryset = Flujo.objects.filter(proyecto=self.proyecto)
@@ -33,8 +34,14 @@ class UserStorySprintCrearForm(forms.ModelForm):
         self.fields['asignee'].queryset = MiembroSprint.objects.filter(sprint=self.sprint)
 
         self.fields['us'].label_from_instance = lambda us :\
-            '{} (Priorización = {:.2f}) (Estado General = {}) (Trabajo Restante = {:.2f} horas)'.\
+            '{} (Priorización = {:.2f}) (Estado General = {}) (Trabajo Restante = {} horas)'.\
                 format(us.nombre, us.get_priorizacion(), us.get_estadoProyecto_display(), us.tiempoPlanificado - us.tiempoEjecutado)
+
+        self.fields['asignee'].label_from_instance = lambda asignee: \
+            '{} (Horas disponibles : {})'. \
+                format(asignee.__str__(), asignee.capacidad() - asignee.horas_ocupadas_planificadas()) if (asignee.capacidad() >= asignee.horas_ocupadas_planificadas()) else \
+                '{} (Horas excedidas : {})'. \
+                    format(asignee.__str__(), asignee.horas_ocupadas_planificadas() - asignee.capacidad())
 
         if self.instance.id is None:
             self.instance.sprint = self.sprint
@@ -43,6 +50,7 @@ class UserStorySprintCrearForm(forms.ModelForm):
             'us',
             'flujo',
             'asignee',
+            'tiempo_planificado_sprint',
             FormActions(
                 Submit('guardar', 'Guardar'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
@@ -59,14 +67,14 @@ class UserStorySprintCrearForm(forms.ModelForm):
         us = self.cleaned_data['us']
         flujo = self.cleaned_data['flujo']
         if us.flujo is None and flujo is None:
-            raise forms.ValidationError('Se necesita especificar el flujo que seguirá el US seleccionado')
+            raise forms.ValidationError('')
         return flujo
 
 
-class UserStorySprintChangeAssigneeForm(forms.ModelForm):
+class UserStorySprintEditarForm(forms.ModelForm):
     class Meta:
         model = UserStorySprint
-        fields = ['asignee']
+        fields = ['asignee', 'tiempo_planificado_sprint']
 
     def __init__(self, *args, **kwargs):
         self.success_url = kwargs.pop('success_url')
@@ -77,8 +85,15 @@ class UserStorySprintChangeAssigneeForm(forms.ModelForm):
 
         self.fields['asignee'].queryset = MiembroSprint.objects.filter(sprint=self.sprint)
 
+        self.fields['asignee'].label_from_instance = lambda asignee: \
+            '{} (Horas disponibles : {})'. \
+                format(asignee.__str__(), asignee.capacidad() - asignee.horas_ocupadas_planificadas()) if (asignee.capacidad() >= asignee.horas_ocupadas_planificadas()) else \
+                '{} (Horas excedidas : {})'. \
+                    format(asignee.__str__(), asignee.horas_ocupadas_planificadas() - asignee.capacidad())
+
+
         self.layout = [
-            'asignee',
+            'asignee', 'tiempo_planificado_sprint',
             FormActions(
                 Submit('guardar', 'Guardar'),
                 HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
@@ -90,6 +105,15 @@ class UserStorySprintChangeAssigneeForm(forms.ModelForm):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-8'
         self.helper.layout = Layout(*self.layout)
+
+    def clean_tiempo_planificado_sprint(self):
+        if 'tiempo_planificado_sprint' in self.changed_data and \
+            self.instance.sprint.estado != 'PLANIFICADO':
+            raise ValidationError('Solo se puede modificar el tiempo planificado cuando el sprint está '
+                'en planificación. Deje este campo igual a %d.' % self.instance.tiempo_planificado_sprint)
+        else:
+            return self.cleaned_data['tiempo_planificado_sprint']
+
 
 class SprintCambiarEstadoForm(forms.ModelForm):
     """
@@ -125,8 +149,8 @@ class SprintCambiarEstadoForm(forms.ModelForm):
         self.helper.field_class = 'col-lg-8'
         self.helper.layout = Layout(*self.layout)
 
-class UserStoryRechazadoForm(forms.ModelForm):
 
+class RechazarUSFormViejo(forms.ModelForm):
     class Meta:
         model = UserStorySprint
         fields = ['fase_sprint']
@@ -157,3 +181,39 @@ class UserStoryRechazadoForm(forms.ModelForm):
         self.helper.label_class = 'col-lg-2'
         self.helper.field_class = 'col-lg-8'
         self.helper.layout = Layout(*self.layout)
+
+
+class RechazarUSForm(forms.Form):
+    descripcion = forms.CharField(label='Descripción', help_text='Describa por qué se rechaza el '
+        'user story', max_length=500, min_length=1, widget=forms.widgets.Textarea)
+    fase = forms.ModelChoiceField(label='Fase', queryset=Fase.objects.all(), help_text='La fase en '
+        'la que se moverá el user story (el estado será TO DO)')
+
+    def __init__(self, *args, **kwargs):
+        self.success_url = kwargs.pop('success_url')
+        self.usp = kwargs.pop('usp')
+
+        super().__init__(*args, **kwargs)
+
+        self.fields['fase'].queryset = self.usp.fase_sprint.flujo.fase_set.all()
+        self.fields['fase'].label_from_instance = lambda fase : fase.nombre
+
+        self.usp.estado_fase_sprint = 'TODO'
+
+        self.layout = [
+            'descripcion', 'fase',
+            FormActions(
+                Submit('guardar', 'CONFIRMAR', css_class='btn-danger'),
+                HTML('<a class="btn btn-default" href={}>Cancelar</a>'.format(self.success_url)),
+            ),
+        ]
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-2'
+        self.helper.field_class = 'col-lg-8'
+        self.helper.layout = Layout(*self.layout)
+
+    def is_valid(self):
+        ret = super().is_valid()
+        return ret

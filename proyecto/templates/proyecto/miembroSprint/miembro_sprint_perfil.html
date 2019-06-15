@@ -18,7 +18,16 @@
                 <div class="col-xs-6">
                     <h4><strong>Miembro: </strong>{{ miembro_sprint.miembro }}</h4>
                     <p>
-                        <strong>Horas disponibles: </strong> {{ miembro_sprint.horasAsignadas }} <br>
+                        <strong>Horas disponibles por dia: </strong> {{ miembro_sprint.horasAsignadas }} <br>
+                    </p>
+                    <p>
+                        <strong>Capacidad total (en horas): </strong> {{ miembro_sprint.capacidad }} <br>
+                    </p>
+                    <p>
+                        <strong>Horas totales trabajadas: </strong> {{ miembro_sprint.total_trabajado }} <br>
+                    </p>
+                    <p>
+                        <strong>Total de User Stories asignados (en horas): </strong> {{ miembro_sprint.horas_ocupadas_planificadas }} <br>
                     </p>
                 </div>
                 {% get_obj_perms request.user for miembro_sprint.sprint.proyecto as "permisosGuardian" %}

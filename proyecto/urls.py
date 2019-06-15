@@ -9,19 +9,21 @@ from proyecto.views import \
     SprintListView, SprintListJson, crear_sprint, SprintPerfilView, BurdownChartSprintView,\
     MiembroSprintListJson, MiembroSprintListView, MiembroSprintCreateView, MiembroSprintPerfilView, MiembroSprintUpdateView, excluir_miembro_sprint, MiembroSprintIntercambiarView,\
     FlujoCreateView, FlujoListView, FlujoListJson, FlujoPerfilView, FlujoUpdateView, FlujoEliminarView, \
-    UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintChangeAssigneeView, UserStorySprintDeleteView, aprobar_user_story, UserStorySprintRechazarView,\
+    UserStorySprintCreateView, UserStorySprintListView, UserStorySprintListJsonView, UserStorySprintPerfilView, UserStorySprintEditarView, UserStorySprintDeleteView, aprobar_user_story, UserStorySprintRechazarViewViejo, UserStorySprintRechazarView,\
     FlujoSprintListJson, FlujoSprintListView, TableroKanbanView, mover_us_kanban, \
     ActividadCreateView, ActividadListView, ActividadListJsonView, ActividadPerfilView, ActividadUpdateView
+from proyecto.views.proyecto_views import ReporteProductBacklogPDF, ReporteHorasTrabajadasPDF
 
-from proyecto.views.sprint_views import iniciar_sprint, SprintCambiarEstadoView, SprintDeleteView
-
-
+from proyecto.views.sprint_views import iniciar_sprint, SprintCambiarEstadoView, SprintDeleteView, \
+    ReporteSprintBacklogPDF, ReporteUSPrioridadPDF
 
 urlpatterns = [
     url(r'^$', ProyectoListView.as_view(), name='proyectos'),
     url(r'^crear/$', ProyectoCreateView.as_view(), name='crear_proyecto'),
     url(r'^list/$', ProyectoListJson.as_view(), name='proyecto_list_json'),
     url(r'^(?P<proyecto_id>\d+)/editar/$', ProyectoUpdateView.as_view(), name='editar_proyecto'),
+    url(r'^(?P<proyecto_id>\d+)/reporte/$', ReporteProductBacklogPDF.as_view(), name='reporte_pb'),
+    url(r'^(?P<proyecto_id>\d+)/reportehoras/$', ReporteHorasTrabajadasPDF.as_view(), name='reporte_ht'),
     url(r'^(?P<proyecto_id>\d+)/perfil/$', ProyectoPerfilView.as_view(), name='perfil_proyecto'),
     url(r'^(?P<proyecto_id>\d+)/burdownchart/$', BurdownChartProyectoView.as_view(), name='burdownchart_proyecto'),
     url(r'^(?P<proyecto_id>\d+)/cambiarestado/$', ProyectoCambiarEstadoView.as_view(), name='cambiarestado_proyecto'),
@@ -64,6 +66,8 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/sprints/list$', SprintListJson.as_view(), name='proyecto_sprint_list_json'),
     url(r'^(?P<proyecto_id>\d+)/sprints/crear$', crear_sprint, name='proyecto_sprint_crear'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/administrar$', SprintPerfilView.as_view(), name='proyecto_sprint_administrar'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/reporte/$', ReporteSprintBacklogPDF.as_view(), name='reporte_sb'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/reporteprioridad/$', ReporteUSPrioridadPDF.as_view(), name='reporte_prioridad'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/burdownchart$', BurdownChartSprintView.as_view(), name='proyecto_sprint_burndownchart'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/flujos$', FlujoSprintListView.as_view(), name='proyecto_sprint_flujos'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/tablero/(?P<flujo_id>\d+)$', TableroKanbanView.as_view(), name='proyecto_sprint_tablero'),
@@ -85,7 +89,7 @@ urlpatterns = [
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/ver$', UserStorySprintPerfilView.as_view(), name='sprint_us_ver'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/aprobar$', aprobar_user_story, name='sprint_us_aprobar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/rechazar$', UserStorySprintRechazarView.as_view(), name='sprint_us_rechazar'),
-    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/changeassignee$', UserStorySprintChangeAssigneeView.as_view(), name='usp_change_assignee'),
+    url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/editar$', UserStorySprintEditarView.as_view(), name='usp_editar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/eliminar$', UserStorySprintDeleteView.as_view(), name='sprint_us_eliminar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/actividades/agregar$', ActividadCreateView.as_view(), name='actividad_agregar'),
     url(r'^(?P<proyecto_id>\d+)/sprints/(?P<sprint_id>\d+)/userstories/(?P<usp_id>\d+)/actividades$', ActividadListView.as_view(), name='actividad_list'),

@@ -165,6 +165,16 @@ class Sprint(models.Model):
         bussy = self.cant_dias_habiles - 1 #EMPIEZA DESDE LUNES. VA DESDE 1 A 7.
         return bussy >= today
 
+    def total_horas_trabajadas(self):
+        """
+        Metodo que calcula el total de horas trabajadas en un sprint
+
+        :return: Total de horas trabajadas en un sprint
+        """
+        total = 0
+        for act in Actividad.objects.filter(usSprint__sprint_id=self.id):
+            total += act.horasTrabajadas
+        return total
 
 
 class Flujo(models.Model):
@@ -317,6 +327,7 @@ class UserStory(models.Model):
     def get_priorizacion(self):
         return self.priorizacion
 
+
 class RolProyecto(Group):
     """
     """
@@ -374,13 +385,51 @@ class MiembroSprint(models.Model):
     """
     miembro = models.ForeignKey(MiembroProyecto, verbose_name='Miembro del Sprint')
     sprint = models.ForeignKey(Sprint, verbose_name='Sprint')
-    horasAsignadas = models.PositiveIntegerField(verbose_name='Horas por día asignadas al miembro', validators=[validar_mayor_a_cero])
+    horasAsignadas = models.PositiveIntegerField(verbose_name='Horas por día asignadas al miembro', validators=[validar_mayor_a_cero,MaxValueValidator(24)])
 
     class Meta:
         unique_together = ('miembro', 'sprint')
 
     def __str__(self):
         return self.miembro.user.username
+
+    def capacidad(self):
+        """
+        Se calcula la capacidad total en horas de un miembro en un sprint.
+
+        :return: Un valor si es posible calcular. None si no es posible calcular
+        """
+        dias_habiles = self.sprint.cant_dias_habiles
+        duracion_sprint = self.sprint.duracion # semanas
+        if dias_habiles == None or duracion_sprint == None:#En caso que algunos de los parametros no esten definidos en el sprint no se puede calcular
+            return None
+        return dias_habiles * duracion_sprint * self.horasAsignadas
+
+    def horas_ocupadas_planificadas(self):
+        """
+        Se calcula la suma de las horas planificadas de todos los user stories asignadas al miembro actual
+
+        :return: La suma en horas si es posible. Cero si no hay asignado
+        """
+        total = 0
+
+        for usp in UserStorySprint.objects.filter(asignee=self,sprint=self.sprint):
+            total += usp.tiempo_planificado_sprint
+
+        return total
+
+    def total_trabajado(self):
+        """
+        Se calcula la suma de las horas totales trabajadas del desarrollador en el sprint
+
+        :return:
+        """
+        total = 0
+
+        for act in Actividad.objects.filter(usSprint__sprint=self.sprint, responsable = self.miembro):
+            total += act.horasTrabajadas
+
+        return total
 
 
 class UserStorySprint(models.Model):
@@ -396,6 +445,10 @@ class UserStorySprint(models.Model):
         verbose_name='estado en la fase', max_length=10,
         choices=ESTADOS_US_FASE, null=True, help_text='Estado en el que se encuentra un user story en un sprint'
     )
+
+    tiempo_planificado_sprint = models.PositiveIntegerField(verbose_name="Tiempo Planificado",
+        help_text="Especifique cuántas horas de trabajo se le dedicará al user story en este sprint.",
+        blank=False, default=1, validators=[validar_mayor_a_cero])
 
     class Meta:
         default_permissions = ()
@@ -424,10 +477,18 @@ class UserStorySprint(models.Model):
             self.us.estadoFase = self.estado_fase_sprint
             self.us.save()
 
+    def get_tiempo_ejecutado(self):
+        """
+        :return sumatoria de las horas de las actividades de este userstorysprint
+        """
+        ejecutado = 0
+        for actividad in self.actividad_set.all(): ejecutado += actividad.horasTrabajadas
+        return ejecutado
+
 
 class Actividad(models.Model):
     """
-    La clase Actividad es la representación de una actividad de un User Story específico
+    La clase Actividad es la representación de una actividad de un User Story específico en un sprint osea user story sprint
     """
     nombre = models.CharField(max_length=50)
     descripcion = models.TextField(verbose_name='descripción', max_length=500)
@@ -438,9 +499,9 @@ class Actividad(models.Model):
     # este atributo
     responsable = models.ForeignKey(MiembroProyecto)
 
-    horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=1, validators=[validar_mayor_a_cero])
+    horasTrabajadas = models.PositiveIntegerField(verbose_name='horas trabajadas', default=1)
     fase = models.ForeignKey(Fase)
-
+    es_rechazado = models.BooleanField(default=False, help_text='Indica si una actividad se realizo antes de ser rechazada')
     archivoAdjunto = models.FileField(upload_to='proyecto.ArchivosActividad/bytes/filename/mimetype', help_text='El archivo adjunto de la actividad', null=True, blank=True)
 
     # especifica en que estado estaba el US cuando la actividad fue agregada

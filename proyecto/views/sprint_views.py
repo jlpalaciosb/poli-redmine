@@ -1,14 +1,25 @@
 import datetime
+from io import BytesIO
 
-from ProyectoIS2_9.utils import notificar_revision
+from ProyectoIS2_9.utils import notificar_revision, notificar_inicio_sprint
+
+from ProyectoIS2_9 import settings
 from proyecto.forms.sprint_us_forms import SprintCambiarEstadoForm
 from proyecto.mixins import PermisosPorProyectoMixin, PermisosEsMiembroMixin, ProyectoEstadoInvalidoMixin
 from guardian.mixins import LoginRequiredMixin
 from django.views.generic import UpdateView, TemplateView, DetailView, DeleteView
-from proyecto.models import Sprint, Proyecto, ESTADOS_SPRINT, Flujo, UserStorySprint, Fase, MiembroSprint, UserStory
-from django.http import Http404, HttpResponseForbidden
+from proyecto.models import Sprint, Proyecto, ESTADOS_SPRINT, Flujo, UserStorySprint, Fase, MiembroSprint, UserStory, \
+    ESTADOS_US_PROYECTO
+from django.http import Http404, HttpResponseForbidden, HttpResponse
 from django.urls import reverse
 from django.db import transaction
+
+from reportlab.lib import colors
+from reportlab.lib.units import cm
+from reportlab.pdfgen import canvas
+from django.views.generic import View
+from reportlab.platypus import Table, TableStyle
+
 from django.core.exceptions import ObjectDoesNotExist
 from guardian.shortcuts import  get_perms
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -97,10 +108,12 @@ def iniciar_sprint(request, proyecto_id, sprint_id):
         sprint.fechaInicio=datetime.date.today()
         horas = 0
         for usp in sprint.userstorysprint_set.all():
-            horas = horas + usp.us.tiempoPlanificado - usp.us.tiempoEjecutado
+            horas = horas + usp.tiempo_planificado_sprint
         sprint.total_horas_planificadas = horas
         sprint.save()
         messages.add_message(request, messages.SUCCESS, 'Se inicio el sprint Nro '+str(sprint.orden))
+        notificar_inicio_sprint(sprint)
+        messages.add_message(request, messages.SUCCESS, 'Se notificó a los miembros')
         return HttpResponseRedirect(reverse('proyecto_sprint_administrar', args=(proyecto_id,sprint_id)))
     except:
         messages.add_message(request, messages.ERROR, 'Ha ocurrido un error!')
@@ -504,7 +517,7 @@ def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
 
             elif user_story_sprint.estado_fase_sprint == 'DOING':
                 user_story_sprint.estado_fase_sprint = 'DONE'
-                if not Actividad.objects.filter(fase=user_story_sprint.fase_sprint,usSprint=user_story_sprint).count()>0:#SI NO HAY NINGUN ACTIVIDAD REGISTRADA EN SU FASE. NO PUEDE LLEGAR AL DONE
+                if not Actividad.objects.filter(fase=user_story_sprint.fase_sprint,usSprint=user_story_sprint, es_rechazado=False).count()>0:#SI NO HAY NINGUN ACTIVIDAD REGISTRADA EN SU FASE. NO PUEDE LLEGAR AL DONE
                     messages.add_message(request, messages.WARNING,
                                          'Al menos debe cargar una actividad para avanzar al DONE'
                                          )
@@ -656,7 +669,7 @@ class BurdownChartSprintView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailV
         for dia in range(0, total_dias+1):
             x_ideal.append(dia)
             y_ideal.append(total_a_trabajar - dia*( total_a_trabajar / total_dias ))
-
+        context['negativo'] = y_real[y_real.__len__()-1] < 0
         context['total'] = total_a_trabajar
         context['grafica'] = {'datos_en_x':x_real,'datos_en_y':y_real,'ideal_y':y_ideal,'ideal_x':x_ideal}
 
@@ -673,3 +686,146 @@ class BurdownChartSprintView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailV
                                  ]
 
         return context
+
+class ReporteSprintBacklogPDF(View):
+    """
+    Vista que construye un pdf
+    """
+    def cabecera(self, pdf):
+        # Utilizamos el archivo logo_django.png que está guardado en la carpeta media/imagenes
+        archivo_imagen = settings.STATICFILES_DIRS[0] + '/img/logo.png'
+        # Definimos el tamaño de la imagen a cargar y las coordenadas correspondientes
+        pdf.drawImage(archivo_imagen, 40, 750, 120, 90, preserveAspectRatio=True)
+
+    def get(self, request, *args, **kwargs):
+        # Indicamos el tipo de contenido a devolver, en este caso un pdf
+        response = HttpResponse(content_type='application/pdf')
+        # La clase io.BytesIO permite tratar un array de bytes como un fichero binario, se utiliza como almacenamiento temporal
+        buffer = BytesIO()
+        # Canvas nos permite hacer el reporte con coordenadas X y Y
+        pdf = canvas.Canvas(buffer)
+        # Llamo al método cabecera donde están definidos los datos que aparecen en la cabecera del reporte.
+        self.cabecera(pdf)
+        # Con show page hacemos un corte de página para pasar a la siguiente
+        # Establecemos el tamaño de letra en 16 y el tipo de letra Helvetica
+        pdf.setFont("Helvetica", 16)
+        # Dibujamos una cadena en la ubicación X,Y especificada
+        sprint = Sprint.objects.get(pk=kwargs['sprint_id'])
+        proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
+        pdf.drawString(250 - 2 * len(proyecto.nombre), 790, u"" + proyecto.nombre)
+        pdf.drawString(245, 770, u"Sprint"+str(sprint.orden))
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(220, 750, u"SPRINT BACKLOG")
+        user_stories = UserStorySprint.objects.filter(sprint=kwargs['sprint_id']).order_by('-us__priorizacion')
+        y=710
+        detalles=[]
+        for us in user_stories:
+            detalles.append((us.us.nombre, ESTADOS_US_PROYECTO[us.us.estadoProyecto-1][1], str(us.tiempo_planificado_sprint), str(us.get_tiempo_ejecutado())))
+        if not len(user_stories)>=1:
+            detalles=[('Sin User Stories en el Sprint Backlog','','','')]
+        cant_user_stories=len(detalles)
+        y-=(20+20*cant_user_stories)
+        self.tabla_us(pdf, detalles, y)
+        pdf.showPage()
+        pdf.save()
+        pdf = buffer.getvalue()
+        buffer.close()
+        response.write(pdf)
+        return response
+
+    def tabla_us(self, pdf,detalles, y):
+        # Creamos una tupla de encabezados para neustra tabla
+        encabezados = ('Nombre del User Story', 'Estado', 'Horas Planificadas', 'Horas Ejecutadas')
+        # Establecemos el tamaño de cada una de las columnas de la tabla
+        detalle_orden = Table([encabezados] + detalles, colWidths=[7 * cm, 2 * cm, 4 * cm, 4 * cm])
+        # Aplicamos estilos a las celdas de la tabla
+        detalle_orden.setStyle(TableStyle(
+            [
+                # La primera fila(encabezados) va a estar centrada
+                ('ALIGN', (0, 0), (3, 0), 'CENTER'),
+                # Los bordes de todas las celdas serán de color negro y con un grosor de 1
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                # El tamaño de las letras de cada una de las celdas será de 10
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('TEXTCOLOR', (0, 0), (3, 0), colors.white),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.Color(35/256, 48/256, 68/256)),
+                # ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ]
+        ))
+        # Establecemos el tamaño de la hoja que ocupará la tabla
+        detalle_orden.wrapOn(pdf, 800, 600)
+        # Definimos la coordenada donde se dibujará la tabla
+        detalle_orden.drawOn(pdf, 70, y)
+
+class ReporteUSPrioridadPDF(View):
+    """
+    Vista que construye un pdf
+    """
+    def cabecera(self, pdf):
+        # Utilizamos el archivo logo_django.png que está guardado en la carpeta media/imagenes
+        archivo_imagen = settings.STATICFILES_DIRS[0] + '/img/logo.png'
+        # Definimos el tamaño de la imagen a cargar y las coordenadas correspondientes
+        pdf.drawImage(archivo_imagen, 40, 750, 120, 90, preserveAspectRatio=True)
+
+    def get(self, request, *args, **kwargs):
+        # Indicamos el tipo de contenido a devolver, en este caso un pdf
+        response = HttpResponse(content_type='application/pdf')
+        # La clase io.BytesIO permite tratar un array de bytes como un fichero binario, se utiliza como almacenamiento temporal
+        buffer = BytesIO()
+        # Canvas nos permite hacer el reporte con coordenadas X y Y
+        pdf = canvas.Canvas(buffer)
+        # Llamo al método cabecera donde están definidos los datos que aparecen en la cabecera del reporte.
+        self.cabecera(pdf)
+        # Con show page hacemos un corte de página para pasar a la siguiente
+        # Establecemos el tamaño de letra en 16 y el tipo de letra Helvetica
+        pdf.setFont("Helvetica", 16)
+        # Dibujamos una cadena en la ubicación X,Y especificada
+        sprint = Sprint.objects.get(pk=kwargs['sprint_id'])
+        proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
+        pdf.drawString(250 - 2 * len(proyecto.nombre), 790, u"" + proyecto.nombre)
+        pdf.drawString(245, 770, u"Sprint"+str(sprint.orden))
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(220, 750, u"US PRIORIDAD")
+        user_stories = UserStorySprint.objects.filter(sprint=kwargs['sprint_id']).exclude(us__estadoProyecto=5).order_by('-us__priorizacion')
+        y=710
+        detalles=[]
+        for us in user_stories:
+            es = 'No'
+            if us.us.prioridad_suprema>0:
+                es = 'Si'
+            detalles.append((us.us.nombre, ESTADOS_US_PROYECTO[us.us.estadoProyecto-1][1], str(us.get_tiempo_ejecutado()),str(us.asignee.miembro.user.first_name)+" "+str(us.asignee.miembro.user.last_name),es))
+        if not len(detalles)>=1:
+            detalles=[('Sin User Stories que mostrar','','','','')]
+        cant_user_stories=len(detalles)
+        y-=(20+20*cant_user_stories)
+        self.tabla_us(pdf, detalles, y)
+        pdf.showPage()
+        pdf.save()
+        pdf = buffer.getvalue()
+        buffer.close()
+        response.write(pdf)
+        return response
+
+    def tabla_us(self, pdf,detalles, y):
+        # Creamos una tupla de encabezados para neustra tabla
+        encabezados = ('Nombre del User Story', 'Estado','Horas Ejecutadas','Encargado','Es del sprint anterior?')
+        # Establecemos el tamaño de cada una de las columnas de la tabla
+        detalle_orden = Table([encabezados] + detalles, colWidths=[7 * cm, 2 * cm, 4 * cm, 4 * cm, 4 * cm])
+        # Aplicamos estilos a las celdas de la tabla
+        detalle_orden.setStyle(TableStyle(
+            [
+                # La primera fila(encabezados) va a estar centrada
+                ('ALIGN', (0, 0), (3, 0), 'CENTER'),
+                # Los bordes de todas las celdas serán de color negro y con un grosor de 1
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                # El tamaño de las letras de cada una de las celdas será de 10
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('TEXTCOLOR', (0, 0), (4, 0), colors.white),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.Color(35/256, 48/256, 68/256)),
+                # ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ]
+        ))
+        # Establecemos el tamaño de la hoja que ocupará la tabla
+        detalle_orden.wrapOn(pdf, 800, 600)
+        # Definimos la coordenada donde se dibujará la tabla
+        detalle_orden.drawOn(pdf, 10, y)

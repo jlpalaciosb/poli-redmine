@@ -203,6 +203,7 @@ class ActividadListJsonView(ActividadBaseView, PermisosEsMiembroMixin, BaseDatat
         search = self._querydict.get('search[value]', '')
         return qs.filter(nombre__icontains=search)
 
+
 class ActividadPerfilView(ActividadBaseView, PermisosEsMiembroMixin, DetailView):
     """
     Vista para ver una actividad
@@ -283,7 +284,11 @@ class ActividadUpdateView(SuccessMessageMixin, ActividadBaseView, PermissionRequ
                 messages.add_message(self.request, messages.WARNING,
                                      'No se puede realizar esta operacion debido a que no es un dia habil de la semana!')
                 self.redirect = True
-            return self.redirect == False
+            elif self.get_object().nombre == 'Rechazo de User Story':
+                messages.add_message(self.request, messages.WARNING,
+                    'Esta actividad es una nota de rechazo')
+                self.redirect = True
+            return not self.redirect
         else:
             return False
 
