@@ -35,8 +35,8 @@ class UserStorySprintTestsBase(TestCase):
         m2 = MiembroProyecto.objects.create(user=uc, proyecto=p1)
 
         t1 = TipoUS.objects.create(nombre='tipo_1', proyecto=p1)
-        f1= Flujo.objects.create(nombre='Flujo', proyecto=p1)
-        fase1=f1.fase_set.create(nombre='Fase 1')
+        self.f1= Flujo.objects.create(nombre='Flujo', proyecto=p1)
+        fase1=self.f1.fase_set.create(nombre='Fase 1')
         self.proyecto = p1
         self.sprint = Sprint.objects.create(proyecto=p1, duracion=p1.duracionSprint, estado='PLANIFICADO', orden=1)
         self.user_Story = UserStory.objects.create(nombre='US2',descripcion='saddsa',criteriosAceptacion='saddsa',tipo=t1,proyecto=p1,tiempoPlanificado=1)
@@ -113,9 +113,10 @@ class UserStorySprintCreateViewTest(UserStorySprintTestsBase):
         self.assertEqual(c, 0)
 
         response = self.client.post(self.url, data={
-            'us':1,
-            'flujo':1,
-            'asignee':1
+            'us':self.user_Story.id,
+            'flujo':self.f1.id,
+            'asignee':1,
+            'tiempo_planificado_sprint': 1
 
         })
 
@@ -223,7 +224,7 @@ class UserStorySprintUpdateViewTest(UserStorySprintTestsBase):
         self.user_Story.flujo = Flujo.objects.first()
         self.user_Story.save()
         self.usp=UserStorySprint.objects.create(asignee=MiembroSprint.objects.first(),us=self.user_Story,sprint=self.sprint)
-        self.url = reverse('usp_change_assignee', args=(self.proyecto.id, self.sprint.id, self.usp.id))
+        self.url = reverse('usp_editar', args=(self.proyecto.id, self.sprint.id, self.usp.id))
         assign_perm('proyecto.administrar_sprint', ub, self.proyecto)
 
 
@@ -255,7 +256,8 @@ class UserStorySprintUpdateViewTest(UserStorySprintTestsBase):
         self.client.login(username='user_a', password=PWD)
         self.assertEqual(self.usp.asignee.id, MiembroSprint.objects.first().id)
         self.client.post(self.url, data={
-            'asignee':MiembroSprint.objects.last().id
+            'asignee':MiembroSprint.objects.last().id,
+            'tiempo_planificado_sprint': 2
         })
         self.usp.refresh_from_db()
         self.assertEqual(self.usp.asignee.id, MiembroSprint.objects.last().id)
