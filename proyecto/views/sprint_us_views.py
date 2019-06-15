@@ -87,6 +87,10 @@ class UserStorySprintCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Pr
         else: messages.add_message(self.request, messages.WARNING, 'Capacidad del sprint superada por ' + str(-disponible) + ' horas')
 
         ret = super().form_valid(form)
+
+        if form.instance.asignee.horas_ocupadas_planificadas() > form.instance.asignee.capacidad():#SI SE EXCEDE LA CAPACIDAD DEL MIEMBRO
+            messages.add_message( self.request, messages.WARNING, 'Se ha excedido la capacidad planificada del miembro ' + form.instance.asignee.__str__())
+
         notificar_asignacion(form.instance)
         messages.add_message(self.request, messages.INFO, 'Se notificó al asignado')
         return ret
@@ -685,7 +689,13 @@ class UserStorySprintRechazarView(SuccessMessageMixin, LoginRequiredMixin, Permi
             horasTrabajadas=0,
             fase=self.usp.fase_sprint,
             estado=self.usp.estado_fase_sprint,
+            es_rechazado=True
         )
+
+        #invalidar todas las actividades que hayan sido cargadas en las fases igual o superior a la fase seleccionada
+        for act in Actividad.objects.filter(usSprint=form.instance, fase__actividad__orden__gte=form.cleaned_data['fase'].orden):
+            act.es_rechazado = True
+            act.save()
 
         # modificar el usp
         self.usp.fase_sprint = form.cleaned_data['fase']

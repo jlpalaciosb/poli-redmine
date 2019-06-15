@@ -206,7 +206,7 @@ def cargar_proyectos():
 
     #agrega us a sprint
     usp = UserStorySprint.objects.create(asignee=msp, us=us21, fase_sprint=flujo21.fase_set.get(orden=1),
-                                         estado_fase_sprint='TODO', sprint=sp)
+                                         estado_fase_sprint='TODO', sprint=sp, tiempo_planificado_sprint=15)
     us21.estadoProyecto = 2#SE COLOCA EL USER STORY EN SPRINT
     us21.save()
 
