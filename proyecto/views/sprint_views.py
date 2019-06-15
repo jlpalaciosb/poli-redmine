@@ -97,7 +97,7 @@ def iniciar_sprint(request, proyecto_id, sprint_id):
         sprint.fechaInicio=datetime.date.today()
         horas = 0
         for usp in sprint.userstorysprint_set.all():
-            horas = horas + usp.us.tiempoPlanificado - usp.us.tiempoEjecutado
+            horas = horas + usp.tiempo_planificado_sprint
         sprint.total_horas_planificadas = horas
         sprint.save()
         messages.add_message(request, messages.SUCCESS, 'Se inicio el sprint Nro '+str(sprint.orden))
@@ -506,7 +506,7 @@ def mover_us_kanban(request, proyecto_id, sprint_id, flujo_id, us_id):
 
             elif user_story_sprint.estado_fase_sprint == 'DOING':
                 user_story_sprint.estado_fase_sprint = 'DONE'
-                if not Actividad.objects.filter(fase=user_story_sprint.fase_sprint,usSprint=user_story_sprint).count()>0:#SI NO HAY NINGUN ACTIVIDAD REGISTRADA EN SU FASE. NO PUEDE LLEGAR AL DONE
+                if not Actividad.objects.filter(fase=user_story_sprint.fase_sprint,usSprint=user_story_sprint, es_rechazado=False).count()>0:#SI NO HAY NINGUN ACTIVIDAD REGISTRADA EN SU FASE. NO PUEDE LLEGAR AL DONE
                     messages.add_message(request, messages.WARNING,
                                          'Al menos debe cargar una actividad para avanzar al DONE'
                                          )
@@ -658,7 +658,7 @@ class BurdownChartSprintView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailV
         for dia in range(0, total_dias+1):
             x_ideal.append(dia)
             y_ideal.append(total_a_trabajar - dia*( total_a_trabajar / total_dias ))
-
+        context['negativo'] = y_real[y_real.__len__()-1] < 0
         context['total'] = total_a_trabajar
         context['grafica'] = {'datos_en_x':x_real,'datos_en_y':y_real,'ideal_y':y_ideal,'ideal_x':x_ideal}
 

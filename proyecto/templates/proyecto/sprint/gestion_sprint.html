@@ -22,6 +22,7 @@
                       <strong>Capacidad Total:</strong>   {{ sprint.capacidad|default_if_none:"" }} horas<br>
                       {% if not sprint.estado == 'PLANIFICADO' %}
                           <strong>Total de horas a trabajar :</strong>   {{ sprint.total_horas_planificadas }} horas<br>
+                          <strong>Total de horas trabajadas :</strong>   {{ sprint.total_horas_trabajadas }} horas<br>
                       {% endif %}
                       {% if sprint.estado == 'CERRADO' %}
                           <strong>Justificación :</strong>   {{ sprint.justificacion|default:"" }}<br>

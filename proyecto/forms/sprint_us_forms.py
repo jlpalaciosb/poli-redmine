@@ -37,6 +37,12 @@ class UserStorySprintCrearForm(forms.ModelForm):
             '{} (Priorización = {:.2f}) (Estado General = {}) (Trabajo Restante = {} horas)'.\
                 format(us.nombre, us.get_priorizacion(), us.get_estadoProyecto_display(), us.tiempoPlanificado - us.tiempoEjecutado)
 
+        self.fields['asignee'].label_from_instance = lambda asignee: \
+            '{} (Horas disponibles : {})'. \
+                format(asignee.__str__(), asignee.capacidad() - asignee.horas_ocupadas_planificadas()) if (asignee.capacidad() >= asignee.horas_ocupadas_planificadas()) else \
+                '{} (Horas excedidas : {})'. \
+                    format(asignee.__str__(), asignee.horas_ocupadas_planificadas() - asignee.capacidad())
+
         if self.instance.id is None:
             self.instance.sprint = self.sprint
 
@@ -78,6 +84,13 @@ class UserStorySprintEditarForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields['asignee'].queryset = MiembroSprint.objects.filter(sprint=self.sprint)
+
+        self.fields['asignee'].label_from_instance = lambda asignee: \
+            '{} (Horas disponibles : {})'. \
+                format(asignee.__str__(), asignee.capacidad() - asignee.horas_ocupadas_planificadas()) if (asignee.capacidad() >= asignee.horas_ocupadas_planificadas()) else \
+                '{} (Horas excedidas : {})'. \
+                    format(asignee.__str__(), asignee.horas_ocupadas_planificadas() - asignee.capacidad())
+
 
         self.layout = [
             'asignee', 'tiempo_planificado_sprint',
