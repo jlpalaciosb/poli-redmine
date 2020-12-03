@@ -1,4 +1,4 @@
-Django==1.11.10
+Django==1.11.29
 django-autocomplete-light==3.2.10
 django-crispy-forms==1.7.2
 django-crontab==0.7.1
