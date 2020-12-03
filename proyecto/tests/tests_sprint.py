@@ -7,7 +7,7 @@ from proyecto.models import Proyecto, Cliente, MiembroProyecto, RolProyecto, Spr
 EMAIL = 'email@email.com'
 PWD = '12345'
 TELEF = '0986738162'
-
+import datetime
 
 class SprintTestBase(TestCase):
     """
@@ -33,7 +33,7 @@ class SprintTestBase(TestCase):
         otroMiembro.roles.add(RolProyecto.objects.get(nombre='Developer Team', proyecto=self.proyecto))
 
         self.sprint1 = Sprint.objects.create(proyecto=self.proyecto, orden=1, duracion=self.proyecto.duracionSprint, estado='CERRADO')
-        self.sprint2 = Sprint.objects.create(proyecto=self.proyecto, orden=2, duracion=self.proyecto.duracionSprint, estado='PLANIFICADO')
+        self.sprint2 = Sprint.objects.create(proyecto=self.proyecto, orden=2, duracion=self.proyecto.duracionSprint, estado='PLANIFICADO',fechaInicio=datetime.date.today())
         self.miembro_sprint = MiembroSprint.objects.create(sprint=self.sprint2,miembro=otroMiembro,horasAsignadas=2)
         self.user_story_sprint = UserStorySprint.objects.create(sprint=self.sprint2,asignee=self.miembro_sprint,us=self.user_story_1,estado_fase_sprint='TODO',fase_sprint=self.flujo.fase_set.all()[0])
 
@@ -296,6 +296,6 @@ class NotificarUserStory(SprintTestBase):
         self.url= reverse('sprint_us_rechazar', args=(self.proyecto.id, self.sprint2.id, self.user_story_sprint.id))
         self.client.login(username=self.user_scrum_master, password=PWD)
         self.assertEqual(self.user_story_1.estadoFase, 'DONE')
-        self.client.post(self.url,{'fase_sprint':self.flujo.fase_set.first().id})
+        self.client.post(self.url,{'descripcion':'sadasdsa','fase':self.flujo.fase_set.first().id})
         self.user_story_1.refresh_from_db()
         self.assertEqual(self.user_story_1.estadoFase, 'TODO')
