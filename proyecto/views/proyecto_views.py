@@ -129,13 +129,13 @@ class ProyectoListView(LoginRequiredMixin, TemplateView):
         :return:
         """
         context = super(ProyectoListView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Lista de Proyectos'
+        context['titulo'] = 'Proyectos en los que participa'
         context['crear_button'] = self.request.user.has_perm('proyecto.add_proyecto')
         context['crear_url'] = reverse('crear_proyecto')
         context['crear_button_text'] = 'Nuevo Proyecto'
 
         # datatables
-        context['nombres_columnas'] = ['id', 'Nombre', 'Fecha de inicio', 'Fecha de Finalizacion',
+        context['nombres_columnas'] = ['id', 'Nombre', 'Fecha de Inicio', 'Fecha de Finalización',
                                        'Estado']
         context['order'] = [1, "asc"]
         context['datatable_row_link'] = reverse('perfil_proyecto', args=(1,))  # pasamos inicialmente el id 1
@@ -145,8 +145,6 @@ class ProyectoListView(LoginRequiredMixin, TemplateView):
         context['breadcrumb'] = [{'nombre':'Inicio', 'url':'/'},
                    {'nombre':'Proyectos', 'url': '#'},
                    ]
-
-
 
         return context
 
@@ -315,7 +313,7 @@ class ProyectoPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView)
         :return:
         """
         context = super(ProyectoPerfilView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Perfil del Proyecto'
+        context['titulo'] = 'Proyecto: ' + self.get_object().nombre
         context['breadcrumb'] = [{'nombre': 'Inicio', 'url': '/'},
                                  {'nombre': 'Proyectos', 'url': reverse('proyectos')},
                                  {'nombre': context['proyecto'].nombre,'url': '#'}

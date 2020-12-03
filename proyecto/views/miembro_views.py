@@ -112,7 +112,7 @@ class MiembroProyectoListView(LoginRequiredMixin, PermisosEsMiembroMixin, Templa
         p = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
 
         context = super(MiembroProyectoListView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Lista de Miembros del Proyecto '+ p.nombre
+        context['titulo'] = 'Miembros del Proyecto'
         context['crear_button'] = self.request.user.has_perm('proyecto.add_miembroproyecto', p)
         context['crear_url'] = reverse('proyecto_miembro_crear', kwargs=self.kwargs)
         context['crear_button_text'] = 'Agregar Miembro'

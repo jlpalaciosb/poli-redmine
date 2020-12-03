@@ -11,105 +11,153 @@
     {% block breadcrumbs %}
         {{ block.super }}
     {% endblock %}
+
     <div class="wrapper-md">
-        <div class="well m-t bg-white lt">
-              <div class="row">
-                <div class="col-xs-12">
-                  <h2>Flujo: {{ flujo.nombre }} del Sprint Nro. {{ sprint.orden }}</h2>
+        <div class="well m-t bg-light lt">
+            <table id="tabla" class="table table-bordered bg-white">
+                <thead>
+                    <!-- ENCABEZADO DE CADA FASE DEL FLUJO -->
+                    <tr>
+                        {% for fase in flujo.fase_set.all %}
+                            <th colspan="3">{{ fase.nombre }}</th>
+                        {% endfor %}
+                    </tr>
+                    <!-- SUBENCABEZADO DE CADA ESTADO DE CADA FASE -->
+                    <tr>
+                        {% for fase in flujo.fase_set.all %}
+                            <th class="todo">TODO</th>
+                            <th class="doing">DOING</th>
+                            <th class="done">DONE</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
 
-                </div>
-              </div>
-
-                <table class="table table-bordered">
-                    <thead>
-                        <!-- ENCABEZADO DE CADA FASE DEL FLUJO -->
-                        <tr>
-                            {% for fase in flujo.fase_set.all %}
-                                <th style="text-align: center" colspan="3">{{ fase.nombre }}</th>
-                            {% endfor %}
-                        </tr>
-                        <!-- SUBENCABEZADO DE CADA ESTADO DE CADA FASE -->
-                        <tr>
-                            {% for fase in flujo.fase_set.all %}
-                                <th style="text-align: center; background-color: #ffb3b5">To Do</th>
-                                <th style="text-align: center;background-color: #9ec6ff">Doing</th>
-                                <th style="text-align: center;background-color: #c2ff8d">Done</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
                 <tbody>
-
                 <!-- CADA ELEMENTO(FILA) DE LA TABLA ES UN USER STORY QUE PERTENCE A UN SPRINT Y UN FLUJO EN ESPECIFICO  -->
                 {% for us_sprint in user_stories_sprint %}
                     <tr>
-                    <!-- UN USER STORY SE POSICIONARA UNICAMENTE EN UNA COLUMNA. DEBIDO A QUE SOLO SE ENCUENTRA EN UNA UNICA FASE Y UN UNICO ESTADO EN UN MOMENTO DADO -->
-                    <!-- SE COMPARA EN QUE FASE Y ESTADO SE ENCUENTRA PARA MOSTRAR EN DICHA COLUMNA -->
-                    {% for fase in flujo.fase_set.all %}
-                        <td style="text-align: center">
-                        {% if us_sprint.fase_sprint == fase and us_sprint.estado_fase_sprint == 'TODO'%}
-                             <!-- RETROCEDER -->
-                            {% if not fase.orden == 1 and us_sprint.asignee.miembro.user == user %}
-                                <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=-1' }}' class="fa fa-arrow-left" aria-hidden="true"></a>
-                            {% endif %}
+                        <!-- UN USER STORY SE POSICIONARA UNICAMENTE EN UNA COLUMNA. DEBIDO A QUE SOLO SE ENCUENTRA EN UNA UNICA FASE Y UN UNICO ESTADO EN UN MOMENTO DADO -->
+                        <!-- SE COMPARA EN QUE FASE Y ESTADO SE ENCUENTRA PARA MOSTRAR EN DICHA COLUMNA -->
+                        {% for fase in flujo.fase_set.all %}
+                            <td class="casilla" style="padding: 8px">
+                                {% if us_sprint.fase_sprint == fase and us_sprint.estado_fase_sprint == 'TODO' %}
+                                    <div class="tarjeta">
+                                        <!-- PERFIL US -->
+                                        <a href="{% url 'sprint_us_ver' us_sprint.us.proyecto.id us_sprint.sprint.id us_sprint.id %}">
+                                            {{ us_sprint.us.nombre }}
+                                        </a>
 
-                            <!-- PERFIL US -->
-                            <a href="{% url 'sprint_us_ver' us_sprint.us.proyecto.id us_sprint.sprint.id us_sprint.id %}">
-                                {{ us_sprint.us.nombre }}
-                            </a>
+                                        <br>
 
-                            <!-- AVANZAR -->
-                            {% if us_sprint.asignee.miembro.user == user %}
-                                <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=1' }}' class="fa fa-arrow-right" aria-hidden="true"></a>
-                            {% endif %}
-                        {% endif %}
-                        </td>
-                        <td style="text-align: center">
-                            {% if us_sprint.fase_sprint == fase and us_sprint.estado_fase_sprint == 'DOING'%}
-                                <!-- RETROCEDER -->
-                                {% if us_sprint.asignee.miembro.user == user %}
-                                    <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=-1' }}' class="fa fa-arrow-left" aria-hidden="true"></a>
+                                        <!-- RETROCEDER -->
+                                        {% if not fase.orden == 1 and us_sprint.asignee.miembro.user == user %}
+                                            <a href="{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=-1' }}"
+                                               class="fa fa-arrow-left" aria-hidden="true"></a>
+                                        {% endif %}
+
+                                        <span>&nbsp&nbsp&nbsp</span>
+
+                                        <!-- AVANZAR -->
+                                        {% if us_sprint.asignee.miembro.user == user %}
+                                            <a href="{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=1' }}"
+                                               class="fa fa-arrow-right" aria-hidden="true"></a>
+                                        {% endif %}
+                                    </div>
                                 {% endif %}
+                            </td>
 
-                                <!-- PERFIL US -->
-                                <a href="{% url 'sprint_us_ver' us_sprint.us.proyecto.id us_sprint.sprint.id us_sprint.id %}">
-                                    {{ us_sprint.us.nombre }}
-                                </a>
+                            <td class="casilla" style="padding: 8px">
+                                {% if us_sprint.fase_sprint == fase and us_sprint.estado_fase_sprint == 'DOING' %}
+                                    <div class="tarjeta">
+                                        <!-- PERFIL US -->
+                                        <a href="{% url 'sprint_us_ver' us_sprint.us.proyecto.id us_sprint.sprint.id us_sprint.id %}">
+                                            {{ us_sprint.us.nombre }}
+                                        </a>
 
-                                <!-- AVANZAR -->
-                                {% if us_sprint.asignee.miembro.user == user %}
-                                    <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=1' }}' class="fa fa-arrow-right" aria-hidden="true"></a>
+                                        <br>
+
+                                        <!-- RETROCEDER -->
+                                        {% if us_sprint.asignee.miembro.user == user %}
+                                            <a href="{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=-1' }}"
+                                               class="fa fa-arrow-left" aria-hidden="true"></a>
+                                        {% endif %}
+
+                                        <span>&nbsp&nbsp&nbsp</span>
+
+                                        <!-- AVANZAR -->
+                                        {% if us_sprint.asignee.miembro.user == user %}
+                                            <a href="{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=1' }}"
+                                               class="fa fa-arrow-right" aria-hidden="true"></a>
+                                        {% endif %}
+                                    </div>
                                 {% endif %}
+                            </td>
 
-                            {% endif %}
-                        </td>
-                        <td style="text-align: center">
-                            {% if us_sprint.fase_sprint == fase and us_sprint.estado_fase_sprint == 'DONE'%}
-                                <!-- RETROCEDER -->
-                                {% if us_sprint.asignee.miembro.user == user %}
-                                    <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=-1' }}' class="fa fa-arrow-left" aria-hidden="true"></a>
+                            <td class="casilla" style="padding: 8px">
+                                {% if us_sprint.fase_sprint == fase and us_sprint.estado_fase_sprint == 'DONE' %}
+                                    <div class="tarjeta">
+                                        <!-- PERFIL US -->
+                                        <a href="{% url 'sprint_us_ver' us_sprint.us.proyecto.id us_sprint.sprint.id us_sprint.id %}">
+                                            {{ us_sprint.us.nombre }}
+                                        </a>
+
+                                        <br>
+
+                                        <!-- RETROCEDER -->
+                                        {% if us_sprint.asignee.miembro.user == user %}
+                                            <a href="{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=-1' }}"
+                                               class="fa fa-arrow-left" aria-hidden="true"></a>
+                                        {% endif %}
+
+                                        <span>&nbsp&nbsp&nbsp</span>
+
+                                        <!-- AVANZAR -->
+                                        {% if not fase.orden == flujo.cantidadFases and us_sprint.asignee.miembro.user == user %}
+                                            <a href="{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=1' }}"
+                                               class="fa fa-arrow-right" aria-hidden="true"></a>
+                                        {% endif %}
+                                    </div>
                                 {% endif %}
-
-                                <!-- PERFIL US -->
-                                <a href="{% url 'sprint_us_ver' us_sprint.us.proyecto.id us_sprint.sprint.id us_sprint.id %}">
-                                    {{ us_sprint.us.nombre }}
-                                </a>
-
-                                <!-- AVANZAR -->
-                                {% if not fase.orden == flujo.cantidadFases and us_sprint.asignee.miembro.user == user %}
-                                    <a href='{% url "proyecto_sprint_mover_us" sprint.proyecto.id sprint.id flujo.id us_sprint.us.id %}{{ '?movimiento=1' }}' class="fa fa-arrow-right" aria-hidden="true"></a>
-                                {% endif %}
-
-                            {% endif %}
-
-                        </td>
-
-                    {% endfor %}
+                            </td>
+                        {% endfor %}
                     </tr>
                 {% endfor %}
-
                 </tbody>
-
-                </table>
+            </table>
         </div>
     </div>
+{% endblock %}
+
+{% block extracss %}
+    <style>
+        #tabla {
+            margin-bottom: 0;
+        }
+
+        .casilla {
+            width: 100px; /* esto solo hace que todas las casillas tengan la misma anchura */
+        }
+
+        th, td {
+            text-align: center;
+        }
+
+        th.todo {
+            background-color: #ffb3b5;
+        }
+
+        th.doing {
+            background-color: #9ec6ff;
+        }
+
+        th.done {
+            background-color: #c2ff8d;
+        }
+
+        .tarjeta {
+            padding: 3px;
+            border-radius: 5px;
+            background-color: #ddebe2;
+        }
+    </style>
 {% endblock %}

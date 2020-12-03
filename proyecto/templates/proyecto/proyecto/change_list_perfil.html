@@ -1,184 +1,187 @@
-{% extends 'change_list.html' %}
+{% extends 'layout/layout.html' %}
 {% load static %}
 {% load guardian_tags %}
 {% block content %}
-    {{ block.super }}
-{% endblock %}
+    {% block titulo %}
+        <div class="bg-light lter b-b wrapper-md col-md-12">
+            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+        </div>
+    {% endblock %}
 
-{% block detail %}
-    <div class="well m-t bg-light lt">
-      <div class="row">
-        <div class="col-xs-4">
-          <h4>{{ proyecto.nombre }}</h4>
-          <p>
-              <strong>Cliente:</strong>   {{ proyecto.cliente.nombre|default_if_none:"" }}<br>
-          </p>
-            <div class="form-group">
-                <label><strong>Descripción</strong></label>
-                <textarea style="resize: vertical" readonly class="form-control" rows="4">{{ proyecto.descripcion|default_if_none:"" }}</textarea>
+    {% block breadcrumbs %} {{ block.super }} {% endblock %}
+
+    <div class="wrapper-md">
+        <div class="well m-t bg-light lt">
+            <div class="row">
+                <div class="col-xs-4">
+                    <p><strong>Cliente:</strong> {{ proyecto.cliente.nombre }}</p>
+                    <div class="form-group">
+                        <label><strong>Descripción</strong></label>
+                        <textarea style="resize: vertical" readonly class="form-control"
+                                  rows="4">{{ proyecto.descripcion|default_if_none:"" }}</textarea>
+                    </div>
+                </div>
+
+                <div class="col-xs-4">
+                    <p><strong>Inicio Estimado:</strong> {{ proyecto.fechaInicioEstimada | default_if_none:"" }}</p>
+                    <p><strong>Finalización Estimada:</strong> {{ proyecto.fechaFinEstimada|default_if_none:"" }}</p>
+                </div>
+
+                <div class="col-xs-4">
+                    <p><strong>Duración Regular de los Sprints:</strong> {{ proyecto.duracionSprint }} semanas</p>
+                    <p><strong>Días Hábiles:</strong> {{ proyecto.diasHabiles }} por semana</p>
+                    <p><strong>Estado:</strong> {{ proyecto.get_estado_display }}</p>
+                    {% if proyecto.estado == 'CANCELADO' %}
+                        <label><i>Justificación de la cancelación:</i></label>
+                        <textarea style="resize: vertical" readonly class="form-control"
+                                  rows="4">{{ proyecto.justificacion }}</textarea>
+                    {% endif %}
+
+                    <!-- cambio de estado -->
+                    {% get_obj_perms request.user for proyecto as "permisos_proyecto" %}
+                    {% if 'change_proyecto' in permisos_proyecto %}
+                        <div>
+                            {% if proyecto.estado == 'PENDIENTE' or proyecto.estado == 'SUSPENDIDO' %}
+                                <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=EN%20EJECUCION">
+                                    <button class="btn m-b-xs btn-default btn-addon ">
+                                        <i class="fa fa-play"></i> Iniciar
+                                    </button>
+                                </a>
+                            {% endif %}
+                            {% if proyecto.estado == 'PENDIENTE' or proyecto.estado == 'SUSPENDIDO' or proyecto.estado == 'EN EJECUCION' %}
+                                <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=CANCELADO">
+                                    <button class="btn m-b-xs btn-default btn-addon ">
+                                        <i class="fa fa-times"></i> Cancelar
+                                    </button>
+                                </a>
+                            {% endif %}
+                            {% if proyecto.estado == 'EN EJECUCION' %}
+                                <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=SUSPENDIDO">
+                                    <button class="btn m-b-xs btn-default btn-addon ">
+                                        <i class="fa fa-pause"></i> Suspender
+                                    </button>
+                                </a>
+                            {% endif %}
+                            {% if proyecto.estado == 'EN EJECUCION' or proyecto.estado == 'SUSPENDIDO' %}
+                                <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=TERMINADO">
+                                    <button class="btn m-b-xs btn-default btn-addon ">
+                                        <i class="fa fa-check"></i> Terminar
+                                    </button>
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <!-- Se trae todos los permisos asociados con el usuario y el proyecto actual -->
+                    {% get_obj_perms request.user for proyecto as "permisosGuardian" %}
+                    {% if 'change_proyecto' in permisosGuardian %}
+                        <a href="{% url 'editar_proyecto' proyecto.id %}">
+                            <button class="btn m-b-xs btn-default btn-addon ">
+                                <i class="fa fa-pencil"></i>
+                                Editar
+                            </button>
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'reporte_pb' proyecto.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-file-pdf-o"></i>
+                            Reporte del Product Backlog
+                        </button>
+                    </a>
+                    <a href="{% url 'reporte_ht' proyecto.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-file-pdf-o"></i>
+                            Reporte de Horas Trabajadas
+                        </button>
+                    </a>
+                </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-xs-4">
-          <h4>&nbsp;</h4>
-          <p>
-            <strong>Fecha de Inicio Estimada:</strong>   {{ proyecto.fechaInicioEstimada|default_if_none:"" }}<br><br>
-            <strong>Fecha de Finalización Estimada:</strong>   {{ proyecto.fechaFinEstimada|default_if_none:"" }}<br>
-          </p>
+    <div class="wrapper-md" style="padding-top: 0">
+        <div class="well m-t bg-light lt" style="margin-top: 0">
+            <div class="row">
+                <div class="col-xs-12">
+                    <a href="{% url 'proyecto_us_list' proyecto.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-tasks"></i>
+                            Product Backlog
+                        </button>
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <a href="{% url 'proyecto_sprint_list' proyecto.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-pencil"></i>
+                            Sprints
+                        </button>
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <a href="{% url 'proyecto_miembro_list' proyecto.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-users"></i>
+                            Miembros
+                        </button>
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <a href="{% url 'proyecto_rol_list' proyecto.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-pencil"></i>
+                            Roles
+                        </button>
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <a href="{% url 'proyecto_flujo_list' proyecto.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-pencil"></i>
+                            Flujos
+                        </button>
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <a href="{% url 'proyecto_tipous_list' proyecto.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-pencil"></i>
+                            Tipos de USs
+                        </button>
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <a href="{% url 'burdownchart_proyecto' proyecto.id %}">
+                        <button class="btn m-b-xs btn-default btn-addon ">
+                            <i class="fa fa-line-chart" aria-hidden="true"></i>
+                            Burdown Chart
+                        </button>
+                    </a>
+                </div>
+            </div>
         </div>
-          <div class="col-xs-4">
-              <h4>&nbsp;</h4>
-              <p>
-                <strong>Duración del Sprint:</strong>   {{ proyecto.duracionSprint|default_if_none:"" }} semanas <br><br>
-                <strong>Cantidad de Días Hábiles:</strong>   {{ proyecto.diasHabiles|default_if_none:"" }} por semana<br><br>
-                <strong>Estado:</strong>   {{ proyecto.get_estado_display | default_if_none:"" }}<br>
-                {% if proyecto.estado == 'CANCELADO' %}
-                    <label><i>Justificación de la cancelación:</i></label>
-                    <textarea style="resize: vertical" readonly class="form-control" rows="4">{{ proyecto.justificacion|default_if_none:"" }}</textarea>
-                {% endif %}
-              </p>
-
-              <!-- cambio de estado -->
-              {% get_obj_perms request.user for proyecto as "permisos_proyecto" %}
-              {% if 'change_proyecto' in permisos_proyecto %}
-                  <div>
-                      {% if proyecto.estado == 'PENDIENTE' or proyecto.estado == 'SUSPENDIDO' %}
-                          <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=EN%20EJECUCION">
-                              <button class="btn m-b-xs btn-default btn-addon ">
-                                  <i class="fa fa-play"></i> Iniciar
-                              </button>
-                          </a>
-                      {% endif %}
-                      {% if proyecto.estado == 'PENDIENTE' or proyecto.estado == 'SUSPENDIDO' or proyecto.estado == 'EN EJECUCION' %}
-                          <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=CANCELADO">
-                              <button class="btn m-b-xs btn-default btn-addon ">
-                                  <i class="fa fa-times"></i> Cancelar
-                              </button>
-                          </a>
-                      {% endif %}
-                      {% if proyecto.estado == 'EN EJECUCION' %}
-                          <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=SUSPENDIDO">
-                              <button class="btn m-b-xs btn-default btn-addon ">
-                                  <i class="fa fa-pause"></i> Suspender
-                              </button>
-                          </a>
-                      {% endif %}
-                      {% if proyecto.estado == 'EN EJECUCION' or proyecto.estado == 'SUSPENDIDO' %}
-                          <a href="{% url 'cambiarestado_proyecto' proyecto.id %}?estado=TERMINADO">
-                              <button class="btn m-b-xs btn-default btn-addon ">
-                                  <i class="fa fa-check"></i> Terminar
-                              </button>
-                          </a>
-                      {% endif %}
-                  </div>
-              {% endif %}
-
-          </div>
-      </div>
-      <div class="row">
-        <div class="col-xs-12">
-        <!-- Se trae todos los permisos asociados con el usuario y el proyecto actual -->
-        {% get_obj_perms request.user for proyecto as "permisosGuardian" %}
-            {% if 'change_proyecto' in permisosGuardian %}
-                <a href="{% url 'editar_proyecto' proyecto.id %}">
-                  <button class="btn m-b-xs btn-default btn-addon ">
-                    <i class="fa fa-pencil"></i>
-                    Editar
-                  </button>
-                </a>
-            {% endif %}
-            <a href="{% url 'reporte_pb' proyecto.id %}">
-              <button class="btn m-b-xs btn-default btn-addon ">
-                <i class="fa fa-file-pdf-o"></i>
-                Reporte Product Backlog
-              </button>
-            </a>
-            <a href="{% url 'reporte_ht' proyecto.id %}">
-              <button class="btn m-b-xs btn-default btn-addon ">
-                <i class="fa fa-file-pdf-o"></i>
-                Reporte Horas Trabajadas
-              </button>
-            </a>
-        </div>
-      </div>
     </div>
 {% endblock %}
-{% block results %}
-    <div class="row">
-        <div class="col-xs-12">
-                <a href="{% url 'proyecto_us_list' proyecto.id %}">
-                  <button class="btn m-b-xs btn-default btn-addon ">
-                    <i class="fa fa-tasks"></i>
-                    Product Backlog
-                  </button>
-                </a>
-        </div>
-      </div>
-    <div class="row">
-        <div class="col-xs-12">
-                <a href="{% url 'proyecto_sprint_list' proyecto.id %}">
-                  <button class="btn m-b-xs btn-default btn-addon ">
-                    <i class="fa fa-pencil"></i>
-                    Sprints
-                  </button>
-                </a>
-        </div>
-      </div>
-    <div class="row">
-        <div class="col-xs-12">
-                <a href="{% url 'proyecto_miembro_list' proyecto.id %}">
-                  <button class="btn m-b-xs btn-default btn-addon ">
-                    <i class="fa fa-users"></i>
-                    Miembros
-                  </button>
-                </a>
-        </div>
-      </div>
-    <div class="row">
-        <div class="col-xs-12">
-                <a href="{% url 'proyecto_rol_list' proyecto.id %}">
-                  <button class="btn m-b-xs btn-default btn-addon ">
-                    <i class="fa fa-pencil"></i>
-                    Roles
-                  </button>
-                </a>
-        </div>
-      </div>
-    <div class="row">
-        <div class="col-xs-12">
-                <a href="{% url 'proyecto_flujo_list' proyecto.id %}">
-                  <button class="btn m-b-xs btn-default btn-addon ">
-                    <i class="fa fa-pencil"></i>
-                    Flujos
-                  </button>
-                </a>
-        </div>
-      </div>
-    <div class="row">
-        <div class="col-xs-12">
-            <a href="{% url 'proyecto_tipous_list' proyecto.id %}">
-                  <button class="btn m-b-xs btn-default btn-addon ">
-                    <i class="fa fa-pencil"></i>
-                    Tipos de USs
-                  </button>
-            </a>
-        </div>
-      </div>
-    <div class="row">
-        <div class="col-xs-12">
-            <a href="{% url 'burdownchart_proyecto' proyecto.id %}">
-                  <button class="btn m-b-xs btn-default btn-addon ">
-                    <i class="fa fa-line-chart" aria-hidden="true"></i>
-                    Burdown Chart
-                  </button>
-            </a>
-        </div>
-      </div>
-{% endblock %}
+
 {% block extrajs %}
     {{ block.super }}
     <script type="text/javascript" src="{% static 'js/jquery.query-object.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/tabs.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/importar_error.js' %}"></script>
-
 {% endblock %}

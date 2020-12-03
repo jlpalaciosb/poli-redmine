@@ -56,7 +56,7 @@ class SprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
         """
         context = super(SprintListView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
-        context['titulo'] = 'Lista de Sprints de '+ proyecto.nombre
+        context['titulo'] = 'Sprints del Proyecto'
         context['crear_button'] = 'administrar_sprint' in get_perms(self.request.user, proyecto)
         context['crear_url'] = reverse('proyecto_sprint_crear',kwargs=self.kwargs)
         context['crear_button_text'] = 'Nuevo Sprint'
@@ -204,7 +204,6 @@ class SprintPerfilView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
         context['uss_iniciados'] = uss_iniciados
         context['uss_revision'] = uss_revision
         context['uss_terminados'] = uss_terminados
-        context['titulo'] = 'Administrar Sprint'
         context['titulo_form_editar'] = 'Datos del Sprint'
         context['titulo_form_editar_nombre'] = context[SprintPerfilView.context_object_name].orden
         # Breadcrumbs
@@ -379,7 +378,7 @@ class FlujoSprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateVi
         context = super(FlujoSprintListView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
         sprint = Sprint.objects.get(pk=self.kwargs['sprint_id'])
-        context['titulo'] = 'Seleccione un flujo para visualizar su tablero'
+        context['titulo'] = 'Escoja el Flujo'
         context['crear_button'] = False
 
         # datatables
@@ -398,7 +397,7 @@ class FlujoSprintListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateVi
                                  {'nombre': 'Sprints',
                                   'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
                                  {'nombre': 'Sprint %d' % sprint.orden, 'url': reverse('proyecto_sprint_administrar',kwargs=self.kwargs)},
-                                 {'nombre': 'Flujos', 'url':'#'}
+                                 {'nombre': 'Kanban', 'url':'#'}
                                  ]
 
 
@@ -434,7 +433,7 @@ class TableroKanbanView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
             context['user_stories_sprint'] = UserStorySprint.objects.filter(sprint=sprint, us__flujo=flujo)
         except Flujo.DoesNotExist:
             raise Http404('No existe dicho flujo')
-        context['titulo'] = 'Tablero Kanban'
+        context['titulo'] = 'Kanban del Flujo: %s' % flujo.nombre
 
 
         # Breadcrumbs
@@ -446,8 +445,8 @@ class TableroKanbanView(LoginRequiredMixin, PermisosEsMiembroMixin, DetailView):
                                   'url': reverse('proyecto_sprint_list', args=(self.kwargs['proyecto_id'],))},
                                  {'nombre': 'Sprint %d' % sprint.orden,
                                   'url': reverse('proyecto_sprint_administrar', args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id']))},
-                                 {'nombre': 'Flujos', 'url': reverse('proyecto_sprint_flujos', args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id']))},
-                                 {'nombre':'Tablero Kanban', 'url':'#'}
+                                 {'nombre': 'Kanban', 'url': reverse('proyecto_sprint_flujos', args=(self.kwargs['proyecto_id'],self.kwargs['sprint_id']))},
+                                 {'nombre': flujo.nombre, 'url':'#'}
                                  ]
 
         return context

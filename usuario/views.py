@@ -90,7 +90,7 @@ class UsuarioCreateView(SuccessMessageMixin, PermissionRequiredMixin, LoginRequi
 
     def get_context_data(self, **kwargs):
         context = super(UsuarioCreateView, self).get_context_data(**kwargs)
-        context['titulo'] = 'Usuario'
+        context['titulo'] = 'Nuevo Usuario'
         context['titulo_form_crear'] = 'Insertar Datos del Nuevo Usuario'
 
         # Breadcrumbs

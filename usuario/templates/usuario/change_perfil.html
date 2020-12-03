@@ -5,7 +5,7 @@
 {% block content %}
     {% block titulo %}
         <div class="bg-light lter b-b wrapper-md col-md-12">
-            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+            <h1 class="m-n font-thin h3">Usuario: {{ usuario.username }}</h1>
         </div>
     {% endblock %}
 
@@ -14,52 +14,44 @@
     {% endblock %}
 
     <div class="wrapper-md">
-    <div class="well m-t bg-light lt">
-      <div class="row">
+        <div class="well m-t bg-light lt">
+            <div class="row">
+                <div class="col-xs-4">
+                    <p><strong>Nombre Completo: </strong> {{ usuario.get_full_name }}</p>
+                    <p><strong>Correo Electrónico: </strong> {{ usuario.email }}</p>
+                </div>
+                <div class="col-xs-8">
+                    <p>
+                        <strong>Roles Administrativos:</strong> <br>
+                        <ul> {% for roles in usuario.groups.all %}
+                            {% if roles.roladministrativo %}
+                                <li>{{ roles.roladministrativo.name }}</li>
+                            {% endif %}
+                        {% endfor %} </ul>
+                    </p>
+                </div>
+            </div>
 
-        <div class="col-xs-4">
-          <h4>{{ usuario.get_full_name }}</h4>
-          <p>
-              <strong>Username: </strong>   {{ usuario.username }}<br><br>
-              <strong>Correo Electrónico: </strong>   {{ usuario.email }}<br><br>
-          </p>
-        </div>
-
-        <div class="col-xs-6">
-          <h4>&nbsp;</h4>
-          <p>
-              <strong>Roles Administrativos: </strong>  <br>
-              <ul>
-                {% for roles in usuario.groups.all %}
-                    {% if roles.roladministrativo %}
-                    <li>{{  roles.roladministrativo.name }}</li>
+            <div class="row">
+                <div class="col-xs-12">
+                    {% if perms.proyecto.change_usuario %}
+                        <a href="{% url 'usuario:editar' usuario.id %}">
+                            <button class="btn m-b-xs btn-default btn-addon ">
+                                <i class="fa fa-pencil"></i>
+                                Editar
+                            </button>
+                        </a>
                     {% endif %}
-                {% endfor %}
-              </ul>
-              <br>
-          </p>
+                    {% if perms.proyecto.delete_usuario %}
+                        <a href="{% url 'usuario:eliminar' usuario.id %}">
+                            <button class="btn m-b-xs btn-danger btn-addon ">
+                                <i class="fa fa-trash-o"></i>
+                                Eliminar
+                            </button>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="col-xs-12">
-            {% if perms.proyecto.change_usuario or user == usuario %}
-                <a href="{% url 'usuario:editar' usuario.id %}">
-                  <button class="btn m-b-xs btn-default btn-addon ">
-                    <i class="fa fa-pencil"></i>
-                    Editar
-                  </button>
-                </a>
-            {% endif %}
-            {% if perms.proyecto.delete_usuario %}
-                <a href="{% url 'usuario:eliminar' usuario.id %}">
-                  <button class="btn m-b-xs btn-danger btn-addon ">
-                    <i class="fa fa-trash-o"></i>
-                    Eliminar
-                  </button>
-                </a>
-            {% endif %}
-        </div>
-      </div>
-    </div>
     </div>
 {% endblock %}

@@ -84,7 +84,7 @@ class TipoUsCreateView(LoginRequiredMixin, PermisosPorProyectoMixin,ProyectoEsta
         """
         context = super().get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        context['titulo'] = 'Tipos de US'
+        context['titulo'] = 'Crear Tipo de US'
         context['titulo_form_crear'] = 'Insertar Datos del Tipo de US'
 
         # Breadcrumbs

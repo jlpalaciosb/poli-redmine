@@ -64,7 +64,7 @@ class FlujoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, ProyectoEsta
         """
         context = super().get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        context['titulo'] = 'Flujo'
+        context['titulo'] = 'Crear Flujo'
         context['titulo_form_crear'] = 'Insertar Datos del Flujo'
 
         # Breadcrumbs
@@ -222,7 +222,7 @@ class FlujoListView(LoginRequiredMixin, PermisosEsMiembroMixin, TemplateView):
         """
         context = super(FlujoListView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=kwargs['proyecto_id'])
-        context['titulo'] = 'Lista de Flujo ' + proyecto.nombre
+        context['titulo'] = 'Lista de Flujos del Proyecto'
         context['crear_button'] = 'add_flujo' in get_perms(self.request.user, proyecto)
         context['crear_url'] = reverse('proyecto_flujo_crear', kwargs=self.kwargs)
         context['crear_button_text'] = 'Nuevo Flujo'

@@ -124,7 +124,7 @@ class RolProyectoCreateView(LoginRequiredMixin, PermisosPorProyectoMixin, Succes
         """
         context = super(RolProyectoCreateView, self).get_context_data(**kwargs)
         proyecto = Proyecto.objects.get(pk=self.kwargs['proyecto_id'])
-        context['titulo'] = 'Roles de Proyectos'
+        context['titulo'] = 'Nuevo Rol para el Proyecto'
         context['titulo_form_crear'] = 'Insertar Datos del Rol del Proyecto'
 
         # Breadcrumbs

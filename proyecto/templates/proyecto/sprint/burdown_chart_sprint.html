@@ -4,67 +4,70 @@
 {% block content %}
     {% block titulo %}
         <div class="bg-light lter b-b wrapper-md col-md-12">
-            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+            <h1 class="m-n font-thin h3">Burdown Chart del Sprint #{{ sprint.orden }}</h1>
         </div>
     {% endblock %}
 
     {% block breadcrumbs %}
         {{ block.super }}
     {% endblock %}
+
     <div class="wrapper-md">
         <div class="well m-t bg-light lt">
-
-        <div class='row'>
-            <h2>Sprint Nro. {{ sprint.orden }}</h2>
-            <div id="chart"></div>
-        </div>
+            <div class='row'>
+                <div class="col-xs-12">
+                    <div id="chart"></div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
+
 {% block extracss %}
     <link href="{% static 'css/c3.css' %}" rel="stylesheet">
 {% endblock %}
+
 {% block extrajs %}
     <script src="{% static 'js/d3-5.8.2.min.js' %}" charset="utf-8"></script>
     <script src="{% static 'js/c3.min.js' %}"></script>
     <script>
-    var chart = c3.generate({
-    bindto: '#chart',
-    data: {
-        xs: {
-            'real': 'x1',
-            'ideal': 'x2',
-        },
-        columns: [
-            ['x1', {{ grafica.datos_en_x | join:" , " }}],
-            ['x2', {{ grafica.ideal_x | join:" , " }}],
-            ['real', {{ grafica.datos_en_y | join:" , " }}],
-            ['ideal', {{ grafica.ideal_y | join:" , " }}]
-        ]
+        var chart = c3.generate({
+            bindto: '#chart',
+            data: {
+                xs: {
+                    'real': 'x1',
+                    'ideal': 'x2',
+                },
+                columns: [
+                    ['x1', {{ grafica.datos_en_x | join:" , " }}],
+                    ['x2', {{ grafica.ideal_x | join:" , " }}],
+                    ['real', {{ grafica.datos_en_y | join:" , " }}],
+                    ['ideal', {{ grafica.ideal_y | join:" , " }}]
+                ]
 
-    },
-    axis: {
-    y: {
-        max: {{ total }},
+            },
+            axis: {
+                y: {
+                    max: {{ total }},
 
-        label: 'Trabajo Pendiente(Horas)'
-        // Range includes padding, set 0 if no padding needed
-        // padding: {top:0, bottom:0}
-    },
-        x: {
-        label: 'Dia del Sprint'
-        }
+                    label: 'Trabajo Pendiente(Horas)'
+                    // Range includes padding, set 0 if no padding needed
+                    // padding: {top:0, bottom:0}
+                },
+                x: {
+                    label: 'Dia del Sprint'
+                }
 
-    },
-    {% if negativo %}
-    grid: {
-        y: {
-            lines: [
-                {value: 0, text: 'Tiempo planificado excedido', position: 'start'}
-            ]
-        }
-    }
-    {% endif %}
-});
+            },
+            {% if negativo %}
+                grid: {
+                    y: {
+                        lines: [
+                            {value: 0, text: 'Tiempo planificado excedido', position: 'start'}
+                        ]
+                    }
+                }
+            {% endif %}
+        });
     </script>
 {% endblock %}

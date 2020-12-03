@@ -94,7 +94,7 @@ WSGI_APPLICATION = 'ProyectoIS2_9.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'is2db_produccion',
+        'NAME': 'is2db',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
         'HOST': 'localhost',

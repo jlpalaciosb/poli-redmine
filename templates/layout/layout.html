@@ -4,11 +4,11 @@
 <html lang="es" class="">
 {% block head %}
     <head>
-        <meta charset="utf-8" />
-        <title>{% block  title%}PoliRedmine{% endblock %}</title>
+        <meta charset="utf-8"/>
+        <title>{% block  title %}PoliRedmine{% endblock %}</title>
 
-        <meta name="description" content="Is2" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="description" content="Is2"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
 
         {% block css %}
             {% include 'layout/layout_css.html' %}
@@ -35,20 +35,15 @@
         <div id="content" class="app-content" role="main">
             <div class="app-content-body ">
                 {% block content %}
-
-                    {% block titulo %}
-
-                    {% endblock %}
+                    {% block titulo %}{% endblock %}
 
                     {% block breadcrumbs %}
-                        <ol class="breadcrumb" style="background-color: #f6f8f8">
+                        <ol class="breadcrumb" style="background-color: #f6f8f8; margin-bottom: 0;">
                             {% for node in  breadcrumb %}
                                 <li><a href="{{ node.url }}">{{ node.nombre }}</a></li>
                             {% endfor %}
                         </ol>
-
                     {% endblock %}
-
                 {% endblock %}
             </div>
         </div>

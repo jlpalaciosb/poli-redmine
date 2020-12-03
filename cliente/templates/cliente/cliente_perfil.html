@@ -3,7 +3,7 @@
 {% block content %}
     {% block titulo %}
         <div class="bg-light lter b-b wrapper-md col-md-12">
-            <h1 class="m-n font-thin h3">{{ titulo }}</h1>
+            <h1 class="m-n font-thin h3">Cliente: {{ cliente.nombre }}</h1>
         </div>
     {% endblock %}
 
@@ -14,26 +14,20 @@
     <div class="wrapper-md">
         <div class="well m-t bg-light lt">
             <div class="row">
-                <div class="col-xs-6">
-                    <h4>{{ cliente.nombre }}</h4>
-                    <p>
-                        <strong>RUC: </strong>{{ cliente.ruc }}<br><br>
-                        <strong>Dirección: </strong>{{  cliente.direccion }}<br>
-                    </p>
+                <div class="col-xs-4">
+                    <p><strong>RUC:</strong> {{ cliente.ruc }}</p>
+                    <p><strong>Dirección:</strong> {{ cliente.direccion }}</p>
                 </div>
-                <div class="col-xs-6">
-                    <h4>&nbsp;</h4>
-                    <p>
-                        <strong>Correo: </strong>{{ cliente.correo }}<br><br>
-                        <strong>Teléfono: </strong>{{ cliente.telefono }}<br><br>
-                        <strong>País: </strong>{{ cliente.pais }}<br><br>
-                    </p>
+                <div class="col-xs-8">
+                    <p><strong>Correo:</strong> {{ cliente.correo }}</p>
+                    <p><strong>Teléfono:</strong> {{ cliente.telefono }}</p>
+                    <p><strong>País:</strong> {{ cliente.pais }}</p>
                 </div>
             </div>
             <div class="row">
                 <div class="col-xs-12">
                     {% if perms.proyecto.add_proyecto or perms.proyecto.change_proyecto or perms.proyecto.delete_proyecto %}
-                        <a href="{% url 'cliente:reporte_cliente' cliente.id%}">
+                        <a href="{% url 'cliente:reporte_cliente' cliente.id %}">
                             <button class="btn m-b-xs btn-default btn-addon ">
                                 <i class="fa fa-file-pdf-o"></i>
                                 Reporte
